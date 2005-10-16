@@ -13,7 +13,7 @@ require 5.004;
 use Time::localtime;
 use Image::ExifTool;
 
-my $renrotVersion = "0.12";	# the version of this script
+$VERSION = "0.12";	# the version of this script
 
 # the default commentary to add to UserComment
 my $COMMENTARY = <<__COMMENTARY__;
