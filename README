@@ -14,7 +14,7 @@ Further it sets Orientation EXIF tag to "Horizontal (normal)"
 
 After all this script is adding the commentary:
 
-        - if commentary file provided with -comfile option
+        - if commentary file provided with --comment-file option
 
         - $COMMENTARY is put to UserComment
 

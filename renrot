@@ -55,6 +55,12 @@ my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
 my $comfile;	# file with commentary
+my $verbose = 0;	# verbosity of output
+
+sub debug {
+    my $level = shift;
+    print STDERR @_ if ($verbose >= $level);
+}
 
 sub getopt {
 	my $ver;	# need version
@@ -69,6 +75,7 @@ sub getopt {
 		"name-prefix=s" => \$namePrefix,
 		"name-prefix-only=s" => \$namePrefixOnly,
 		"name-suffix" => \$nameSuffix,
+		"v+" => \$verbose,
 		"version" => \$ver,
 		"help|?"   => \$help);
 
@@ -91,6 +98,10 @@ sub getopt {
 		usage();
 		exit 1;
 	}
+
+	# change user's parameter '*.ext' to 'ext'
+	$extentionToProcess =~ s/^\*\.//;
+	debug (2, "Process with '$extentionToProcess' extention\n");
 }
 
 # parse command-line options
@@ -476,7 +487,7 @@ Further it sets Orientation EXIF tag to "Horizontal (normal)"
 
 After all this script is adding the commentary:
 
-	- if commentary file provided with -comfile option
+	- if commentary file provided with --comment-file option
 
 	- $COMMENTARY is put to UserComment 
 
