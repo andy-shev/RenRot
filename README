@@ -1,3 +1,5 @@
+RUNNING
+
 This script is intended to work ONLY in current directory
 it renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
@@ -16,3 +18,25 @@ After all this script is adding the commentary:
 
         - $COMMENTARY is put to UserComment
 
+INSTALLATION
+
+You can install the renrot to make it available for use by other users by
+typing the following:
+
+  perl Makefile.PL PREFIX=/usr/local
+  make
+  make install PREFIX=/usr/local
+	    
+Notes:
+   i) You need root access for the last step above.
+  ii) Some Perl installations (like the standard OSX installation) may not
+      contain the necessary files to complete the first step above. But no
+      worries: You can install script manually by moving 'renrot' to any
+      directory in your current PATH.
+ iii) You may choose any desired PREFIX by changing /usr/local at above
+      sample.
+			   
+DEPENDENCIES
+
+Requires Perl version 5.004 or later. No other special libraries are
+required, except Image::ExifTool package.
