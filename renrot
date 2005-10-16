@@ -14,7 +14,8 @@ use Time::localtime;
 use Image::ExifTool;
 use Getopt::Long;
 
-my $VERSION = "0.12";	# the version of this script
+my $VERSION;
+$VERSION = "0.12";	# the version of this script
 
 # the default commentary to add to UserComment
 my $COMMENTARY = <<__COMMENTARY__;
@@ -497,11 +498,11 @@ the help
 
 extention of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
-=item B<--rotate> I<90|270>
+=item B<--rotate> I<90> or I<270>
 
 define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the files where no Orientation tag is set right way
 
-=item B<--rotate-thumb> I<90|270>
+=item B<--rotate-thumb> I<90> or I<270>
 
 rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were rotated, but thumbnail wasn't
 
