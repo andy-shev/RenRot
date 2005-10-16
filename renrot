@@ -68,7 +68,7 @@ while ( $_ = shift ) {
 		/^-name-prefix-only$/ and $namePrefixOnly = shift
 			|| die ("Expecting prefix to the filename for --name-prefix-only option\n"), next;
 		/^-name-sufix$/ and $nameSufix = 1, next;
-		/^ver$/i and print("renrot version $renrotVersion\n"), exit 0;
+		/^ver$/i and print("renrot version $VERSION\n"), exit 0;
 		/^-help$/i and usage();
 		/^h$/i and usage();
 	} 
