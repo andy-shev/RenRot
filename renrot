@@ -457,8 +457,6 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
 _USAGE_
-	
-	exit 0;
 }
 
 __END__
