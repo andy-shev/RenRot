@@ -486,11 +486,7 @@ After all this script is adding the commentary:
 
 =over 5
 
-=item B<-h>
-
-the help
-
-=item B<--help>
+=item B<-h> or B<--help>
 
 the help
 
