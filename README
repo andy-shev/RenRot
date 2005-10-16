@@ -4,7 +4,7 @@ This script is intended to work ONLY in current directory
 it renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be in form YYYYmmddHHMMS-XXXXX.jpeg where
-XXXXX is incrementable sufix to the name YYYYmmddHHMMS.
+XXXXX is incrementable suffix to the name YYYYmmddHHMMS.
 
 This script rotates file and it's thumbnail, accordingly Orientation EXIF tag.
 if the tag is absent or miss set, than the script allows to rotate the file

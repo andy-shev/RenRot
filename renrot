@@ -50,7 +50,7 @@ my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
 my $noComment;	# no comment needed
 my $namePrefix;	# prefix to the filename
 my $namePrefixOnly; # prefix to the filename (for case when no date in name needed)
-my $nameSufix;	# sufix to the filename
+my $nameSuffix;	# suffix to the filename
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
@@ -68,7 +68,7 @@ sub getopt {
 		"comment-file=s" => \$comfile,
 		"name-prefix=s" => \$namePrefix,
 		"name-prefix-only=s" => \$namePrefixOnly,
-		"name-sufix" => \$nameSufix,
+		"name-suffix" => \$nameSuffix,
 		"version" => \$ver,
 		"help|?"   => \$help);
 
@@ -108,7 +108,7 @@ my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
 my $dir = ".";		# now we'll work ONLY in current directory
 my $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
-my $countersufix;	# the sufix to add after timestamp to name the files without DateTimeOriginal tag
+my $countersuffix;	# the suffix to add after timestamp to name the files without DateTimeOriginal tag
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 my $rotas;		# how to rotate
 my @rotparms = (''
@@ -124,7 +124,7 @@ my %rotangles = ( '90' => '-rotate 90',
 
 my $errorMessage;
 my $warningMessage;
-my $sufix = "";
+my $suffix = "";
 my $prefix = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
@@ -155,7 +155,7 @@ while ( defined ( $file = readdir DIR )) {
 			if ( defined $namePrefix ) { 
 				$newfilename = $namePrefix . "."; 
 			}
-			if ( defined $nameSufix ) {
+			if ( defined $nameSuffix ) {
 				if ( defined $info->{"ExposureTime"} ) {
 					$ExposureTime = $info->{"ExposureTime"};
 					$ExposureTime =~ s/\//by/g;
@@ -167,7 +167,7 @@ while ( defined ( $file = readdir DIR )) {
 				}
 				else { $WhiteBalance = 0; }
 
-				$sufix = ".W" . $WhiteBalance
+				$suffix = ".W" . $WhiteBalance
 					. "I" . $info->{"CameraISO"}
 					. "A" . $info->{"FNumber"}
 					. "E" . $ExposureTime;
@@ -177,29 +177,29 @@ while ( defined ( $file = readdir DIR )) {
 				&& !(defined $namePrefixOnly) ) {
 	
 				$newfilename = $newfilename . $info->{"DateTimeOriginal"} 
-							. "." . $info->{"FileNumber"} . $sufix 
+							. "." . $info->{"FileNumber"} . $suffix 
 							. "." . $extentionToProcessLowCase;
 			}
 			elsif ( defined ( $info->{"DateTimeOriginal"} )
 				&& !( defined ( $info->{"FileNumber"} ) )
 				&& !( defined $namePrefixOnly ) ) {
 				
-				$countersufix = sprintf('%.4d', $filecounter);
-				$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersufix
-							. $sufix . "." . $extentionToProcessLowCase;
+				$countersuffix = sprintf('%.4d', $filecounter);
+				$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersuffix
+							. $suffix . "." . $extentionToProcessLowCase;
 				$filecounter++;
 				
 			}
 			else { # if not exists, than adding XXXX index to the end of timestamp
-				$countersufix = sprintf('%.4d', $filecounter);
+				$countersuffix = sprintf('%.4d', $filecounter);
 				if ( defined $namePrefixOnly ) {
 					$prefix = $namePrefixOnly;
 				}
 				else {
 					$prefix = now();
 				}
-				$newfilename = $newfilename . $prefix . "." . $countersufix 
-							. "." . $sufix . "." . $extentionToProcessLowCase;
+				$newfilename = $newfilename . $prefix . "." . $countersuffix 
+							. "." . $suffix . "." . $extentionToProcessLowCase;
 				$filecounter++;
 			}
 			
@@ -441,8 +441,8 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
 		--name-prefix <PREFIX>	prefix to the filename
 		--name-prefix-only	prefix to the filename when no date in the name needed
-		--name-sufix		sufix to the filename, the values of aperture, exsposure time, 
-					iso and white balance are added to the filename as sufix, see manual
+		--name-suffix		suffix to the filename, the values of aperture, exsposure time, 
+					iso and white balance are added to the filename as suffix, see manual
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
 _USAGE_
@@ -466,7 +466,7 @@ This script is intended to work ONLY in current directory
 it renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be in form YYYYmmddHHMMS-XXXXX.jpeg where
-XXXXX is incrementable sufix to the name YYYYmmddHHMMS.
+XXXXX is incrementable suffix to the name YYYYmmddHHMMS.
 
 This script rotates file and it's thumbnail, accordingly Orientation EXIF tag.
 if the tag is absent or miss set, than the script allows to rotate the file
@@ -530,9 +530,9 @@ prefix to the filename, if defined, filenames looks like:  myprefix-YYYYmmddHHMM
 
 prefix to the filename when no date in the filename whished, if defined, filenames looks like:  myprefix-XXXXX.jpg
 
-=item B<--name-sufix>
+=item B<--name-suffix>
 
-sufix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and ExposureTime, if defined, filenames looks like: 
+suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and ExposureTime, if defined, filenames looks like: 
 
 20050813072758.a8-e1by1760-i400-wbDaylight.crw
 20050813072814.a6.3-e1by1244-i200-wbClowdy.jpg
