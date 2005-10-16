@@ -3,3 +3,4 @@ Makefile.PL
 MANIFEST
 README
 renrot
+META.yml                                 Module meta-data (added by MakeMaker)

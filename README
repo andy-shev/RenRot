@@ -39,4 +39,4 @@ Notes:
 DEPENDENCIES
 
 Requires Perl version 5.004 or later. No other special libraries are
-required, except Image::ExifTool package.
+required, except Image::ExifTool and Getopt::Long packages.

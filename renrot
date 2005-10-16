@@ -12,8 +12,9 @@ use strict;
 require 5.004;
 use Time::localtime;
 use Image::ExifTool;
+use Getopt::Long;
 
-$VERSION = "0.12";	# the version of this script
+my $VERSION = "0.12";	# the version of this script
 
 # the default commentary to add to UserComment
 my $COMMENTARY = <<__COMMENTARY__;
@@ -54,28 +55,45 @@ my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
 my $comfile;	# file with commentary
 
-# parse command-line options
-while ( $_ = shift ) {
-	if (s/^-//) {
-		/^ext$/ and $extentionToProcess = shift || die ("Expecting extention for --ext option\n"), next;
-		/^rot$/ and $rotate = shift || die ("Define the angle, to rotate on, 90 or 270\n"), next;
-		/^-rot-thumb$/ and $rotateThumbnail = shift || die ("Define the angle, to rotate on, 90 or 270\n"), next;
-		/^norot$/ and $noRotation = 1, next;
-		/^noren$/ and $noRename = 1, next;
-		/^comfile$/ and $comfile = shift || die ("Expecting commentary file name\n"), next;
-		/^-name-prefix$/ and $namePrefix = shift
-			|| die ("Expecting prefix to the filename for --name-prefix option\n"), next;
-		/^-name-prefix-only$/ and $namePrefixOnly = shift
-			|| die ("Expecting prefix to the filename for --name-prefix-only option\n"), next;
-		/^-name-sufix$/ and $nameSufix = 1, next;
-		/^ver$/i and print("renrot version $VERSION\n"), exit 0;
-		/^-help$/i and usage();
-		/^h$/i and usage();
-	} 
-	else { usage(); }
+sub getopt {
+	my $ver;	# need version
+	my $help;	# need help
+	my $getopt = GetOptions (
+		"ext|e=s" => \$extentionToProcess,
+		"rotate|r=i" => \$rotate,
+		"rotate-thumb=i" => \$rotateThumbnail,
+		"no-rotate" => \$noRotation,
+		"no-rename" => \$noRename,
+		"comment-file=s" => \$comfile,
+		"name-prefix=s" => \$namePrefix,
+		"name-prefix-only=s" => \$namePrefixOnly,
+		"name-sufix" => \$nameSufix,
+		"version" => \$ver,
+		"help|?"   => \$help);
+
+	if (defined $help && $help != 0) {
+		usage();
+		exit 0;
+	}
+	
+	if (defined $ver && $ver != 0) {
+		print STDERR "renrot version $VERSION\n";
+		exit 0;
+	}
+
+	if (not defined $extentionToProcess) {
+	    print STDERR "Extention of files is required!\n";
+	    exit 1;
+	}
+
+	if ($getopt == 0) {
+		usage();
+		exit 1;
+	}
 }
 
-usage() unless defined $extentionToProcess;
+# parse command-line options
+getopt();
 
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
@@ -407,25 +425,25 @@ sub rotateFile {
 # usage() - the instruction how to use the script
 # 
 sub usage {
-print <<_USAGE_;
-Usage:	renrot 	[-h|--help] [-norot] [-noren] [-comfile] 
-		[-ver] [--name-prefix nameprefix] <-ext extention>
+print STDERR <<_USAGE_;
+Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
+		[--version] [--name-prefix NAMEPREFIX] <--ext EXTENTION>
 
 		-h | --help		this very page
-		-ext <EXT>		extention of files to be processed, JPG, jpg, JPEG e.t.c.
-		-norot			no rotation needed, default is to rotate
-		-rot <90|270>		define the angle, to rotate file and the thumbnail on, 
+		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
+		--no-rotate		no rotation needed, default is to rotate
+		--rotate <90|270>	define the angle, to rotate file and the thumbnail on, 
 					90 or 270. it's for the files where no Orientation tag 
 					is present and set right way
-		--rot-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
+		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
-		-noren			no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
-		--name-prefix		prefix to the filename
+		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
+		--name-prefix <PREFIX>	prefix to the filename
 		--name-prefix-only	prefix to the filename when no date in the name needed
 		--name-sufix		sufix to the filename, the values of aperture, exsposure time, 
 					iso and white balance are added to the filename as sufix, see manual
-		-comfile		file with commentary
-		-ver			the version of this script
+		--comment-file <FILE>	file with commentary
+		--version		the version of this script
 _USAGE_
 	
 	exit 0;
@@ -475,31 +493,31 @@ the help
 
 the help
 
-=item B<-ext> I<EXT>
+=item B<--ext> I<EXTENTION>
 
 extention of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
-=item B<-rot> I<90|270>
+=item B<--rotate> I<90|270>
 
 define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the files where no Orientation tag is set right way
 
-=item B<--rot-thumb> I<90|270>
+=item B<--rotate-thumb> I<90|270>
 
 rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were rotated, but thumbnail wasn't
 
-=item B<-norot>
+=item B<--no-rotate>
 
 no rotation needed, default is to rotate
 
-=item B<-noren>
+=item B<--no-rename>
 
 no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
 
-=item B<-comfile> I<COMMENTFILENAME>
+=item B<--comment-file> I<COMMENTFILENAME>
 
 file with commentary
 
-=item B<-ver>
+=item B<--version>
 
 the version of this script
 
