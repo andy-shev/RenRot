@@ -1,12 +1,8 @@
 #!/usr/bin/perl -w
-#------------------------------------------------------------------------------
-# File:         renrot
+
 #
-# Description:  Ths script is intended to work ONLY in current directory
+# $Id$
 #
-# Revisions:    20050929235900 -	Zeus Panchenko Created
-#               			ICQ:198888060
-#------------------------------------------------------------------------------
 
 use strict;
 require 5.004;
