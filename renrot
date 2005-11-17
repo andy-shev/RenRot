@@ -11,33 +11,7 @@ use Image::ExifTool;
 use Getopt::Long;
 
 my $VERSION;
-$VERSION = "0.12";	# the version of this script
-
-# the default commentary to add to UserComment
-my $COMMENTARY = <<__COMMENTARY__;
-This image was shot by Zeus Panchenko for private purposes
-and is copyrighted by him (me). The copyright is governed by
-copyright laws. This image cannot be copied in any form
- without prior written permission from Zeus Panchenko.
-However, this copyright notice gives you permission to link
-to the image.
-
-This image is NOT a public domain!!! Unauthorized usage
-definetely PROHIBITED!
-
-You can use this image anyhow ONLY if you have received the
-assignment of permition to use from Zeus Panchenko.
-__COMMENTARY__
-
-my $CiAdrCity 	= "Donetsk";
-my $CiAdrCtry 	= "bul.Franko";
-my $CiAdrExtadr = "46-6";
-my $CiAdrPcode 	= "83000";
-my $CiAdrRegion = "Donetsk";
-my $CiEmailWork = "zeus-dn_farlep_net";
-my $CiTelWork 	= "+380623858071";
-my $CiUrlWork 	= "http://indexif.dn.farlep.net";
-my $City 	= "Donetsk";
+$VERSION = "0.13";	# the version of this script
 
 my $noRotation;	# no rotation needed, default is to rotate
 my $rotate;	# define the angle, to rotate on, 90 or 270
@@ -50,6 +24,7 @@ my $nameSuffix;	# suffix to the filename
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
+my $configFile;	# config file
 my $comfile;	# file with commentary
 my $verbose = 0;	# verbosity of output
 
@@ -71,6 +46,7 @@ sub getopt {
 		"name-prefix=s" => \$namePrefix,
 		"name-prefix-only=s" => \$namePrefixOnly,
 		"name-suffix" => \$nameSuffix,
+		"c=s" => \$configFile,
 		"v+" => \$verbose,
 		"version" => \$ver,
 		"help|?"   => \$help);
@@ -102,6 +78,30 @@ sub getopt {
 
 # parse command-line options
 getopt();
+
+# the default commentary to add to UserComment
+our $COMMENTARY;
+our $CiAdrCity;
+our $CiAdrCtry;
+our $CiAdrExtadr;
+our $CiAdrPcode;
+our $CiAdrRegion;
+our $CiEmailWork;
+our $CiTelWork;
+our $CiUrlWork;
+our $City;
+
+my $etc_rc = "/etc/.renrotrc";
+my $usrlocaletc_rc = "/usr/local/etc/.renrotrc";
+my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
+my $justhere_rc = "./.renrotrc";
+
+if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
+elsif ( -f $justhere_rc ) { do $justhere_rc; }	
+elsif ( -f $homedir_rc ) { do $homedir_rc; }
+elsif ( -f $usrlocaletc_rc ) { do $usrlocaletc_rc; }
+elsif ( -f $etc_rc ) { do $etc_rc; }
+
 
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
@@ -269,18 +269,36 @@ while ( defined ( $file = readdir DIR )) {
 		######################################
 		#
 		## preparing to write the UserComment and some additional tags
-		# 
-		$exifTool->SetNewValue(UserComment => $COMMENTARY);
+		#
+		if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
 
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
-		$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
-		$exifTool->SetNewValue('City', $City, Group=>'XMP');
+		if ( defined ( $CiAdrCity ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrCtry ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrExtadr ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrPcode ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrRegion ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
+		}
+		if ( defined ( $CiEmailWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
+		}
+		if ( defined ( $CiTelWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
+		}
+		if ( defined ( $CiUrlWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
+		}
+		if ( defined ( $City ) ) {
+			$exifTool->SetNewValue('City', $City, Group=>'XMP');
+		}
 
 		# writing the changes to the EXIFs
 		my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
@@ -289,7 +307,10 @@ while ( defined ( $file = readdir DIR )) {
 			rename ( $comentedfilename, $newfilename  )  
 				|| die "ERROR: " . $comentedfilename . " -> " . $newfilename . "\n"; 
 		}
-		elsif ( $res == 2 ) { print "No changes for " . $comentedfilename . "\n"; }
+		elsif ( $res == 2 ) { 
+			print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
+			unlink $comentedfilename;
+		}
 		else {
 			my $errorMessage   = $exifTool->GetValue('Error');
 			my $warningMessage = $exifTool->GetValue('Warning');
@@ -438,6 +459,7 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		[--version] [--name-prefix NAMEPREFIX] <--ext EXTENTION>
 
 		-h | --help		this very page
+		-c			config file (see man for details)
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
 		--rotate <90|270>	define the angle, to rotate file and the thumbnail on, 
@@ -467,24 +489,27 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-This script is intended to work ONLY in current directory
-it renames files according the DateTimeOriginal EXIF tag if it's exists
+B<Renrot> is intended to work ONLY in current directory
+
+It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
-than if it isn't, the name will be in form YYYYmmddHHMMS-XXXXX.jpeg where
-XXXXX is incrementable suffix to the name YYYYmmddHHMMS.
+than if it isn't, the name will be given according the current timestamp
+and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is incrementable 
+suffix to the name YYYYmmddHHMMS.
 
-This script rotates file and it's thumbnail, accordingly Orientation EXIF tag.
-if the tag is absent or miss set, than the script allows to rotate the file
-as well as it's thumbnail
+It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
+If the tag is absent or miss set, than the script allows to rotate the file
+as well as it's thumbnail,
 
-Further it sets Orientation EXIF tag to "Horizontal (normal)"
+After all, the script can put the commentary to:
 
-After all this script is adding the commentary:
+	- Commentary tag if commentary file provided with --comment-file option
 
-	- if commentary file provided with --comment-file option
+	- UserComment tag if $COMMENTARY variable set in config file
 
-	- $COMMENTARY is put to UserComment 
-
+Personal data could be specified via XMP tags defined in config file, look 
+CONFIG section.
+	
 =over 5
 
 =head1 OPTIONS
@@ -494,6 +519,10 @@ After all this script is adding the commentary:
 =item B<-h> or B<--help>
 
 the help
+
+=item B<-c> I<config file>
+
+location of the config file
 
 =item B<--ext> I<EXTENTION>
 
@@ -539,6 +568,64 @@ suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and 
 20050813072814.a6.3-e1by1244-i200-wbClowdy.jpg
 
 where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and I<wb> for WhiteBalance
+
+=head1 CONFIG
+
+Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<-c> option firstly, than it looks for file named .renrotrc in: current directory, home directory of the user, /usr/local/etc and finaly in /etc. Config file can be given via B<-c> option.
+
+These tags could be set via config file:
+
+=item B<UserComment>
+
+anything you'd wanna put as commentary
+
+=item B<CiAdrCity>	
+
+City
+
+=item B<CiAdrCtry>	
+
+street
+
+=item B<CiAdrExtadr> 	
+
+extended address
+
+=item B<CiAdrPcode>	
+
+zip code
+
+=item B<CiAdrRegion>	
+
+region
+
+=item B<CiEmailWork>
+
+email
+
+=item B<CiTelWork>	
+
+phone
+
+=item B<CiUrlWork>
+
+URL
+
+=item B<City>
+
+city
+
+=head1 FILES
+
+config file placement
+
+=item B<./.renrotrc>
+
+=item B<~/.renrotrc>
+
+=item B</usr/local/etc/.renrotrc>
+
+=item B</etc/.renrotrc>
 
 =head1 AUTHOR
 
