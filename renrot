@@ -518,7 +518,7 @@ CONFIG section.
 
 the help
 
-=item B<-c> I<config file>
+=item B<-c> or B<--config-file> I<config file>
 
 location of the config file
 
@@ -569,7 +569,7 @@ where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and I<wb
 
 =head1 CONFIG
 
-Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<-c> option firstly, than it looks for file named .renrotrc in: current directory, home directory of the user, /usr/local/etc and finaly in /etc. Config file can be given via B<-c> option.
+Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<--config-file> option firstly, than it looks for file named renrot.rc in system directories such as /etc and /usr/local/etc. And finally it looks for file named .renrotrc in home directory of the user. User defined config file can be given via B<--config-file> option.
 
 These tags could be set via config file:
 
@@ -615,15 +615,13 @@ city
 
 =head1 FILES
 
-config file placement
-
-=item B<./.renrotrc>
+config file placement (with high priority first)
 
 =item B<~/.renrotrc>
 
-=item B</usr/local/etc/.renrotrc>
+=item B</usr/local/etc/renrot.rc>
 
-=item B</etc/.renrotrc>
+=item B</etc/renrot.rc>
 
 =head1 AUTHOR
 

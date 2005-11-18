@@ -1,4 +1,7 @@
 $Log$
+Revision 1.7  2005/11/18 14:19:26  andy
+Fix documentation part according to last code changes.
+
 Revision 1.6  2005/11/18 14:05:19  andy
 Use our syntax for $VERSION. Requires perl >= 5.6.0.
 
@@ -18,4 +21,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
