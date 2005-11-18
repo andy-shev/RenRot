@@ -91,8 +91,8 @@ our $CiTelWork;
 our $CiUrlWork;
 our $City;
 
-my $etc_rc = "/etc/.renrotrc";
-my $usrlocaletc_rc = "/usr/local/etc/.renrotrc";
+my $etc_rc = "/etc/renrot.rc";
+my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
 my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
 my $justhere_rc = "./.renrotrc";
 
