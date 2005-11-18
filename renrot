@@ -46,7 +46,7 @@ sub getopt {
 		"name-prefix=s" => \$namePrefix,
 		"name-prefix-only=s" => \$namePrefixOnly,
 		"name-suffix" => \$nameSuffix,
-		"c=s" => \$configFile,
+		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
 		"version" => \$ver,
 		"help|?"   => \$help);
