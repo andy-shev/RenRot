@@ -1,10 +1,12 @@
 $Log$
+Revision 1.6  2005/11/18 14:05:19  andy
+Use our syntax for $VERSION. Requires perl >= 5.6.0.
+
 Revision 1.5  2005/11/18 13:25:18  zeus
 Config file overlaping implemented. Now if not -c, than the order of reading the configs is such: /etc, /usr/local/etc and finaly HOME
 
 Revision 1.4  2005/11/18 12:54:58  andy
 Add long option --config-file as alias to -c.
-
 
 Revision 1.3  2005/11/17 12:02:45  zeus
 Config file support added. Now hardcoded personal details are moved to config
@@ -12,7 +14,6 @@ file, option -c added. Fixed minor bug when EXIFs are identical in new and old
 files, renrot wasn't removing temporaty copy.
 
 Revision 1.2  2005/10/17 21:34:52  zeus
-
 Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
