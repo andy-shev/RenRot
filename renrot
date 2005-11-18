@@ -94,14 +94,13 @@ our $City;
 my $etc_rc = "/etc/renrot.rc";
 my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
 my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
-my $justhere_rc = "./.renrotrc";
 
 if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
-elsif ( -f $justhere_rc ) { do $justhere_rc; }	
-elsif ( -f $homedir_rc ) { do $homedir_rc; }
-elsif ( -f $usrlocaletc_rc ) { do $usrlocaletc_rc; }
-elsif ( -f $etc_rc ) { do $etc_rc; }
-
+else {
+	if ( -f $etc_rc ) { do $etc_rc; }
+	if ( -f $usrlocaletc_rc ) { do $usrlocaletc_rc; }
+	if ( -f $homedir_rc ) { do $homedir_rc; }
+}
 
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
