@@ -457,7 +457,7 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		[--version] [--name-prefix NAMEPREFIX] <--ext EXTENTION>
 
 		-h | --help		this very page
-		-c			config file (see man for details)
+		-c | --config-file	use this config file (see manual for details)
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
 		--rotate <90|270>	define the angle, to rotate file and the thumbnail on, 
