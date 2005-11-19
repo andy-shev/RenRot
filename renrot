@@ -315,7 +315,7 @@ while ( defined ( $file = readdir DIR )) {
 			if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
 			if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
 		}
-		print "\n\n\n";
+		print "\n\n";
 	}
 }
 
@@ -352,7 +352,7 @@ sub rotateFile {
 	
 	# jpegtran the image
 	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
-	print "rotate file: " . $cmd . "\n";
+	print "rotate: " . $cmd . "\n";
 	system $cmd || die "system $cmd failed: $?";
 	
 	rename ( $oldfile, $origfile ) || die "ERROR: " . $oldfile . " -> " . $origfile . "\n";

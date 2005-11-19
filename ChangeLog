@@ -1,4 +1,7 @@
 $Log$
+Revision 1.8  2005/11/19 09:45:56  zeus
+Minor script output formating
+
 Revision 1.7  2005/11/18 14:19:26  andy
 Fix documentation part according to last code changes.
 
@@ -6,7 +9,8 @@ Revision 1.6  2005/11/18 14:05:19  andy
 Use our syntax for $VERSION. Requires perl >= 5.6.0.
 
 Revision 1.5  2005/11/18 13:25:18  zeus
-Config file overlaping implemented. Now if not -c, than the order of reading the configs is such: /etc, /usr/local/etc and finaly HOME
+Config file overlaping implemented. Now if not -c, than the order of reading
+the configs is such: /etc, /usr/local/etc and finaly HOME.
 
 Revision 1.4  2005/11/18 12:54:58  andy
 Add long option --config-file as alias to -c.
