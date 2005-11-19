@@ -1,6 +1,8 @@
 AUTHORS
+ChangeLog
 Makefile.PL
-MANIFEST
+MANIFEST                                 This file
+META.yml                                 Module meta-data (added by MakeMaker)
 README
 renrot
-META.yml                                 Module meta-data (added by MakeMaker)
+renrot.rc                                Sample of config file
