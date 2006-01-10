@@ -1,6 +1,9 @@
 $Log$
+Revision 1.10  2006/01/10 12:16:07  zeus
+Documentation tailored a bit, the info concerning the jpegtran URL is added
+
 Revision 1.9  2005/11/19 22:53:31  andy
-Append new files to MANIFEST.
+Append new files to MANIFEST
 
 Revision 1.8  2005/11/19 09:45:56  zeus
 Minor script output formating

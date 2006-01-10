@@ -487,7 +487,8 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-B<Renrot> is intended to work ONLY in current directory
+B<Renrot> is intended to work ONLY in current directory with files of 
+given extention B<--ext>
 
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
@@ -495,15 +496,16 @@ than if it isn't, the name will be given according the current timestamp
 and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is incrementable 
 suffix to the name YYYYmmddHHMMS.
 
-It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
+It rotates file and it's thumbnail, accordingly Orientation EXIF tag
+( it use for that I<jpegtran>(1) http://www.ijg.org/ ).
 If the tag is absent or miss set, than the script allows to rotate the file
 as well as it's thumbnail,
 
-After all, the script can put the commentary to:
+After all, the script can put the commentary to the:
 
-	- Commentary tag if commentary file provided with --comment-file option
+- Commentary tag if commentary file provided with B<--comment-file> option
 
-	- UserComment tag if $COMMENTARY variable set in config file
+- UserComment tag if $COMMENTARY variable set in config file
 
 Personal data could be specified via XMP tags defined in config file, look 
 CONFIG section.
@@ -569,7 +571,7 @@ where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and I<wb
 
 =head1 CONFIG
 
-Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<--config-file> option firstly, than it looks for file named renrot.rc in system directories such as /etc and /usr/local/etc. And finally it looks for file named .renrotrc in home directory of the user. User defined config file can be given via B<--config-file> option.
+Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<--config-file> option firstly, than it looks for file named renrot.rc in system directories such as /etc and /usr/local/etc. And finally it looks for file named .renrotrc in home directory of the user. User defined config file can be given via the option B<--config-file>.
 
 These tags could be set via config file:
 
@@ -625,10 +627,10 @@ config file placement (with high priority first)
 
 =head1 AUTHOR
 
-Copyright 2005, Zeus Panchenko
+Copyright 2005-2006, Zeus Panchenko
 
 =head1 SEE ALSO
 
-L<Image::ExifTool(3pm)|Image::ExifTool>,L<jpegtran(1)>
+I<Image::ExifTool>(3pm) http://www.sno.phy.queensu.ca/~phil/exiftool/, I<jpegtran>(1) http://www.ijg.org/
 
 =cut
