@@ -1,11 +1,12 @@
 RUNNING
 
-Renrot is intended to work ONLY in current directory
+Renrot is intended to work ONLY in current directory with whole files of
+the --ext extention.
 
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is incrementable 
+and will look as YYYYmmddHHMMS-XXXXX.jpg where XXXXX is incrementable 
 suffix to the name YYYYmmddHHMMS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.

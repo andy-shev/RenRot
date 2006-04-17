@@ -1,7 +1,10 @@
 $Log$
+Revision 1.12  2006/04/17 12:57:47  zeus
+README edited
+
 Revision 1.11  2006/02/17 20:35:12  zeus
 The bug with --name-prefix-only fixed (it was defined as string in getopt()
-function) and the extra points in the name are removed
+function) and the extra points in the name are removed.
 
 Revision 1.10  2006/01/10 12:16:07  zeus
 Documentation tailored a bit, the info concerning the jpegtran URL is added.
