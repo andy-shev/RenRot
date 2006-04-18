@@ -4,5 +4,6 @@ Makefile.PL
 MANIFEST                                 This file
 META.yml                                 Module meta-data (added by MakeMaker)
 README
-renrot
+renrot                                   RenRot script
 renrot.rc                                Sample of config file
+renrot.spec                              RPM spec file

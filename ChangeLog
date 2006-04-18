@@ -1,4 +1,8 @@
 $Log$
+Revision 1.14  2006/04/18 10:34:53  andy
+Added missed file to MANIFEST.
+Rerelease as 0.14.2.
+
 Revision 1.13  2006/04/18 10:22:12  andy
 Added LICENSING part to README.
 Added renrot.spec for RPM-based linux distributions.
@@ -43,3 +47,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
