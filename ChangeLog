@@ -1,4 +1,7 @@
 $Log$
+Revision 1.16  2006/04/18 13:12:40  andy
+Start THANKS part in README.
+
 Revision 1.15  2006/04/18 11:32:33  andy
 Fix BuildRequires in specfile.
 
@@ -50,3 +53,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
