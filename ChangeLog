@@ -1,4 +1,7 @@
 $Log$
+Revision 1.15  2006/04/18 11:32:33  andy
+Fix BuildRequires in specfile.
+
 Revision 1.14  2006/04/18 10:34:53  andy
 Added missed file to MANIFEST.
 Rerelease as 0.14.2.
@@ -47,4 +50,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

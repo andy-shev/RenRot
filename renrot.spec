@@ -9,6 +9,8 @@ Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 BuildRequires:	perl >= 1:5.6.0
+BuildRequires:	perl(Image::ExifTool) >= 5.61
+BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description
