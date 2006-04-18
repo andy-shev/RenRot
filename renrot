@@ -493,8 +493,9 @@ B<Renrot> is intended to work ONLY in current directory
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is incrementable 
-suffix to the name YYYYmmddHHMMS.
+and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is whether file ID,
+if exists in EXIF (as for Canon) or incrementable suffix to the name 
+YYYYmmddHHMMS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
 If the tag is absent or miss set, than the script allows to rotate the file
@@ -555,9 +556,10 @@ the version of this script
 
 prefix to the filename, if defined, filenames looks like:  myprefix-YYYYmmddHHMMS-XXXXX.jpg
 
-=item B<--name-prefix-only> I<PREFIX>
+=item B<--name-prefix-only>
 
-prefix to the filename when no date in the filename whished, if defined, filenames looks like:  myprefix-XXXXX.jpg
+prefix to the filename when no date in the filename whished, if defined, filenames looks like:  PREFIX-XXXXX.jpg
+works with B<--name-prefix>
 
 =item B<--name-suffix>
 
