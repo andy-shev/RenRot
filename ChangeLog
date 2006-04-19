@@ -1,4 +1,7 @@
 $Log$
+Revision 1.22  2006/04/19 16:24:59  andy
+Wrote several examples to README.
+
 Revision 1.21  2006/04/19 13:23:54  andy
 Use sprintf() instead of multiple concatenation.
 
@@ -72,4 +75,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
