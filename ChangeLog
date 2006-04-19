@@ -1,6 +1,9 @@
 $Log$
+Revision 1.23  2006/04/19 20:02:02  zeus
+README section WHAT IS IT edited
+
 Revision 1.22  2006/04/19 16:24:59  andy
-Wrote several examples to README.
+Wrote several examples to README
 
 Revision 1.21  2006/04/19 13:23:54  andy
 Use sprintf() instead of multiple concatenation.
