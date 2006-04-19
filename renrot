@@ -105,6 +105,8 @@ my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 
 my $file;		# file in the directory
+my @files;		# array of the sorted filenames to process
+my @filenames;		# array of the filenames to process
 my $info;		# ImageInfo object
 my $newfilename;	# the name file to be renamed to
 my $orientation = '';	# Orientation tag value
@@ -146,178 +148,184 @@ while ( defined ( $file = readdir DIR )) {
 	@filenameSplited = split (/\./,$file);
 	# if we have defined extention files here
 	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extentionToProcess ) ) {
-		$info = $exifTool->ImageInfo($file);
-		$newfilename = "";
-		#################################################################################
-		#
-		## analyzing whether and how to rename file 
-		#
-		if ( defined $noRename ) { 
-			print "No renaming asked, filename is left untouched\n\n"; 
-			$newfilename = $file;
-		}
-		else {
-			if ( defined $namePrefix ) { 
-				$newfilename = $namePrefix . "."; 
-			}
-			if ( defined $nameSuffix ) {
-				if ( defined $info->{"ExposureTime"} ) {
-					$ExposureTime = $info->{"ExposureTime"};
-					$ExposureTime =~ s/\//by/g;
-				}
-				else { $ExposureTime = 0; }
-				if ( defined $info->{"WhiteBalance"} ) {
-					$WhiteBalance = $info->{"WhiteBalance"};
-					$WhiteBalance =~ s/[\s()]//g;
-				}
-				else { $WhiteBalance = 0; }
-
-				$suffix = ".W" . $WhiteBalance
-					. "I" . $info->{"CameraISO"}
-					. "A" . $info->{"FNumber"}
-					. "E" . $ExposureTime . ".";
-			}
-			if ( defined ( $info->{"DateTimeOriginal"} ) 
-				&& defined ( $info->{"FileNumber"} ) 
-				&& !(defined $namePrefixOnly) ) {
-	
-				$newfilename = $newfilename . $info->{"DateTimeOriginal"} 
-							. "." . $info->{"FileNumber"} . $suffix 
-							. "." . $extentionToProcessLowCase;
-			}
-			elsif ( defined ( $info->{"DateTimeOriginal"} )
-				&& !( defined ( $info->{"FileNumber"} ) )
-				&& !( defined $namePrefixOnly ) ) {
-				
-				$countersuffix = sprintf('%.4d', $filecounter);
-				$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersuffix
-							. $suffix . "." . $extentionToProcessLowCase;
-				$filecounter++;
-				
-			}
-			else { # if not exists, than adding XXXX index to the end of timestamp
-				$countersuffix = sprintf('%.4d', $filecounter);
-				if ( defined $namePrefixOnly ) {
-					$prefix = "";
-				}
-				else {
-					$prefix = now();
-					$prefix = $prefix . ".";
-				}
-				$newfilename = $newfilename . $prefix . $countersuffix 
-							. "." . $suffix . $extentionToProcessLowCase;
-				$filecounter++;
-			}
-			
-			if ( $file ne $newfilename ) { 
-				rename ( $file, $newfilename ) 
-					|| die "Unable to rename " . $file ." -> " . $newfilename . "\n"; 
-				print $file . " -> " . $newfilename . "\n";
-			}
-			else { print "No renaming needed for " . $newfilename . ", it looks as needed!\n"; }
-		}
-		################################################################################################
-		#
-		## analyzing whether to rotate
-		#		
-		if ( defined $noRotation ) { print "No rotation asked, file orientation is left untouched\n\n"; }
-		elsif ( defined $rotate ) {
-			print "we'll deal with: " . $newfilename . " and " . $rotangles{$rotate} . "\n";
-			rotateFile($newfilename, $rotangles{$rotate});
-			rotateThumbnail($newfilename, $rotangles{$rotate});
-		}
-		elsif ( defined $rotateThumbnail ) {
-			rotateThumbnail($newfilename, $rotangles{$rotateThumbnail});
-		}
-		else {
-			if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
-				if ( $orientation > 1 ) {
-					$rotas = $rotparms[$orientation - 1];
-					rotateFile($newfilename, $rotas); 
-					rotateThumbnail($newfilename, $rotas);
-				}
-				elsif ( $orientation == 1 ) { 
-					print "No need to rotate, orientation is: Horisontal (normal)\n"; 
-				}
-				else {
-					print "Something wrong, orientation is < 1: $orientation\n";
-				}
-			}
-			else { 
-				print "Orientation tag is absent!\n"; 
-			}
-		}
-
-		
-		###############################		
-		#
-		## analyzing whether to comment
-		#
-		my $comentedfilename = $newfilename . "_comment";
-		if ( $comfile ) {
-			if ( open ( COMMENT, "<$comfile" ) ) {
-				@commentar = <COMMENT>;
-				unless ( close ( COMMENT ) ) { print "ERROR: " . $comfile . " wasn't closed!\n"; }
-				$comment = join ( '', @commentar );
-				# preparing to write the commentary
-				$exifTool->SetNewValue(Comment => $comment);
-  			}
-		}
-		else { print "No commenting, file commentary is left untouched\n"; }
-		
-		######################################
-		#
-		## preparing to write the UserComment and some additional tags
-		#
-		if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
-
-		if ( defined ( $CiAdrCity ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrCtry ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrExtadr ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrPcode ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrRegion ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
-		}
-		if ( defined ( $CiEmailWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
-		}
-		if ( defined ( $CiTelWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
-		}
-		if ( defined ( $CiUrlWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
-		}
-		if ( defined ( $City ) ) {
-			$exifTool->SetNewValue('City', $City, Group=>'XMP');
-		}
-
-		# writing the changes to the EXIFs
-		my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
-		if ( $res == 1 ) { 
-			# print "writing to " . $comentedfilename . " ok\n"; 
-			rename ( $comentedfilename, $newfilename  )  
-				|| die "ERROR: " . $comentedfilename . " -> " . $newfilename . "\n"; 
-		}
-		elsif ( $res == 2 ) { 
-			print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
-			unlink $comentedfilename;
-		}
-		else {
-			my $errorMessage   = $exifTool->GetValue('Error');
-			my $warningMessage = $exifTool->GetValue('Warning');
-			if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
-			if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
-		}
-		print "\n\n";
+		push @filenames, $file;
 	}
+}
+
+@files = sort @filenames;
+
+foreach $file ( @files ) {
+	$info = $exifTool->ImageInfo($file);
+	$newfilename = "";
+	#################################################################################
+	#
+	## analyzing whether and how to rename file 
+	#
+	if ( defined $noRename ) { 
+		print "No renaming asked, filename is left untouched\n\n"; 
+		$newfilename = $file;
+	}
+	else {
+		if ( defined $namePrefix ) { 
+			$newfilename = $namePrefix . "."; 
+		}
+		if ( defined $nameSuffix ) {
+			if ( defined $info->{"ExposureTime"} ) {
+				$ExposureTime = $info->{"ExposureTime"};
+				$ExposureTime =~ s/\//by/g;
+			}
+			else { $ExposureTime = 0; }
+			if ( defined $info->{"WhiteBalance"} ) {
+				$WhiteBalance = $info->{"WhiteBalance"};
+				$WhiteBalance =~ s/[\s()]//g;
+			}
+			else { $WhiteBalance = 0; }
+
+			$suffix = ".W" . $WhiteBalance
+				. "I" . $info->{"CameraISO"}
+				. "A" . $info->{"FNumber"}
+				. "E" . $ExposureTime . ".";
+		}
+		if ( defined ( $info->{"DateTimeOriginal"} ) 
+			&& defined ( $info->{"FileNumber"} ) 
+			&& !(defined $namePrefixOnly) ) {
+
+			$newfilename = $newfilename . $info->{"DateTimeOriginal"} 
+						. "." . $info->{"FileNumber"} . $suffix 
+						. "." . $extentionToProcessLowCase;
+		}
+		elsif ( defined ( $info->{"DateTimeOriginal"} )
+			&& !( defined ( $info->{"FileNumber"} ) )
+			&& !( defined $namePrefixOnly ) ) {
+			
+			$countersuffix = sprintf('%.4d', $filecounter);
+			$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersuffix
+						. $suffix . "." . $extentionToProcessLowCase;
+			$filecounter++;
+			
+		}
+		else { # if not exists, than adding XXXX index to the end of timestamp
+			$countersuffix = sprintf('%.4d', $filecounter);
+			if ( defined $namePrefixOnly ) {
+				$prefix = "";
+			}
+			else {
+				$prefix = now();
+				$prefix = $prefix . ".";
+			}
+			$newfilename = $newfilename . $prefix . $countersuffix 
+						. "." . $suffix . $extentionToProcessLowCase;
+			$filecounter++;
+		}
+		
+		if ( $file ne $newfilename ) { 
+			rename ( $file, $newfilename ) 
+				|| die "Unable to rename " . $file ." -> " . $newfilename . "\n"; 
+			print $file . " -> " . $newfilename . "\n";
+		}
+		else { print "No renaming needed for " . $newfilename . ", it looks as needed!\n"; }
+	}
+	################################################################################################
+	#
+	## analyzing whether to rotate
+	#		
+	if ( defined $noRotation ) { print "No rotation asked, file orientation is left untouched\n\n"; }
+	elsif ( defined $rotate ) {
+		print "we'll deal with: " . $newfilename . " and " . $rotangles{$rotate} . "\n";
+		rotateFile($newfilename, $rotangles{$rotate});
+		rotateThumbnail($newfilename, $rotangles{$rotate});
+	}
+	elsif ( defined $rotateThumbnail ) {
+		rotateThumbnail($newfilename, $rotangles{$rotateThumbnail});
+	}
+	else {
+		if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
+			if ( $orientation > 1 ) {
+				$rotas = $rotparms[$orientation - 1];
+				rotateFile($newfilename, $rotas); 
+				rotateThumbnail($newfilename, $rotas);
+			}
+			elsif ( $orientation == 1 ) { 
+				print "No need to rotate, orientation is: Horisontal (normal)\n"; 
+			}
+			else {
+				print "Something wrong, orientation is < 1: $orientation\n";
+			}
+		}
+		else { 
+			print "Orientation tag is absent!\n"; 
+		}
+	}
+
+	
+	###############################		
+	#
+	## analyzing whether to comment
+	#
+	my $comentedfilename = $newfilename . "_comment";
+	if ( $comfile ) {
+		if ( open ( COMMENT, "<$comfile" ) ) {
+			@commentar = <COMMENT>;
+			unless ( close ( COMMENT ) ) { print "ERROR: " . $comfile . " wasn't closed!\n"; }
+			$comment = join ( '', @commentar );
+			# preparing to write the commentary
+			$exifTool->SetNewValue(Comment => $comment);
+		}
+	}
+	else { print "No commenting, file commentary is left untouched\n"; }
+	
+	######################################
+	#
+	## preparing to write the UserComment and some additional tags
+	#
+	if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
+
+	if ( defined ( $CiAdrCity ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
+	}
+	if ( defined ( $CiAdrCtry ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
+	}
+	if ( defined ( $CiAdrExtadr ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
+	}
+	if ( defined ( $CiAdrPcode ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
+	}
+	if ( defined ( $CiAdrRegion ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
+	}
+	if ( defined ( $CiEmailWork ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
+	}
+	if ( defined ( $CiTelWork ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
+	}
+	if ( defined ( $CiUrlWork ) ) {
+		$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
+	}
+	if ( defined ( $City ) ) {
+		$exifTool->SetNewValue('City', $City, Group=>'XMP');
+	}
+
+	# writing the changes to the EXIFs
+	my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
+	if ( $res == 1 ) { 
+		# print "writing to " . $comentedfilename . " ok\n"; 
+		rename ( $comentedfilename, $newfilename  )  
+			|| die "ERROR: " . $comentedfilename . " -> " . $newfilename . "\n"; 
+	}
+	elsif ( $res == 2 ) { 
+		print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
+		unlink $comentedfilename;
+	}
+	else {
+		my $errorMessage   = $exifTool->GetValue('Error');
+		my $warningMessage = $exifTool->GetValue('Warning');
+		if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
+		if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
+	}
+	print "\n\n";
 }
 
 closedir(DIR);

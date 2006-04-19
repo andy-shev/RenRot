@@ -1,9 +1,7 @@
-- to reingenere code of file names caching of the directory, to avoid the
-  processing of the processed files, which could be rescanned while processing
-  of a big number files in the directory
-
 - to implement work with separate files rather than with whole directory
 
 - to implement possibility to add patterns for file naming ( to make it
   possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
   e.t.c.)
+
+- to coplete verbose output option implementation
