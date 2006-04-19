@@ -1,3 +1,17 @@
+WHAT IS IT?
+
+RenRot is a program to rename and rotate files according to EXIF tags.
+
+
+GETTING
+
+RenRot home page is a ftp site while now. You may download it from next
+sites:
+ ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
+ ftp://andriy.asplinux.com.ua/pub/people/andy/renrot/ (mirror)
+ ftp://ftp.asplinux.ru/ (looking for renrot package in RPM)
+
+
 RUNNING
 
 Renrot is intended to work ONLY in current directory with whole files of
@@ -6,20 +20,21 @@ the --ext extention.
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMS-XXXXX.jpg where XXXXX is incrementable 
-suffix to the name YYYYmmddHHMMS.
+and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is incrementable 
+suffix to the name YYYYmmddHHMMSS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
 If the tag is absent or miss set, than the script allows to rotate the file
 as well as it's thumbnail,
 
 After all, the script can put the commentary to:
-
-	- Commentary tag if commentary file provided with --comment-file option
-
-	- UserComment tag if $COMMENTARY variable set in config file
+    - Commentary tag if commentary file provided with --comment-file option
+    - UserComment tag if $COMMENTARY variable set in config file
 
 Personal data could be specified via XMP tags defined in config file
+
+Examples:
+
 
 INSTALLATION
 
@@ -39,15 +54,18 @@ Notes:
  iii) You may choose any desired PREFIX by changing /usr/local at above
       sample.
 			   
+
 DEPENDENCIES
 
 Requires Perl version 5.6.0 or later. No other special libraries are
 required, except Image::ExifTool and Getopt::Long packages.
 
+
 LICENSING
 
 Renrot is an Open Source project distributed under GPL or Artistic
 license.
+
 
 THANKS
 

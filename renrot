@@ -15,7 +15,7 @@ our $VERSION = "0.14.2";	# the version of this script
 my $noRotation;	# no rotation needed, default is to rotate
 my $rotate;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; # define the angle, to rotate on, 90 or 270
-my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
+my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
 my $noComment;	# no comment needed
 my $namePrefix;	# prefix to the filename
 my $namePrefixOnly; # prefix to the filename (for case when no date in name needed)
@@ -334,7 +334,7 @@ exit 0;
 
 ########################################################################################
 #
-# now() returns timestamp in form YYYYmmddHHMMS
+# now() returns timestamp in form YYYYmmddHHMMSS
 # 
 sub now {
 	my $date = (localtime);
@@ -474,7 +474,7 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 					is present and set right way
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
-		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
+		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
 		--name-prefix <PREFIX>	prefix to the filename
 		--name-prefix-only	prefix to the filename when no date in the name needed
 		--name-suffix		suffix to the filename, the values of aperture, exsposure time, 
@@ -501,9 +501,9 @@ B<Renrot> is intended to work ONLY in current directory
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMS-XXXXX.jpeg where XXXXX is whether file ID,
+and will look as YYYYmmddHHMMSS-XXXXX.jpeg where XXXXX is whether file ID,
 if exists in EXIF (as for Canon) or incrementable suffix to the name 
-YYYYmmddHHMMS.
+YYYYmmddHHMMSS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
 If the tag is absent or miss set, than the script allows to rotate the file
@@ -550,7 +550,7 @@ no rotation needed, default is to rotate
 
 =item B<--no-rename>
 
-no rename needed, default is to rename to the YYYYmmddHHMMS.jpeg
+no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
 
 =item B<--comment-file> I<COMMENTFILENAME>
 
@@ -562,7 +562,7 @@ the version of this script
 
 =item B<--name-prefix> I<PREFIX>
 
-prefix to the filename, if defined, filenames looks like:  myprefix-YYYYmmddHHMMS-XXXXX.jpg
+prefix to the filename, if defined, filenames looks like:  myprefix-YYYYmmddHHMMSS-XXXXX.jpg
 
 =item B<--name-prefix-only>
 

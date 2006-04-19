@@ -3,7 +3,7 @@ Version:	0.14.2
 Release:	1%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia
-Summary:	Rename and rotate files according to EXIF tags
+Summary:	A program to rename and rotate files according to EXIF tags
 URL:		ftp://ftp.dn.farlep.net/pub/misc/renrot/
 Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -14,16 +14,16 @@ BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description
-Renrot renames files according the DateTimeOriginal, FileModifyDate
-EXIF tags if they're exist or the name will be given according the
-current timestamp. Additionally, it rotates file and it's thumbnail,
-accordingly Orientation EXIF tag.
+Renrot renames files according the DateTimeOriginal and FileModifyDate
+EXIF tags, if they exist. Otherwise, the name will be set according to
+the current timestamp. Additionally, it rotates files and their
+thumbnails, accordingly Orientation EXIF tag.
 
-After all, the script can put the commentary to Commentary and
-UserComment tags.
+The script can also put commentary into the Commentary and UserComment
+tags.
 
-Personal details could be specified via XMP tags defined in config
-file.
+Personal details can be specified via XMP tags defined in a
+configuration file.
 
 %prep
 %setup -q
