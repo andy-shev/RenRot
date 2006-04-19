@@ -1,9 +1,12 @@
 $Log$
+Revision 1.18  2006/04/19 07:08:07  zeus
+TODO is added
+
 Revision 1.17  2006/04/18 20:10:26  zeus
-Documentation edited
+Documentation edited.
 
 Revision 1.16  2006/04/18 13:12:40  andy
-Start THANKS part in README
+Start THANKS part in README.
 
 Revision 1.15  2006/04/18 11:32:33  andy
 Fix BuildRequires in specfile.
