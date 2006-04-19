@@ -338,11 +338,10 @@ exit 0;
 # 
 sub now {
 	my $date = (localtime);
-	$$date[5] = $$date[5] + 1900;
-	for (my $i = 0 ; $i < 5 ; $i++ ) {
-		if ( $$date[$i] < 10 ) { $$date[$i] = "0" . $$date[$i]; }
-	}
-	return $$date[5] . $$date[4] . $$date[3] . $$date[2] . $$date[1] . $$date[0];
+	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
+		$$date[5] + 1900, $$date[4], $$date[3],
+		$$date[2], $$date[1], $$date[0]);
+	return $result;
 }
 
 

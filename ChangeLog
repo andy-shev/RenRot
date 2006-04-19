@@ -1,9 +1,11 @@
 $Log$
+Revision 1.21  2006/04/19 13:23:54  andy
+Use sprintf() instead of multiple concatenation.
+
 Revision 1.20  2006/04/19 12:24:58  andy
 WHAT IS IT? and GETTING sections were added to README.
-Change YYYYmmDDHHMMS to YYYYmmDDHHSS in the documentation and comments.
+Change YYYYmmDDHHMMS to YYYYmmDDHHMMSS in the documentation and comments.
 Fix description in spec file according to freshmeat.net.
-
 
 Revision 1.19  2006/04/19 08:55:44  zeus
 code for file names caching for the directory was reingenered, to avoid the
