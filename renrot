@@ -182,9 +182,9 @@ foreach $file ( @files ) {
 			else { $WhiteBalance = 0; }
 
 			$suffix = ".W" . $WhiteBalance
-				. "I" . $info->{"CameraISO"}
+				. "I" . $info->{"ISO"}
 				. "A" . $info->{"FNumber"}
-				. "E" . $ExposureTime . ".";
+				. "E" . $ExposureTime;
 		}
 		if ( defined ( $info->{"DateTimeOriginal"} ) 
 			&& defined ( $info->{"FileNumber"} ) 
