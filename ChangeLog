@@ -1,4 +1,7 @@
 $Log$
+Revision 1.27  2006/04/21 12:30:55  andy
+Release 0.15.
+
 Revision 1.26  2006/04/21 11:16:00  andy
 Fix DEPENDENCIES section. Fix Requires in spec.
 
@@ -87,4 +90,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
