@@ -12,6 +12,7 @@ BuildRequires:	perl >= 1:5.6.0
 BuildRequires:	perl(Image::ExifTool) >= 5.61
 BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:	libjpeg >= 6b
 
 %description
 Renrot renames files according the DateTimeOriginal and FileModifyDate

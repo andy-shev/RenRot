@@ -73,8 +73,8 @@ DEPENDENCIES
 Requires Perl version 5.6.0 or later. No other special libraries are
 required, except: 
 Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
-Getopt::Long 		cpan:// (usually, inside in perl distribution)
-jpegtran		http://www.ijg.org/
+Getopt::Long 		cpan:Getopt::Long (usually, inside in perl distribution)
+jpegtran (libjpeg6)	http://www.ijg.org/
 
 
 LICENSING

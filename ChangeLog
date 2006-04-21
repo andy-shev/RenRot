@@ -1,4 +1,7 @@
 $Log$
+Revision 1.26  2006/04/21 11:16:00  andy
+Fix DEPENDENCIES section. Fix Requires in spec.
+
 Revision 1.25  2006/04/20 13:33:01  zeus
 README is edited, URL for DEPENDENCIES are added
 
@@ -84,3 +87,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
