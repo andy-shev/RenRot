@@ -286,7 +286,7 @@ foreach $file ( @files ) {
 	if ( $comfile ) {
 		if ( open ( COMMENT, "<$comfile" ) ) {
 			@commentar = <COMMENT>;
-			unless ( close ( COMMENT ) ) { print "ERROR: " . $comfile . " wasn't closed!\n"; }
+			unless ( close ( COMMENT ) ) { errmsg ("$comfile wasn't closed!\n"); }
 			$comment = join ( '', @commentar );
 			# preparing to write the commentary
 			$exifTool->SetNewValue(Comment => $comment);
@@ -424,7 +424,7 @@ sub rotateFile {
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $fileToThumbnail . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) { 
-			print "ERROR: " . $ThumbnailOriginal . " wasn't opened!\n"; 
+			errmsg ("$ThumbnailOriginal wasn't opened!\n"); 
 		}
 		print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
 		unless ( close ( OLDTHUMBNAIL ) ) { print "WARNING: " . $ThumbnailOriginal . " wasn't closed!\n"; }
@@ -437,12 +437,12 @@ sub rotateFile {
 		
 		# preparing to write the just rotated thumbnail, back to the file
 		unless ( open ( THUMBNAILROTATED, "<$ThumbnailOriginalRotated" ) ) { 
-			print "ERROR: " . $ThumbnailOriginalRotated . " wasn't opened!\n"; 
+			errmsg ("$ThumbnailOriginalRotated wasn't opened!\n"); 
 		}
 		binmode THUMBNAILROTATED;
 		my ( @rthumb ) = <THUMBNAILROTATED>;
 		my $thethumb = join ('',@rthumb);
-		unless ( close ( THUMBNAILROTATED ) ) { print "ERROR: " . $ThumbnailOriginalRotated . " wasn't closed!\n"; }
+		unless ( close ( THUMBNAILROTATED ) ) { errmsg ("$ThumbnailOriginalRotated wasn't closed!\n"); }
 		
  	 	# preparing to write thumbnale to the just rotated file
 		my $exifThumbnailed = new Image::ExifTool;
@@ -480,8 +480,8 @@ sub rotateFile {
 # usage() - the instruction how to use the script
 # 
 sub usage {
-print STDERR <<_USAGE_;
-Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
+infomsg (
+"Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
 		[--version] [--name-prefix NAMEPREFIX] [--work-directory DIR] <--ext EXTENTION>
 
 		-h | --help		this very page
@@ -501,7 +501,7 @@ Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 					iso and white balance are added to the filename as suffix, see manual
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
-_USAGE_
+");
 }
 
 __END__
