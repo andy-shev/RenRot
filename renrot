@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/local/bin/perl -w
 
 #
 # $Id$
@@ -28,11 +28,30 @@ my $comfile;	# file with commentary
 my $verbose = 0;	# verbosity of output
 my $dir = ".";	# we'll work ONLY in current directory
 
-sub debug {
+# information message
+sub infomsg {
+    print STDERR @_;
+}
+
+# warning message
+sub warnmsg {
+    print STDERR "Warning: ";
+    print STDERR @_;
+}
+
+# error message
+sub errmsg {
+    print STDERR "ERROR: ";
+    print STDERR @_;
+}
+
+# debug message
+sub dbgmsg {
     my $level = shift;
     print STDERR @_ if ($verbose >= $level);
 }
 
+# parse command line
 sub getopt {
 	my $ver;	# need version
 	my $help;	# need help
@@ -58,12 +77,12 @@ sub getopt {
 	}
 	
 	if (defined $ver && $ver != 0) {
-		print STDERR "renrot version $VERSION\n";
+		infomsg ("renrot version $VERSION\n");
 		exit 0;
 	}
 
 	if (not defined $extentionToProcess) {
-	    print STDERR "Extention of files is required!\n";
+	    errmsg ("Extention of files is required!\n");
 	    exit 1;
 	}
 
@@ -74,7 +93,7 @@ sub getopt {
 
 	# change user's parameter '*.ext' to 'ext'
 	$extentionToProcess =~ s/^\*\.//;
-	debug (2, "Process with '$extentionToProcess' extention\n");
+	dbgmsg (2, "Process with '$extentionToProcess' extention\n");
 }
 
 # parse command-line options
