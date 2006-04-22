@@ -16,7 +16,8 @@ sites:
 RUNNING
 
 Renrot is intended to work ONLY in current directory with whole files of
-the --ext extention.
+the --ext extention. You can change the behaviour by specify --work-directory
+option.
 
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
@@ -36,10 +37,10 @@ Personal data could be specified via XMP tags defined in config file
 
 Examples:
 
-    renames PICTZZZZ.JPG to sample.YYYYmmDDHHMMSS.XXXX.jpg
+    renames PICTZZZZ.JPG to sample.YYYYmmddHHMMSS.XXXX.jpg
 	renrot --name-prefix sample --ext *.JPG
 
-    renames PICTZZZZ.JPG to YYYYmmDDHHMMSS.XXXX.WwwwIiiiAaaaEeeejpg
+    renames PICTZZZZ.JPG to YYYYmmddHHMMSS.XXXX.WwwwIiiiAaaaEeeejpg
 	renrot --name-suffix --ext *.JPG
 
     rotates all files by 90CW

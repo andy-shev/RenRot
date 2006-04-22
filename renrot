@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 
 #
 # $Id$
@@ -26,6 +26,7 @@ my $usageOutput = 0;	# flag to show the usage
 my $configFile;	# config file
 my $comfile;	# file with commentary
 my $verbose = 0;	# verbosity of output
+my $dir = ".";	# we'll work ONLY in current directory
 
 sub debug {
     my $level = shift;
@@ -36,6 +37,7 @@ sub getopt {
 	my $ver;	# need version
 	my $help;	# need help
 	my $getopt = GetOptions (
+		"work-directory|w=s" => \$dir,
 		"ext|e=s" => \$extentionToProcess,
 		"rotate|r=i" => \$rotate,
 		"rotate-thumb=i" => \$rotateThumbnail,
@@ -113,7 +115,6 @@ my $orientation = '';	# Orientation tag value
 my @filenameSplited;	# array to hold filename splitted to the parts
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
-my $dir = ".";		# now we'll work ONLY in current directory
 my $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
 my $countersuffix;	# the suffix to add after timestamp to name the files without DateTimeOriginal tag
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
@@ -136,7 +137,7 @@ my $prefix = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
 
-opendir (DIR, $dir) || die "ERROR: " . $dir . " was not opened!";
+opendir (DIR, $dir) || die "ERROR: can't open '$dir'";
 
 while ( defined ( $file = readdir DIR )) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
@@ -462,10 +463,11 @@ sub rotateFile {
 sub usage {
 print STDERR <<_USAGE_;
 Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
-		[--version] [--name-prefix NAMEPREFIX] <--ext EXTENTION>
+		[--version] [--name-prefix NAMEPREFIX] [--work-directory DIR] <--ext EXTENTION>
 
 		-h | --help		this very page
 		-c | --config-file	use this config file (see manual for details)
+		--work-directory <DIR>	specify working directory
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
 		--rotate <90|270>	define the angle, to rotate file and the thumbnail on, 
@@ -495,7 +497,8 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-B<Renrot> is intended to work ONLY in current directory
+B<RenRot> is intended to work ONLY in current directory. You can change
+the behaviour by specify B<--work-directory> option.
 
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
@@ -530,6 +533,10 @@ the help
 =item B<-c> or B<--config-file> I<config file>
 
 location of the config file
+
+=item B<--work-directory> I<DIR>
+
+define the working directory
 
 =item B<--ext> I<EXTENTION>
 

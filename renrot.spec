@@ -47,6 +47,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS README ChangeLog
+%doc renrot.rc
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
 

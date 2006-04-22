@@ -1,4 +1,7 @@
 $Log$
+Revision 1.28  2006/04/22 18:16:59  andy
+Add --work-directory option for more functionality.
+
 Revision 1.27  2006/04/21 12:30:55  andy
 Release 0.15.
 
@@ -22,7 +25,7 @@ Use sprintf() instead of multiple concatenation.
 
 Revision 1.20  2006/04/19 12:24:58  andy
 WHAT IS IT? and GETTING sections were added to README.
-Change YYYYmmDDHHMMS to YYYYmmDDHHMMSS in the documentation and comments.
+Change YYYYmmddHHMMS to YYYYmmddHHMMSS in the documentation and comments.
 Fix description in spec file according to freshmeat.net.
 
 Revision 1.19  2006/04/19 08:55:44  zeus
