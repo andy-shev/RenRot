@@ -38,10 +38,10 @@ Personal data could be specified via XMP tags defined in config file
 Examples:
 
     renames PICTZZZZ.JPG to sample.YYYYmmddHHMMSS.XXXX.jpg
-	renrot --name-prefix sample --ext *.JPG
+	renrot --name-prefix sample --ext '*.JPG'
 
     renames PICTZZZZ.JPG to YYYYmmddHHMMSS.XXXX.WwwwIiiiAaaaEeeejpg
-	renrot --name-suffix --ext *.JPG
+	renrot --name-suffix --ext '*.JPG'
 
     rotates all files by 90CW
 	renrot --rotate 90 --ext jpg

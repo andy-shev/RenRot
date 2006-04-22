@@ -23,12 +23,12 @@
 ## XMP tags
 #
 
-#$CiAdrCity 	= "Here Is Your City";
-#$CiAdrCtry 	= "Here Is Your Street";
-#$CiAdrExtadr 	= "Here Is Your Apartments";
-#$CiAdrPcode 	= "Here Is Your Zip Code";
-#$CiAdrRegion 	= "Here Is Your Region";
-#$CiEmailWork 	= "Here Is Your Email";
-#$CiTelWork 	= "Here Is Your Phone";
-#$CiUrlWork 	= "Here Is Your URL";
-#$City 		= "Here Is Your City";
+#$CiAdrCity 	= 'Here Is Your City';
+#$CiAdrCtry 	= 'Here Is Your Street';
+#$CiAdrExtadr 	= 'Here Is Your Apartments';
+#$CiAdrPcode 	= 'Here Is Your Zip Code';
+#$CiAdrRegion 	= 'Here Is Your Region';
+#$CiEmailWork 	= 'Here Is Your Email';
+#$CiTelWork 	= 'Here Is Your Phone';
+#$CiUrlWork 	= 'Here Is Your URL';
+#$City 		= 'Here Is Your City';

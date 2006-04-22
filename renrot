@@ -15,7 +15,7 @@ our $VERSION = "0.15";	# the version of this script
 my $noRotation;	# no rotation needed, default is to rotate
 my $rotate;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; # define the angle, to rotate on, 90 or 270
-my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
+my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $noComment;	# no comment needed
 my $namePrefix;	# prefix to the filename
 my $namePrefixOnly; # prefix to the filename (for case when no date in name needed)
@@ -156,6 +156,7 @@ my $prefix = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
 
+chdir ($dir) || die "ERROR: can't enter to '$dir'";
 opendir (DIR, $dir) || die "ERROR: can't open '$dir'";
 
 while ( defined ( $file = readdir DIR )) {
@@ -175,6 +176,7 @@ while ( defined ( $file = readdir DIR )) {
 @files = sort @filenames;
 
 foreach $file ( @files ) {
+	dbgmsg (3, "Processing file: $file...\n");
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
 	#################################################################################
@@ -372,7 +374,7 @@ sub now {
 #
 sub rotateFile {
 	# $_[0] - file name to transform with jpegtran
-	# $_[1] - the switche for jpegtran to transform the image
+	# $_[1] - the switches for jpegtran to transform the image
 	
 	my $oldfile =  $_[0];			# original name
 	my $origfile = $_[0] . "_orig";	# backup original name
@@ -416,7 +418,7 @@ sub rotateFile {
  #
  sub rotateThumbnail {
 	# $_[0] - file, which thumbnale to transform with jpegtran
-	# $_[1] - the switch for jpegtran to rotate the thumbnale
+	# $_[1] - the switch for jpegtran to rotate the thumbnail
 
 	if ( defined ${$$info{ThumbnailImage}} ) { 	
 		my $fileToThumbnail =  $_[0];			# original name
@@ -482,7 +484,7 @@ sub rotateFile {
 sub usage {
 infomsg (
 "Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
-		[--version] [--name-prefix NAMEPREFIX] [--work-directory DIR] <--ext EXTENTION>
+		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
 
 		-h | --help		this very page
 		-c | --config-file	use this config file (see manual for details)
@@ -494,7 +496,7 @@ infomsg (
 					is present and set right way
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
-		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
+		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-prefix <PREFIX>	prefix to the filename
 		--name-prefix-only	prefix to the filename when no date in the name needed
 		--name-suffix		suffix to the filename, the values of aperture, exsposure time, 
@@ -522,7 +524,7 @@ the behaviour by specify B<--work-directory> option.
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMSS-XXXXX.jpeg where XXXXX is whether file ID,
+and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is whether file ID,
 if exists in EXIF (as for Canon) or incrementable suffix to the name 
 YYYYmmddHHMMSS.
 
@@ -575,7 +577,7 @@ no rotation needed, default is to rotate
 
 =item B<--no-rename>
 
-no rename needed, default is to rename to the YYYYmmddHHMMSS.jpeg
+no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 
 =item B<--comment-file> I<COMMENTFILENAME>
 
