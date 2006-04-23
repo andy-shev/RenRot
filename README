@@ -1,6 +1,6 @@
 WHAT IS IT?
 
-RenRot is a program to rename and lossless rotate for JPEG format files, 
+RenRot is a program to rename and lossless rotate for JPEG format files,
 according to their EXIF tags.
 
 
@@ -22,7 +22,7 @@ option.
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is incrementable 
+and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is incrementable
 suffix to the name YYYYmmddHHMMSS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
@@ -58,7 +58,7 @@ typing the following:
   perl Makefile.PL PREFIX=/usr/local
   make
   make install PREFIX=/usr/local
-	    
+
 Notes:
    i) You need root access for the last step above.
   ii) Some Perl installations (like the standard OSX installation) may not
@@ -67,12 +67,12 @@ Notes:
       directory in your current PATH.
  iii) You may choose any desired PREFIX by changing /usr/local at above
       sample.
-			   
+
 
 DEPENDENCIES
 
 Requires Perl version 5.6.0 or later. No other special libraries are
-required, except: 
+required, except:
 Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
 Getopt::Long 		cpan:Getopt::Long (usually, inside in perl distribution)
 jpegtran (libjpeg6)	http://www.ijg.org/
@@ -86,7 +86,7 @@ license.
 
 THANKS
 
-Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) 
+Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/)
 for his valued comments and suggestions.
 
 ASPLinux company (http://www.asplinux.ru) has included the renrot to

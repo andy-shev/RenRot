@@ -1,4 +1,7 @@
 $Log$
+Revision 1.35  2006/04/23 17:04:36  andy
+Release 0.15.1.
+
 Revision 1.34  2006/04/23 11:57:45  andy
 Switch to *msg() procedures instead of print "smth.". Print is used only for
 progress indicator.
@@ -114,3 +117,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
