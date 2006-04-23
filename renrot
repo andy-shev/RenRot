@@ -45,6 +45,12 @@ sub errmsg {
     print STDERR @_;
 }
 
+# fatal message
+sub fatalmsg {
+    print STDERR "FATAL: ";
+    print STDERR @_;
+}
+
 # debug message
 sub dbgmsg {
     my $level = shift;
@@ -156,8 +162,8 @@ my $prefix = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
 
-chdir ($dir) || die "ERROR: can't enter to '$dir'";
-opendir (DIR, $dir) || die "ERROR: can't open '$dir'";
+chdir ($dir) || ( fatalmsg ("Can't enter to $dir\n"), die );
+opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir\n"), die );
 
 while ( defined ( $file = readdir DIR )) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
@@ -242,7 +248,7 @@ foreach $file ( @files ) {
 		
 		if ( $file ne $newfilename ) { 
 			rename ( $file, $newfilename ) 
-				|| die "Unable to rename " . $file ." -> " . $newfilename . "\n"; 
+				|| ( fatalmsg ("Unable to rename $file -> $newfilename\n"), die ); 
 			print $file . " -> " . $newfilename . "\n";
 		}
 		else { print "No renaming needed for " . $newfilename . ", it looks as needed!\n"; }
@@ -335,7 +341,7 @@ foreach $file ( @files ) {
 	if ( $res == 1 ) { 
 		# print "writing to " . $comentedfilename . " ok\n"; 
 		rename ( $comentedfilename, $newfilename  )  
-			|| die "ERROR: " . $comentedfilename . " -> " . $newfilename . "\n"; 
+			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die ); 
 	}
 	elsif ( $res == 2 ) { 
 		print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
@@ -383,10 +389,10 @@ sub rotateFile {
 	# jpegtran the image
 	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
 	print "rotate: " . $cmd . "\n";
-	system $cmd || die "system $cmd failed: $?";
+	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 	
-	rename ( $oldfile, $origfile ) || die "ERROR: " . $oldfile . " -> " . $origfile . "\n";
-	rename ( $newfile, $oldfile )  || die "ERROR: " . $newfile . " -> " . $oldfile . "\n";
+	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
+	rename ( $newfile, $oldfile )  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
 	
 	# preparing to write Orientation tag to the just rotated file
 	my $exifAfterRot = new Image::ExifTool;
@@ -400,7 +406,7 @@ sub rotateFile {
 	if ( $res == 1 ) { 
 		print "writing to " . $exifedfile . " ok\n"; 
 		rename ( $exifedfile, $oldfile )  
-			|| die "ERROR: " . $exifedfile . " -> " . $oldfile . "\n";
+			|| ( fatalmsg ("$exifedfile -> $oldfile\n"), die );
 	}
 	elsif ( $res == 2 ) { print "No changes for " . $exifedfile . "\n"; }
 	else {
@@ -435,7 +441,7 @@ sub rotateFile {
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
 		my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $ThumbnailOriginalRotated . " " . $ThumbnailOriginal;
 		print "rotate thmb: " . $cmd . "\n";
-		system $cmd || die "system $cmd failed: $?";
+		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 		
 		# preparing to write the just rotated thumbnail, back to the file
 		unless ( open ( THUMBNAILROTATED, "<$ThumbnailOriginalRotated" ) ) { 
@@ -459,7 +465,7 @@ sub rotateFile {
 		if ( $res == 1 ) { 
 			print "writing to " . $fileThumbnailed . " ok\n"; 
 			rename ( $fileThumbnailed, $fileToThumbnail )  
-				|| die "ERROR: " . $fileThumbnailed . " -> " . $fileToThumbnail . "\n";
+				|| ( fatalmsg ("$fileThumbnailed -> $fileToThumbnail\n"), die );
 		}
 		elsif ( $res == 2 ) { print "No changes for " . $fileThumbnailed . "\n"; }
 		else {
@@ -469,8 +475,8 @@ sub rotateFile {
 			if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
 		}
 	
-		unlink ($ThumbnailOriginalRotated) || die "ERROR: while killing " . $ThumbnailOriginalRotated;
-		unlink ($ThumbnailOriginal) || die "ERROR: while killing " . $ThumbnailOriginal;
+		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("while killing $ThumbnailOriginalRotated\n"), die );
+		unlink ($ThumbnailOriginal) || ( fatalmsg ("while killing $ThumbnailOriginal\n"), die );
 	}
 	else {
 		print "No thumbnail found.\n";
