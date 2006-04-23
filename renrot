@@ -99,7 +99,7 @@ sub getopt {
 
 	# change user's parameter '*.ext' to 'ext'
 	$extentionToProcess =~ s/^\*\.//;
-	dbgmsg (2, "Process with '$extentionToProcess' extention\n");
+	dbgmsg (1, "Process with '$extentionToProcess' extention.\n");
 }
 
 # parse command-line options
@@ -162,8 +162,8 @@ my $prefix = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
 
-chdir ($dir) || ( fatalmsg ("Can't enter to $dir\n"), die );
-opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir\n"), die );
+chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
+opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
 
 while ( defined ( $file = readdir DIR )) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
@@ -182,7 +182,7 @@ while ( defined ( $file = readdir DIR )) {
 @files = sort @filenames;
 
 foreach $file ( @files ) {
-	dbgmsg (3, "Processing file: $file...\n");
+	print "Processing file: $file...\n";
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
 	#################################################################################
@@ -190,7 +190,7 @@ foreach $file ( @files ) {
 	## analyzing whether and how to rename file
 	#
 	if ( defined $noRename ) {
-		print "No renaming asked, filename is left untouched\n\n";
+		infomsg ("No renaming asked, filename is left untouched.\n");
 		$newfilename = $file;
 	}
 	else {
@@ -248,18 +248,18 @@ foreach $file ( @files ) {
 
 		if ( $file ne $newfilename ) {
 			rename ( $file, $newfilename )
-				|| ( fatalmsg ("Unable to rename $file -> $newfilename\n"), die );
-			print $file . " -> " . $newfilename . "\n";
+				|| ( fatalmsg ("Unable to rename $file -> $newfilename.\n"), die );
+			print "Renamed: $file -> $newfilename\n";
 		}
-		else { print "No renaming needed for " . $newfilename . ", it looks as needed!\n"; }
+		else { warnmsg ("No renaming needed for $newfilename, it looks as needed!\n"); }
 	}
 	################################################################################################
 	#
 	## analyzing whether to rotate
 	#
-	if ( defined $noRotation ) { print "No rotation asked, file orientation is left untouched\n\n"; }
+	if ( defined $noRotation ) { infomsg ("No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotate ) {
-		print "we'll deal with: " . $newfilename . " and " . $rotangles{$rotate} . "\n";
+		dbgmsg (2, "We'll deal with: $newfilename and $rotangles{$rotate}.\n");
 		rotateFile($newfilename, $rotangles{$rotate});
 		rotateThumbnail($newfilename, $rotangles{$rotate});
 	}
@@ -274,14 +274,14 @@ foreach $file ( @files ) {
 				rotateThumbnail($newfilename, $rotas);
 			}
 			elsif ( $orientation == 1 ) {
-				print "No need to rotate, orientation is: Horisontal (normal)\n";
+				infomsg ("No need to rotate, orientation is: Horisontal (normal).\n");
 			}
 			else {
-				print "Something wrong, orientation is < 1: $orientation\n";
+				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
 			}
 		}
 		else {
-			print "Orientation tag is absent!\n";
+			warnmsg ("Orientation tag is absent!\n");
 		}
 	}
 
@@ -300,7 +300,7 @@ foreach $file ( @files ) {
 			$exifTool->SetNewValue(Comment => $comment);
 		}
 	}
-	else { print "No commenting, file commentary is left untouched\n"; }
+	else { infomsg ("No commenting, file commentary is left untouched.\n"); }
 
 	######################################
 	#
@@ -339,21 +339,21 @@ foreach $file ( @files ) {
 	# writing the changes to the EXIFs
 	my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
 	if ( $res == 1 ) {
-		# print "writing to " . $comentedfilename . " ok\n";
+		dbgmsg (2, "Writing to $comentedfilename ok.\n");
 		rename ( $comentedfilename, $newfilename  )
 			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
 	}
 	elsif ( $res == 2 ) {
-		print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
+		warnmsg ("No changes between $newfilename and $comentedfilename. No EXIF was written.\n");
 		unlink $comentedfilename;
 	}
 	else {
 		my $errorMessage   = $exifTool->GetValue('Error');
 		my $warningMessage = $exifTool->GetValue('Warning');
-		if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
-		if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
+		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
+		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
-	print "\n\n";
+	print "\n";
 }
 
 closedir(DIR);
@@ -388,7 +388,7 @@ sub rotateFile {
 
 	# jpegtran the image
 	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
-	print "rotate: " . $cmd . "\n";
+	dbgmsg (3, "Rotate: $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
@@ -404,16 +404,16 @@ sub rotateFile {
 	# writing the changes to the EXIFs
 	my $res = $exifAfterRot->WriteInfo($oldfile, $exifedfile);
 	if ( $res == 1 ) {
-		print "writing to " . $exifedfile . " ok\n";
+		dbgmsg (2, "Writing to $exifedfile ok.\n");
 		rename ( $exifedfile, $oldfile )
 			|| ( fatalmsg ("$exifedfile -> $oldfile\n"), die );
 	}
-	elsif ( $res == 2 ) { print "No changes for " . $exifedfile . "\n"; }
+	elsif ( $res == 2 ) { infomsg ("No changes for $exifedfile.\n"); }
 	else {
 		my $errorMessage   = $exifAfterRot->GetValue('Error');
 		my $warningMessage = $exifAfterRot->GetValue('Warning');
-		if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
-		if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
+		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
+		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
 	$oldfile = $origfile = $newfile = "";
  }
@@ -435,12 +435,12 @@ sub rotateFile {
 			errmsg ("$ThumbnailOriginal wasn't opened!\n");
 		}
 		print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-		unless ( close ( OLDTHUMBNAIL ) ) { print "WARNING: " . $ThumbnailOriginal . " wasn't closed!\n"; }
+		unless ( close ( OLDTHUMBNAIL ) ) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
 		my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $ThumbnailOriginalRotated . " " . $ThumbnailOriginal;
-		print "rotate thmb: " . $cmd . "\n";
+		dbgmsg (3, "Rotate thmb: $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 		# preparing to write the just rotated thumbnail, back to the file
@@ -463,23 +463,23 @@ sub rotateFile {
 		# writing the changes to the EXIFs
 		my $res = $exifThumbnailed->WriteInfo($fileToThumbnail, $fileThumbnailed);
 		if ( $res == 1 ) {
-			print "writing to " . $fileThumbnailed . " ok\n";
+			dbgmsg (2, "Writing to $fileThumbnailed ok.\n");
 			rename ( $fileThumbnailed, $fileToThumbnail )
 				|| ( fatalmsg ("$fileThumbnailed -> $fileToThumbnail\n"), die );
 		}
-		elsif ( $res == 2 ) { print "No changes for " . $fileThumbnailed . "\n"; }
+		elsif ( $res == 2 ) { infomsg ("No changes for $fileThumbnailed.\n"); }
 		else {
 			my $errorMessage   = $exifThumbnailed->GetValue('Error');
 			my $warningMessage = $exifThumbnailed->GetValue('Warning');
-			if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
-			if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
+			if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
+			if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 		}
 
-		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("while killing $ThumbnailOriginalRotated\n"), die );
-		unlink ($ThumbnailOriginal) || ( fatalmsg ("while killing $ThumbnailOriginal\n"), die );
+		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
+		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
 	}
 	else {
-		print "No thumbnail found.\n";
+		warnmsg ("No thumbnail found.\n");
 	}
  }
 
