@@ -1,4 +1,7 @@
 $Log$
+Revision 1.33  2006/04/23 08:09:35  andy
+Removing trailing spaces.
+
 Revision 1.32  2006/04/23 08:06:55  andy
 Change die "smth." to ( fatalmsg(), die ).
 
@@ -107,3 +110,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

@@ -81,7 +81,7 @@ sub getopt {
 		usage();
 		exit 0;
 	}
-	
+
 	if (defined $ver && $ver != 0) {
 		infomsg ("renrot version $VERSION\n");
 		exit 0;
@@ -152,7 +152,7 @@ my @rotparms = (''
         , '-rotate 90'
         , '-transverse'
         , '-rotate 270');
-my %rotangles = ( '90' => '-rotate 90', 
+my %rotangles = ( '90' => '-rotate 90',
 		 '270' => '-rotate 270');
 
 my $errorMessage;
@@ -168,7 +168,7 @@ opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir\n"), die );
 while ( defined ( $file = readdir DIR )) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
 	next if ( -d $file );		# is this a directory?
-	
+
 	$extentionToProcessLowCase = $extentionToProcess;
 	$extentionToProcessLowCase =~ tr/A-Z/a-z/;
 
@@ -187,15 +187,15 @@ foreach $file ( @files ) {
 	$newfilename = "";
 	#################################################################################
 	#
-	## analyzing whether and how to rename file 
+	## analyzing whether and how to rename file
 	#
-	if ( defined $noRename ) { 
-		print "No renaming asked, filename is left untouched\n\n"; 
+	if ( defined $noRename ) {
+		print "No renaming asked, filename is left untouched\n\n";
 		$newfilename = $file;
 	}
 	else {
-		if ( defined $namePrefix ) { 
-			$newfilename = $namePrefix . "."; 
+		if ( defined $namePrefix ) {
+			$newfilename = $namePrefix . ".";
 		}
 		if ( defined $nameSuffix ) {
 			if ( defined $info->{"ExposureTime"} ) {
@@ -214,23 +214,23 @@ foreach $file ( @files ) {
 				. "A" . $info->{"FNumber"}
 				. "E" . $ExposureTime;
 		}
-		if ( defined ( $info->{"DateTimeOriginal"} ) 
-			&& defined ( $info->{"FileNumber"} ) 
+		if ( defined ( $info->{"DateTimeOriginal"} )
+			&& defined ( $info->{"FileNumber"} )
 			&& !(defined $namePrefixOnly) ) {
 
-			$newfilename = $newfilename . $info->{"DateTimeOriginal"} 
-						. "." . $info->{"FileNumber"} . $suffix 
+			$newfilename = $newfilename . $info->{"DateTimeOriginal"}
+						. "." . $info->{"FileNumber"} . $suffix
 						. "." . $extentionToProcessLowCase;
 		}
 		elsif ( defined ( $info->{"DateTimeOriginal"} )
 			&& !( defined ( $info->{"FileNumber"} ) )
 			&& !( defined $namePrefixOnly ) ) {
-			
+
 			$countersuffix = sprintf('%.4d', $filecounter);
 			$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersuffix
 						. $suffix . "." . $extentionToProcessLowCase;
 			$filecounter++;
-			
+
 		}
 		else { # if not exists, than adding XXXX index to the end of timestamp
 			$countersuffix = sprintf('%.4d', $filecounter);
@@ -241,14 +241,14 @@ foreach $file ( @files ) {
 				$prefix = now();
 				$prefix = $prefix . ".";
 			}
-			$newfilename = $newfilename . $prefix . $countersuffix 
+			$newfilename = $newfilename . $prefix . $countersuffix
 						. "." . $suffix . $extentionToProcessLowCase;
 			$filecounter++;
 		}
-		
-		if ( $file ne $newfilename ) { 
-			rename ( $file, $newfilename ) 
-				|| ( fatalmsg ("Unable to rename $file -> $newfilename\n"), die ); 
+
+		if ( $file ne $newfilename ) {
+			rename ( $file, $newfilename )
+				|| ( fatalmsg ("Unable to rename $file -> $newfilename\n"), die );
 			print $file . " -> " . $newfilename . "\n";
 		}
 		else { print "No renaming needed for " . $newfilename . ", it looks as needed!\n"; }
@@ -256,7 +256,7 @@ foreach $file ( @files ) {
 	################################################################################################
 	#
 	## analyzing whether to rotate
-	#		
+	#
 	if ( defined $noRotation ) { print "No rotation asked, file orientation is left untouched\n\n"; }
 	elsif ( defined $rotate ) {
 		print "we'll deal with: " . $newfilename . " and " . $rotangles{$rotate} . "\n";
@@ -270,23 +270,23 @@ foreach $file ( @files ) {
 		if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
 			if ( $orientation > 1 ) {
 				$rotas = $rotparms[$orientation - 1];
-				rotateFile($newfilename, $rotas); 
+				rotateFile($newfilename, $rotas);
 				rotateThumbnail($newfilename, $rotas);
 			}
-			elsif ( $orientation == 1 ) { 
-				print "No need to rotate, orientation is: Horisontal (normal)\n"; 
+			elsif ( $orientation == 1 ) {
+				print "No need to rotate, orientation is: Horisontal (normal)\n";
 			}
 			else {
 				print "Something wrong, orientation is < 1: $orientation\n";
 			}
 		}
-		else { 
-			print "Orientation tag is absent!\n"; 
+		else {
+			print "Orientation tag is absent!\n";
 		}
 	}
 
-	
-	###############################		
+
+	###############################
 	#
 	## analyzing whether to comment
 	#
@@ -301,7 +301,7 @@ foreach $file ( @files ) {
 		}
 	}
 	else { print "No commenting, file commentary is left untouched\n"; }
-	
+
 	######################################
 	#
 	## preparing to write the UserComment and some additional tags
@@ -338,12 +338,12 @@ foreach $file ( @files ) {
 
 	# writing the changes to the EXIFs
 	my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
-	if ( $res == 1 ) { 
-		# print "writing to " . $comentedfilename . " ok\n"; 
-		rename ( $comentedfilename, $newfilename  )  
-			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die ); 
+	if ( $res == 1 ) {
+		# print "writing to " . $comentedfilename . " ok\n";
+		rename ( $comentedfilename, $newfilename  )
+			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
 	}
-	elsif ( $res == 2 ) { 
+	elsif ( $res == 2 ) {
 		print "No changes between " . $newfilename . "\n and " . $comentedfilename . " no EXIF written\n";
 		unlink $comentedfilename;
 	}
@@ -363,7 +363,7 @@ exit 0;
 ########################################################################################
 #
 # now() returns timestamp in form YYYYmmddHHMMSS
-# 
+#
 sub now {
 	my $date = (localtime);
 	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
@@ -381,31 +381,31 @@ sub now {
 sub rotateFile {
 	# $_[0] - file name to transform with jpegtran
 	# $_[1] - the switches for jpegtran to transform the image
-	
+
 	my $oldfile =  $_[0];			# original name
 	my $origfile = $_[0] . "_orig";	# backup original name
 	my $newfile =  $_[0] . "_rotated";	# temporay name to store rotated file
-	
+
 	# jpegtran the image
 	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
 	print "rotate: " . $cmd . "\n";
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
-	
+
 	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
 	rename ( $newfile, $oldfile )  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
-	
+
 	# preparing to write Orientation tag to the just rotated file
 	my $exifAfterRot = new Image::ExifTool;
 	$exifAfterRot->Options(Binary => 1);
 	my $exifedfile = $oldfile . "_exifed";	# the file name, exifed file to be put to
-	
+
 	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
-	
+
 	# writing the changes to the EXIFs
 	my $res = $exifAfterRot->WriteInfo($oldfile, $exifedfile);
-	if ( $res == 1 ) { 
-		print "writing to " . $exifedfile . " ok\n"; 
-		rename ( $exifedfile, $oldfile )  
+	if ( $res == 1 ) {
+		print "writing to " . $exifedfile . " ok\n";
+		rename ( $exifedfile, $oldfile )
 			|| ( fatalmsg ("$exifedfile -> $oldfile\n"), die );
 	}
 	elsif ( $res == 2 ) { print "No changes for " . $exifedfile . "\n"; }
@@ -426,45 +426,45 @@ sub rotateFile {
 	# $_[0] - file, which thumbnale to transform with jpegtran
 	# $_[1] - the switch for jpegtran to rotate the thumbnail
 
-	if ( defined ${$$info{ThumbnailImage}} ) { 	
+	if ( defined ${$$info{ThumbnailImage}} ) {
 		my $fileToThumbnail =  $_[0];			# original name
-		
+
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $fileToThumbnail . "_thumborig";
-		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) { 
-			errmsg ("$ThumbnailOriginal wasn't opened!\n"); 
+		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
+			errmsg ("$ThumbnailOriginal wasn't opened!\n");
 		}
 		print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
 		unless ( close ( OLDTHUMBNAIL ) ) { print "WARNING: " . $ThumbnailOriginal . " wasn't closed!\n"; }
-		
+
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
 		my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $ThumbnailOriginalRotated . " " . $ThumbnailOriginal;
 		print "rotate thmb: " . $cmd . "\n";
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
-		
+
 		# preparing to write the just rotated thumbnail, back to the file
-		unless ( open ( THUMBNAILROTATED, "<$ThumbnailOriginalRotated" ) ) { 
-			errmsg ("$ThumbnailOriginalRotated wasn't opened!\n"); 
+		unless ( open ( THUMBNAILROTATED, "<$ThumbnailOriginalRotated" ) ) {
+			errmsg ("$ThumbnailOriginalRotated wasn't opened!\n");
 		}
 		binmode THUMBNAILROTATED;
 		my ( @rthumb ) = <THUMBNAILROTATED>;
 		my $thethumb = join ('',@rthumb);
 		unless ( close ( THUMBNAILROTATED ) ) { errmsg ("$ThumbnailOriginalRotated wasn't closed!\n"); }
-		
+
  	 	# preparing to write thumbnale to the just rotated file
 		my $exifThumbnailed = new Image::ExifTool;
 		$exifThumbnailed->Options(Binary => 1);
-		
+
 		my $fileThumbnailed = $fileToThumbnail . "_thumb";  # the file name, thumbnailed file to be put to
-		
+
 		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
-		
+
 		# writing the changes to the EXIFs
 		my $res = $exifThumbnailed->WriteInfo($fileToThumbnail, $fileThumbnailed);
-		if ( $res == 1 ) { 
-			print "writing to " . $fileThumbnailed . " ok\n"; 
-			rename ( $fileThumbnailed, $fileToThumbnail )  
+		if ( $res == 1 ) {
+			print "writing to " . $fileThumbnailed . " ok\n";
+			rename ( $fileThumbnailed, $fileToThumbnail )
 				|| ( fatalmsg ("$fileThumbnailed -> $fileToThumbnail\n"), die );
 		}
 		elsif ( $res == 2 ) { print "No changes for " . $fileThumbnailed . "\n"; }
@@ -474,7 +474,7 @@ sub rotateFile {
 			if ( defined $errorMessage ) { print "EXIF ERROR: " . $errorMessage . "\n"; }
 			if ( defined $warningMessage ) { print "EXIF WARNING: " . $warningMessage . "\n"; }
 		}
-	
+
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("while killing $ThumbnailOriginalRotated\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("while killing $ThumbnailOriginal\n"), die );
 	}
@@ -486,10 +486,10 @@ sub rotateFile {
 ########################################################################################
 #
 # usage() - the instruction how to use the script
-# 
+#
 sub usage {
 infomsg (
-"Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE] 
+"Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
 
 		-h | --help		this very page
@@ -497,15 +497,15 @@ infomsg (
 		--work-directory <DIR>	specify working directory
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
-		--rotate <90|270>	define the angle, to rotate file and the thumbnail on, 
-					90 or 270. it's for the files where no Orientation tag 
+		--rotate <90|270>	define the angle, to rotate file and the thumbnail on,
+					90 or 270. it's for the files where no Orientation tag
 					is present and set right way
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
 		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-prefix <PREFIX>	prefix to the filename
 		--name-prefix-only	prefix to the filename when no date in the name needed
-		--name-suffix		suffix to the filename, the values of aperture, exsposure time, 
+		--name-suffix		suffix to the filename, the values of aperture, exsposure time,
 					iso and white balance are added to the filename as suffix, see manual
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
@@ -531,7 +531,7 @@ It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
 and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is whether file ID,
-if exists in EXIF (as for Canon) or incrementable suffix to the name 
+if exists in EXIF (as for Canon) or incrementable suffix to the name
 YYYYmmddHHMMSS.
 
 It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
@@ -544,9 +544,9 @@ After all, the script can put the commentary to:
 
 	- UserComment tag if $COMMENTARY variable set in config file
 
-Personal data could be specified via XMP tags defined in config file, look 
+Personal data could be specified via XMP tags defined in config file, look
 CONFIG section.
-	
+
 =over 5
 
 =head1 OPTIONS
@@ -604,7 +604,7 @@ works with B<--name-prefix>
 
 =item B<--name-suffix>
 
-suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and ExposureTime, if defined, filenames looks like: 
+suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and ExposureTime, if defined, filenames looks like:
 
 20050813072758.a8-e1by1760-i400-wbDaylight.crw
 20050813072814.a6.3-e1by1244-i200-wbClowdy.jpg
@@ -621,23 +621,23 @@ These tags could be set via config file:
 
 anything you'd wanna put as commentary
 
-=item B<CiAdrCity>	
+=item B<CiAdrCity>
 
 City
 
-=item B<CiAdrCtry>	
+=item B<CiAdrCtry>
 
 street
 
-=item B<CiAdrExtadr> 	
+=item B<CiAdrExtadr>
 
 extended address
 
-=item B<CiAdrPcode>	
+=item B<CiAdrPcode>
 
 zip code
 
-=item B<CiAdrRegion>	
+=item B<CiAdrRegion>
 
 region
 
@@ -645,7 +645,7 @@ region
 
 email
 
-=item B<CiTelWork>	
+=item B<CiTelWork>
 
 phone
 
