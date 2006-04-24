@@ -540,12 +540,16 @@ as well as it's thumbnail,
 
 After all, the script can put the commentary to:
 
-	- Commentary tag if commentary file provided with --comment-file option
+=over 8
 
-	- UserComment tag if $COMMENTARY variable set in config file
+- Commentary tag if commentary file provided with B<--comment-file> option
+
+- UserComment tag if $COMMENTARY variable set in config file
+
+=back
 
 Personal data could be specified via XMP tags defined in config file, look
-CONFIG section.
+L<CONFIG> section.
 
 =over 5
 
@@ -557,7 +561,7 @@ CONFIG section.
 
 the help
 
-=item B<-c> or B<--config-file> I<config file>
+=item B<-c> or B<--config-file> I<Config FILE>
 
 location of the config file
 
@@ -585,7 +589,7 @@ no rotation needed, default is to rotate
 
 no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 
-=item B<--comment-file> I<COMMENTFILENAME>
+=item B<--comment-file> I<Comment FILE>
 
 file with commentary
 
