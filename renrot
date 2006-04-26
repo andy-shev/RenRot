@@ -17,9 +17,8 @@ my $rotate;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; # define the angle, to rotate on, 90 or 270
 my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $noComment;	# no comment needed
-my $namePrefix;	# prefix to the filename
-my $namePrefixOnly; # prefix to the filename (for case when no date in name needed)
 my $nameSuffix;	# suffix to the filename
+my $nameTemplate;	# template for the filename taken from CLI
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
@@ -69,8 +68,7 @@ sub getopt {
 		"no-rotate" => \$noRotation,
 		"no-rename" => \$noRename,
 		"comment-file=s" => \$comfile,
-		"name-prefix=s" => \$namePrefix,
-		"name-prefix-only" => \$namePrefixOnly,
+		"name-template=s" => \$nameTemplate,
 		"name-suffix" => \$nameSuffix,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
@@ -105,7 +103,7 @@ sub getopt {
 # parse command-line options
 getopt();
 
-# the default commentary to add to UserComment
+# the default, expected to be defined in the config file
 our $COMMENTARY;
 our $CiAdrCity;
 our $CiAdrCtry;
@@ -116,6 +114,7 @@ our $CiEmailWork;
 our $CiTelWork;
 our $CiUrlWork;
 our $City;
+our $NameTemplate = '%Y%m%d%H%M%S'; # name template
 
 my $etc_rc = "/etc/renrot.rc";
 my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
@@ -128,20 +127,26 @@ else {
 	if ( -f $homedir_rc ) { do $homedir_rc; }
 }
 
+if ( defined $nameTemplate ) {
+	$NameTemplate = $nameTemplate;
+}
+
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 
 my $file;		# file in the directory
 my @files;		# array of the sorted filenames to process
 my @filenames;		# array of the filenames to process
-my $info;		# ImageInfo object
+our $info;		# ImageInfo object
 my $newfilename;	# the name file to be renamed to
+my %filenameshash;	# hash for old file names
+my $filenameshashkey;
 my $orientation = '';	# Orientation tag value
 my @filenameSplited;	# array to hold filename splitted to the parts
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
-my $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
-my $countersuffix;	# the suffix to add after timestamp to name the files without DateTimeOriginal tag
+our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
+my $counterprefix;	# 4 digit file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 my $rotas;		# how to rotate
 my @rotparms = (''
@@ -158,7 +163,7 @@ my %rotangles = ( '90' => '-rotate 90',
 my $errorMessage;
 my $warningMessage;
 my $suffix = "";
-my $prefix = "";
+my $Now = "";
 my $ExposureTime = "";
 my $WhiteBalance = "";
 
@@ -182,7 +187,7 @@ while ( defined ( $file = readdir DIR )) {
 @files = sort @filenames;
 
 foreach $file ( @files ) {
-	print "Processing file: $file...\n";
+	print "Processing file: $file ...\n";
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
 	#################################################################################
@@ -194,9 +199,6 @@ foreach $file ( @files ) {
 		$newfilename = $file;
 	}
 	else {
-		if ( defined $namePrefix ) {
-			$newfilename = $namePrefix . ".";
-		}
 		if ( defined $nameSuffix ) {
 			if ( defined $info->{"ExposureTime"} ) {
 				$ExposureTime = $info->{"ExposureTime"};
@@ -214,37 +216,14 @@ foreach $file ( @files ) {
 				. "A" . $info->{"FNumber"}
 				. "E" . $ExposureTime;
 		}
-		if ( defined ( $info->{"DateTimeOriginal"} )
-			&& defined ( $info->{"FileNumber"} )
-			&& !(defined $namePrefixOnly) ) {
 
-			$newfilename = $newfilename . $info->{"DateTimeOriginal"}
-						. "." . $info->{"FileNumber"} . $suffix
-						. "." . $extentionToProcessLowCase;
-		}
-		elsif ( defined ( $info->{"DateTimeOriginal"} )
-			&& !( defined ( $info->{"FileNumber"} ) )
-			&& !( defined $namePrefixOnly ) ) {
+		$newfilename = sprintf("%s.%s", template2name($NameTemplate), $extentionToProcessLowCase);
 
-			$countersuffix = sprintf('%.4d', $filecounter);
-			$newfilename = $newfilename . $info->{"DateTimeOriginal"} . "." . $countersuffix
-						. $suffix . "." . $extentionToProcessLowCase;
-			$filecounter++;
+		if ( $filenameshash{$newfilename} ) {
+			fatalmsg ("Filename $newfilename isn't unique!!!\n"), die;
+		}
 
-		}
-		else { # if not exists, than adding XXXX index to the end of timestamp
-			$countersuffix = sprintf('%.4d', $filecounter);
-			if ( defined $namePrefixOnly ) {
-				$prefix = "";
-			}
-			else {
-				$prefix = now();
-				$prefix = $prefix . ".";
-			}
-			$newfilename = $newfilename . $prefix . $countersuffix
-						. "." . $suffix . $extentionToProcessLowCase;
-			$filecounter++;
-		}
+		$filenameshash{$newfilename} = 1;
 
 		if ( $file ne $newfilename ) {
 			rename ( $file, $newfilename )
@@ -354,6 +333,7 @@ foreach $file ( @files ) {
 		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
 	print "\n";
+	$filecounter++;
 }
 
 closedir(DIR);
@@ -367,7 +347,7 @@ exit 0;
 sub now {
 	my $date = (localtime);
 	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
-		$$date[5] + 1900, $$date[4], $$date[3],
+		$$date[5] + 1900, $$date[4] + 1, $$date[3],
 		$$date[2], $$date[1], $$date[0]);
 	return $result;
 }
@@ -503,13 +483,74 @@ infomsg (
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
 		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-		--name-prefix <PREFIX>	prefix to the filename
-		--name-prefix-only	prefix to the filename when no date in the name needed
+		--name-template <TPL>	filename template (see manual for details)
 		--name-suffix		suffix to the filename, the values of aperture, exsposure time,
 					iso and white balance are added to the filename as suffix, see manual
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
 ");
+}
+
+########################################################################################
+#
+# template2name() - file name builder, according the template
+#
+sub template2name {
+	if ( not defined $_[0] ) {
+		fatalmsg ("NameTemplate isn't given!\n"), die;
+	}
+
+	my $template = $_[0];	# $_[0] the template to be used
+
+	my $notset = '_NOTSET_';
+	my $timestamp;
+	my $id;
+
+	if ( not defined $info->{"FileNumber"} ) {
+		$id = $notset;
+	}
+	else { $id = $info->{"FileNumber"}; }
+
+	if ( not defined $info->{"DateTimeOriginal"} ) {
+		$timestamp = now();
+		warnmsg ("DateTimeOriginal isn't set, using now()!\n");
+		my $fc = "%c"; # file counter occurence in the template flag
+		my $whethercounter = index $template,$fc;
+		if ( $whethercounter < 0 ) {
+			$template = sprintf("%s.%s",$template,$fc);
+		}
+	}
+	else { $timestamp = $info->{"DateTimeOriginal"}; }
+
+	my @templatearea = split (//, $template);
+	my %templatehash = ( 	'%' => "%",
+				'c' => sprintf('%.4d', $filecounter),
+				'i' => $id,
+				's' => "suffix",
+				'Y' => substr($timestamp,0,4),
+				'y' => substr($timestamp,2,2),
+				'm' => substr($timestamp,4,2),
+				'd' => substr($timestamp,6,2),
+				'H' => substr($timestamp,8,2),
+				'M' => substr($timestamp,10,2),
+				'S' => substr($timestamp,12,2));
+	my $thename = "";
+
+	my $substroffset = 0;
+	my $substrchar;
+
+	while ( $substroffset < $#templatearea ) {
+		$substrchar = $templatearea[$substroffset++];
+		if ( $substrchar eq "%" ) {
+			$substrchar = $templatearea[$substroffset++];
+			if ( defined $templatehash{$substrchar} ) {
+				$thename .= $templatehash{$substrchar};
+			}
+		}
+		else { $thename .= $substrchar; }
+	}
+
+	return $thename;
 }
 
 __END__
@@ -540,7 +581,7 @@ as well as it's thumbnail,
 
 After all, the script can put the commentary to:
 
-=over 8
+=over
 
 - Commentary tag if commentary file provided with B<--comment-file> option
 
@@ -551,11 +592,9 @@ After all, the script can put the commentary to:
 Personal data could be specified via XMP tags defined in config file, look
 L<CONFIG> section.
 
-=over 5
-
 =head1 OPTIONS
 
-=over 5
+=over
 
 =item B<-h> or B<--help>
 
@@ -575,11 +614,13 @@ extention of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
 =item B<--rotate> I<90> or I<270>
 
-define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the files where no Orientation tag is set right way
+define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the
+files where no Orientation tag is set right way
 
 =item B<--rotate-thumb> I<90> or I<270>
 
-rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were rotated, but thumbnail wasn't
+rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were
+rotated, but thumbnail wasn't
 
 =item B<--no-rotate>
 
@@ -597,29 +638,68 @@ file with commentary
 
 the version of this script
 
-=item B<--name-prefix> I<PREFIX>
+=item B<--name-template> I<Name TEMPLATE>
 
-prefix to the filename, if defined, filenames looks like:  myprefix-YYYYmmddHHMMSS-XXXXX.jpg
+template, which is used for file name building while renaming. It could be
+defined in config file (the variable NameTemplate). The default is
+I<%Y%m%d%H%M%S>.
 
-=item B<--name-prefix-only>
+Interpreted sequences are:
 
-prefix to the filename when no date in the filename whished, if defined, filenames looks like:  PREFIX-XXXXX.jpg
-works with B<--name-prefix>
+=over
+
+B<%%>	a literal %
+
+B<%c>	file order number in the processed file set
+
+B<%d>	day of the month (01-31)
+
+B<%H>	hour (00-23)
+
+B<%i>	FileNumber tag if exists (otherwise, it'll be replaced by string
+C<_NOTSET_>)
+
+B<%M>	minute (00-59)
+
+B<%m>	month (01-12)
+
+B<%S>	second (00-60)
+
+B<%s>	NameSuffix
+
+B<%Y>	year with century
+
+B<%y>	last two digits of year (00..99)
+
+=back
 
 =item B<--name-suffix>
 
-suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance and ExposureTime, if defined, filenames looks like:
+suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance
+and ExposureTime, if defined, filenames looks like:
+
+=over
 
 20050813072758.a8-e1by1760-i400-wbDaylight.crw
+
 20050813072814.a6.3-e1by1244-i200-wbClowdy.jpg
 
-where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and I<wb> for WhiteBalance
+=back
+
+where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and
+I<wb> for WhiteBalance
 
 =head1 CONFIG
 
-Config file could be used to set some variables. Config file is just perl code. B<Renrot> looks for B<--config-file> option firstly, than it looks for file named renrot.rc in system directories such as /etc and /usr/local/etc. And finally it looks for file named .renrotrc in home directory of the user. User defined config file can be given via B<--config-file> option.
+Config file could be used to set some variables. Config file is just perl
+code. B<Renrot> looks for B<--config-file> option firstly, than it looks for
+file named renrot.rc in system directories such as /etc and /usr/local/etc.
+And finally it looks for file named .renrotrc in home directory of the user.
+User defined config file can be given via B<--config-file> option.
 
 These tags could be set via config file:
+
+=over
 
 =item B<UserComment>
 
@@ -664,6 +744,8 @@ city
 =head1 FILES
 
 config file placement (with high priority first)
+
+=over
 
 =item B<~/.renrotrc>
 
