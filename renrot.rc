@@ -3,7 +3,6 @@
 #
 
 #$NameTemplate  = '%Y%m%d%H%M%S';
-#$NamePrefix    = 'FileNamePrefix';
 
 #$COMMENTARY    = <<__COMMENTARY__;
 #

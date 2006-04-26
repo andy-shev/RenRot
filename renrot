@@ -160,6 +160,15 @@ my @rotparms = (''
 my %rotangles = ( '90' => '-rotate 90',
 		 '270' => '-rotate 270');
 
+my @angles = ( ''
+	, 'fh'
+	, '180cw'
+	, 'fv'
+	, 'tp'
+	, '90cw'
+	, 'tv'
+	, '270cw' );
+	 
 my $errorMessage;
 my $warningMessage;
 my $suffix = "";
@@ -186,10 +195,46 @@ while ( defined ( $file = readdir DIR )) {
 
 @files = sort @filenames;
 
+our $anglesuffix = ""; # the suffix to add to the end of the rotated files 90cw or 270cw
+
 foreach $file ( @files ) {
 	print "Processing file: $file ...\n";
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
+	################################################################################################
+	#
+	## analyzing whether to rotate
+	#
+	if ( defined $noRotation ) { infomsg ("No rotation asked, file orientation is left untouched.\n"); }
+	elsif ( defined $rotate ) {
+		dbgmsg (2, "We'll deal with: $file and $rotangles{$rotate}.\n");
+		rotateFile($file, $rotangles{$rotate});
+		rotateThumbnail($file, $rotangles{$rotate});
+		$anglesuffix = $rotate . "cw";
+	}
+	elsif ( defined $rotateThumbnail ) {
+		rotateThumbnail($file, $rotangles{$rotateThumbnail});
+	}
+	else {
+		if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
+			if ( $orientation > 1 ) {
+				$rotas = $rotparms[$orientation - 1];
+				rotateFile($file, $rotas);
+				rotateThumbnail($file, $rotas);
+				$anglesuffix = $angles[$orientation - 1];
+			}
+			elsif ( $orientation == 1 ) {
+				infomsg ("No need to rotate, orientation is: Horisontal (normal).\n");
+			}
+			else {
+				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
+			}
+		}
+		else {
+			warnmsg ("Orientation tag is absent!\n");
+		}
+	}
+
 	#################################################################################
 	#
 	## analyzing whether and how to rename file
@@ -232,38 +277,6 @@ foreach $file ( @files ) {
 		}
 		else { warnmsg ("No renaming needed for $newfilename, it looks as needed!\n"); }
 	}
-	################################################################################################
-	#
-	## analyzing whether to rotate
-	#
-	if ( defined $noRotation ) { infomsg ("No rotation asked, file orientation is left untouched.\n"); }
-	elsif ( defined $rotate ) {
-		dbgmsg (2, "We'll deal with: $newfilename and $rotangles{$rotate}.\n");
-		rotateFile($newfilename, $rotangles{$rotate});
-		rotateThumbnail($newfilename, $rotangles{$rotate});
-	}
-	elsif ( defined $rotateThumbnail ) {
-		rotateThumbnail($newfilename, $rotangles{$rotateThumbnail});
-	}
-	else {
-		if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
-			if ( $orientation > 1 ) {
-				$rotas = $rotparms[$orientation - 1];
-				rotateFile($newfilename, $rotas);
-				rotateThumbnail($newfilename, $rotas);
-			}
-			elsif ( $orientation == 1 ) {
-				infomsg ("No need to rotate, orientation is: Horisontal (normal).\n");
-			}
-			else {
-				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
-			}
-		}
-		else {
-			warnmsg ("Orientation tag is absent!\n");
-		}
-	}
-
 
 	###############################
 	#
@@ -334,6 +347,7 @@ foreach $file ( @files ) {
 	}
 	print "\n";
 	$filecounter++;
+	$anglesuffix = "";
 }
 
 closedir(DIR);
@@ -524,6 +538,7 @@ sub template2name {
 
 	my @templatearea = split (//, $template);
 	my %templatehash = ( 	'%' => "%",
+				'a' => $anglesuffix,
 				'c' => sprintf('%.4d', $filecounter),
 				'i' => $id,
 				's' => "suffix",
