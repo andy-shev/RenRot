@@ -2,7 +2,10 @@
 ## the commentary to put to UserComment tag
 #
 
-#$COMMENTARY = <<__COMMENTARY__;
+#$NameTemplate  = '%Y%m%d%H%M%S';
+#$NamePrefix    = 'FileNamePrefix';
+
+#$COMMENTARY    = <<__COMMENTARY__;
 #
 #This image was shot by HERE-IS-YOUR-NAME for private purposes
 #and is copyrighted by him (me). The copyright is governed by

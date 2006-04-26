@@ -1,0 +1,63 @@
+INSTALLATION
+
+You can install RenRot to your Windows platform, but you need to do
+several extra steps.
+
+STEP 1
+
+First off, you must have a Perl 5.6.0 or later available on your system.
+If you need to install one, ActivePerl can be a good choice. You can get
+it here
+    http://www.activestate.com/Products/ActivePerl/
+Currently you don't have to provide any personal info for download, but
+if you are still in doubt, you can try to follow direct link
+    http://www.activestate.com/Products/Download/Download.plex?id=ActivePerl
+and choose a build for Windows (as msi package - clickable option for
+novice, or zip file for more experinced users). Once you have Perl
+installed (it goes to C:\Perl by default), you can type
+  perl --version
+to see istalled version.
+
+STEP 2
+
+Now you need make/nmake to continue. This article
+    http://johnbokma.com/perl/make-for-windows.html
+explains what to do and what to make, but shortly go to Microsoft's
+Q132084
+    http://support.microsoft.com/default.aspx?scid=kb;en-us;Q132084
+and download nmake
+    http://download.microsoft.com/download/vc15/patch/1.52/w95/en-us/nmake15.exe
+Run the downloaded file to extract it and copy both the NMAKE.EXE and
+the NMAKE.ERR files to your Perl bin directory, normally C:\Perl\bin.
+
+STEP 3
+
+Now download all dependencies (like Exiftool), unpack and install them,
+using nmake command instead of make. Use cpan for needed modules like
+running
+    cpan Image::ExifTool
+or by cpan shell starting with
+    perl -MCPAN -e shell
+
+STEP 4
+
+Just like you installed dependencies, you can install renrot now:
+    perl Makefile.PL
+    nmake
+    nmake install
+
+You are ready to go!
+
+NOTES:
+
+1. To unpack tar.gz-files you can use WinZip (make sure that you extract
+files including full path, especially for ExiffTool), or use free
+utility 7-zip
+    http://www.7-zip.org/
+
+2. Be sure to call NMake.exe instead of make command.
+
+3. One of the dependencies is jpegtran from libjpeg library and they do
+not provide binaries for Windows platform. To be able to rotate images,
+you must build it from source code yourself or download from this site
+    http://sylvana.net/jpegcrop/jpegtran/

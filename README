@@ -6,8 +6,8 @@ according to their EXIF tags.
 
 GETTING
 
-RenRot home page is a ftp site while now. You may download it from next
-sites:
+RenRot home page is an ftp site for now. You can download script package
+from the following sites:
  ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
  ftp://andriy.asplinux.com.ua/pub/people/andy/renrot/ (mirror)
  ftp://ftp.asplinux.ru/ (looking for renrot package in RPM)
@@ -15,22 +15,24 @@ sites:
 
 RUNNING
 
-Renrot is intended to work ONLY in current directory with whole files of
-the --ext extention. You can change the behaviour by specify --work-directory
-option.
+Renrot is intended to work ONLY in current directory with all files of
+the extention, specified after --ext.
 
-It renames files according the DateTimeOriginal EXIF tag if it's exists
-than if it isn't, according the FileModifyDate EXIF tag if it's exists
-than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is incrementable
-suffix to the name YYYYmmddHHMMSS.
+It renames files according to a picture date. The picture date is
+defined like this:
+- if DateTimeOriginal EXIF tag exists, it is used as the picture date
+- otherwise, if FileModifyDate EXIF tag exists, it is used as the
+  picture date
+- otherwise current timestamp is used as the picture date.
+Final file name will look like YYYYmmddHHMMSS-XXXXX.jpg, where XXXXX is
+incrementable suffix to the name YYYYmmddHHMMSS.
 
-It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
-If the tag is absent or miss set, than the script allows to rotate the file
-as well as it's thumbnail,
+renrot rotates file and its thumbnail, accordingly to Orientation EXIF
+tag. If the tag is absent or miss set, than the script allows to rotate
+the file as well as it's thumbnail.
 
-After all, the script can put the commentary to:
-    - Commentary tag if commentary file provided with --comment-file option
+Futhermore, the script can put a comment to:
+    - Comment tag if comment file provided with --comment-file option
     - UserComment tag if $COMMENTARY variable set in config file
 
 Personal data could be specified via XMP tags defined in config file
@@ -40,7 +42,7 @@ Examples:
     renames PICTZZZZ.JPG to sample.YYYYmmddHHMMSS.XXXX.jpg
 	renrot --name-prefix sample --ext '*.JPG'
 
-    renames PICTZZZZ.JPG to YYYYmmddHHMMSS.XXXX.WwwwIiiiAaaaEeeejpg
+    renames PICTZZZZ.JPG to YYYYmmddHHMMSS.XXXX.WwwwIiiiAaaaEeee.jpg
 	renrot --name-suffix --ext '*.JPG'
 
     rotates all files by 90CW
@@ -52,7 +54,7 @@ Examples:
 
 INSTALLATION
 
-You can install the renrot to make it available for use by other users by
+You can install renrot to make it available for use by other users by
 typing the following:
 
   perl Makefile.PL PREFIX=/usr/local
@@ -89,5 +91,5 @@ THANKS
 Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/)
 for his valued comments and suggestions.
 
-ASPLinux company (http://www.asplinux.ru) has included the renrot to
+ASPLinux company (http://www.asplinux.ru) has included renrot to
 their distribution.

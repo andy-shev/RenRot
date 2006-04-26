@@ -1,4 +1,7 @@
 $Log$
+Revision 1.37  2006/04/26 15:19:58  andy
+README for windows users. Linguistiq fix for README.
+
 Revision 1.36  2006/04/24 07:47:35  andy
 Minor documentation fix.
 
@@ -120,3 +123,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
