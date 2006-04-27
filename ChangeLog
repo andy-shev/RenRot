@@ -1,4 +1,11 @@
 $Log$
+Revision 1.42  2006/04/27 14:31:22  andy
+Fix timestamp for invalid DateTimeOriginal tag (new function
+timeValidator()).
+Rewrote parts of template engine.
+Set default value for $anglesuffix.
+Sort in alphabetical order template hash and related documentation.
+
 Revision 1.41  2006/04/27 09:53:50  zeus
 mtime seting according the DateTimeOriginal tag implemented.
 possibility to add some EXIF details, like FNumber, ISO e.t.c. to the filename is added
@@ -139,4 +146,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

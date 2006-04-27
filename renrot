@@ -25,8 +25,8 @@ my $configFile;	# config file
 my $comfile;	# file with commentary
 my $verbose = 0;	# verbosity of output
 my $dir = ".";	# we'll work ONLY in current directory
-my $mtime; # to set mtime
-our $mTime; # mtime to use to set
+my $mtime;	# to set mtime
+our $mTime;	# mtime to use to set
 
 # information message
 sub infomsg {
@@ -174,8 +174,6 @@ my $errorMessage;
 my $warningMessage;
 my $suffix = "";
 my $Now = "";
-my $ExposureTime = "";
-my $WhiteBalance = "";
 
 chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
 opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
@@ -196,7 +194,7 @@ while ( defined ( $file = readdir DIR )) {
 
 @files = sort @filenames;
 
-our $anglesuffix = ""; # the suffix to add to the end of the rotated files 90cw or 270cw
+our $anglesuffix = "0cw";	# the suffix to add to the end of the rotated files 90cw or 270cw
 
 foreach $file ( @files ) {
 	print "Processing file: $file ...\n";
@@ -328,7 +326,7 @@ foreach $file ( @files ) {
 	if ( defined $mtime ) {
 		utime $mTime,$mTime,$newfilename;
 	}
-	$mTime="";
+	$mTime = "";
 }
 
 closedir(DIR);
@@ -337,9 +335,9 @@ exit 0;
 
 ########################################################################################
 #
-# now() returns timestamp in form YYYYmmddHHMMSS
+# timeNow() returns timestamp in form YYYYmmddHHMMSS
 #
-sub now {
+sub timeNow {
 	my $date = (localtime);
 	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
 		$$date[5] + 1900, $$date[4] + 1, $$date[3],
@@ -347,6 +345,36 @@ sub now {
 	return $result;
 }
 
+########################################################################################
+#
+# timeValidator() returns correctness of timestamp in form YYYYmmddHHMMSS
+#
+sub timeValidator {
+	my $timestamp = shift;
+
+	# check length (14)
+	return 1 if (length ($timestamp) != 14);
+
+	return 1 if (not $timestamp ~= m/(%d%d%d%d)(%d%d)(%d%d)(%d%d)(%d%d)(%d%d)/);
+	dbgmsg (4, "timeValidator(): timestamp: $1 $2 $3 $4 $5 $6\n");
+
+	my $year = substr(timeNow(),0,4);
+
+	# check year
+	return 1 if (($1 > $year) or ($1 < 1900));
+	# check month
+	return 1 if (($2 > 12) or ($2 < 1));
+	# check day
+	return 1 if (($3 > 31) or ($3 < 1));
+	# check hour
+	return 1 if ($4 > 23);
+	# check mininute
+	return 1 if ($5 > 59);
+	# check second
+	return 1 if ($6 > 59);
+
+	return 0;
+}
 
 ########################################################################################
 #
@@ -496,49 +524,78 @@ sub template2name {
 
 	my $template = $_[0];	# $_[0] the template to be used
 
-	my $notset = '_NOTSET_';
 	my $timestamp;
-	my $id;
 
-	if ( not defined $info->{"FileNumber"} ) {
-		$id = $notset;
+	if ( defined $info->{"DateTimeOriginal"} ) {
+		$timestamp = $info->{"DateTimeOriginal"};
+
+		# fix invalid timestamp got from EXIF (i.e. Nikon issue)
+		if ( timeValidator($timestamp) ) {
+			$timestamp = timeNow();
+			warnmsg ("DateTimeOriginal isn't correct, using timeNow()!\n");
+		}
+		elsif ( defined $mtime ) {
+			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
+			$mTime = $info->{"DateTimeOriginal"};
+			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
+		}
 	}
-	else { $id = $info->{"FileNumber"}; }
-
-	if ( not defined $info->{"DateTimeOriginal"} ) {
-		$timestamp = now();
-		warnmsg ("DateTimeOriginal isn't set, using now()!\n");
+	else {
+		$timestamp = timeNow();
+		warnmsg ("DateTimeOriginal isn't set, using timeNow()!\n");
 		my $fc = "%c"; # file counter occurence in the template flag
 		my $whethercounter = index $template,$fc;
 		if ( $whethercounter < 0 ) {
 			$template = sprintf("%s.%s",$template,$fc);
 		}
 	}
-	else {
-		$timestamp = $info->{"DateTimeOriginal"};
-		if ( defined $mtime ) {
-			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
-			$mTime = $info->{"DateTimeOriginal"};
-			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
-		}
+
+	my $ExposureTime = "";
+	my $FileNumber = 'NA';
+	my $FNumber = "";
+	my $ISO = "";
+	my $WhiteBalance = "";
+
+	if ( defined $info->{"ExposureTime"} ) {
+		$ExposureTime = $info->{"ExposureTime"};
+		$ExposureTime =~ s/\//by/g;
+	}
+
+	if ( defined $info->{"FileNumber"} ) {
+		$FileNumber = $info->{"FileNumber"};
+	}
+
+	if ( defined $info->{"FNumber"} ) {
+		$FNumber = $info->{"FNumber"};
+	}
+
+	if ( defined $info->{"ISO"} ) {
+		$ISO = $info->{"ISO"};
+	}
+
+	if ( defined $info->{"WhiteBalance"} ) {
+		$WhiteBalance = $info->{"WhiteBalance"};
+		$WhiteBalance =~ s/[\s()]//g;
 	}
 
 	my @templatearea = split (//, $template);
-	my %templatehash = ( 	'%' => "%",
-				'a' => $anglesuffix,
-				'c' => sprintf('%.4d', $filecounter),
-				'i' => $id,
-				'Y' => substr($timestamp,0,4),
-				'y' => substr($timestamp,2,2),
-				'm' => substr($timestamp,4,2),
-				'd' => substr($timestamp,6,2),
-				'H' => substr($timestamp,8,2),
-				'M' => substr($timestamp,10,2),
-				'S' => substr($timestamp,12,2),
-				'E' => "E",
-				'F' => "F",
-				'I' => "I",
-				'W' => "W");
+	my %templatehash = (
+		'%' => "%",
+		'a' => $anglesuffix,
+		'c' => sprintf('%.4d', $filecounter),
+		'd' => substr($timestamp,6,2),
+		'E' => "E" . $ExposureTime,
+		'F' => "F" . $FNumber,
+		'H' => substr($timestamp,8,2),
+		'I' => "I" . $ISO,
+		'i' => $FileNumber,
+		'M' => substr($timestamp,10,2),
+		'm' => substr($timestamp,4,2),
+		'S' => substr($timestamp,12,2),
+		'W' => "W" . $WhiteBalance,
+		'Y' => substr($timestamp,0,4),
+		'y' => substr($timestamp,2,2),
+			   );
 	my $thename = "";
 
 	my $substroffset = 0;
@@ -549,26 +606,6 @@ sub template2name {
 		$substrchar = $templatearea[$substroffset++];
 		if ( $substrchar eq "%" and $substroffset <= $#templatearea ) {
 			$substrchar = $templatearea[$substroffset++];
-			if ( $substrchar eq "E" and defined $info->{"ExposureTime"} ) {
-				$ExposureTime = $info->{"ExposureTime"};
-				$ExposureTime =~ s/\//by/g;
-				$templatehash{$substrchar} .= $ExposureTime;
-				$thename .= $templatehash{$substrchar};
-			}
-			elsif ( $substrchar eq "W" and defined $info->{"WhiteBalance"} ) {
-				$WhiteBalance = $info->{"WhiteBalance"};
-				$WhiteBalance =~ s/[\s()]//g;
-				$templatehash{$substrchar} .= $WhiteBalance;
-				$thename .= $templatehash{$substrchar};
-			}
-			elsif ( $substrchar eq "I" and defined $info->{"ISO"} ) {
-				$templatehash{$substrchar} .= $info->{"ISO"};
-				$thename .= $templatehash{$substrchar};
-			}
-			elsif ( $substrchar eq "F" and defined $info->{"FNumber"} ) {
-				$templatehash{$substrchar} .= $info->{"FNumber"};
-				$thename .= $templatehash{$substrchar};
-			}
 			elsif ( defined $templatehash{$substrchar} ) {
 				$thename .= $templatehash{$substrchar};
 			}
@@ -603,7 +640,7 @@ the behaviour by specify B<--work-directory> option.
 It renames files according the DateTimeOriginal EXIF tag if it's exists
 than if it isn't, according the FileModifyDate EXIF tag if it's exists
 than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMSS-XXXXX.jpg where XXXXX is whether file ID,
+and will look as YYYYmmddHHMMSS.XXXX.jpg where XXXX is whether file ID,
 if exists in EXIF (as for Canon) or incrementable suffix to the name
 YYYYmmddHHMMSS.
 
@@ -690,10 +727,16 @@ B<%c>	file order number in the processed file set
 
 B<%d>	day of the month (01-31)
 
+B<%E>	ExposureTime tag value if defined, otherwise E
+
+B<%F>	FNumber tag value if defined, otherwise F
+
 B<%H>	hour (00-23)
 
+B<%I>	ISO tag value if defined, otherwise I
+
 B<%i>	FileNumber tag if exists (otherwise, it'll be replaced by string
-C<_NOTSET_>)
+C<NA>)
 
 B<%M>	minute (00-59)
 
@@ -701,31 +744,23 @@ B<%m>	month (01-12)
 
 B<%S>	second (00-60)
 
-B<%Y>	year with century
+B<%W>	WhiteBalance tag value if defined, otherwise W
+
+B<%Y>	year (1900, 1901, and so on)
 
 B<%y>	last two digits of year (00..99)
 
-B<%E>	value of EXIF tag ExposureTime if defined, otherwise E
+=head1 B<EXAMPLES>
 
-B<%F>	value of EXIF tag FNumber if defined, otherwise F
-
-B<%I>	value of EXIF tag ISO if defined, otherwise I
-
-B<%W>	value of EXIF tag WhiteBalance if defined, otherwise W
-
-=item B<EXAMPLE>
-
-the template "01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" produces nex names:
+The template "01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" may produces following names:
 
 =over
 
-01.0021.20030414103656._NOTSET_.E1by40F2.8WAutoI160.jpg
+01.0021.20030414103656.NA.E1by40F2.8WAutoI160.jpg
 
 01.0024.20040131230857.100-0078.E1by320F2.8WAutoI50.jpg
 
-01.0022.20000820222108._NOTSET_.EFWI.jpg
-
-=back
+01.0022.20000820222108.NA.EFWI.jpg
 
 =back
 
