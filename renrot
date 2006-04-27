@@ -17,7 +17,6 @@ my $rotate;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; # define the angle, to rotate on, 90 or 270
 my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $noComment;	# no comment needed
-my $nameSuffix;	# suffix to the filename
 my $nameTemplate;	# template for the filename taken from CLI
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
@@ -26,6 +25,8 @@ my $configFile;	# config file
 my $comfile;	# file with commentary
 my $verbose = 0;	# verbosity of output
 my $dir = ".";	# we'll work ONLY in current directory
+my $mtime; # to set mtime
+our $mTime; # mtime to use to set
 
 # information message
 sub infomsg {
@@ -69,7 +70,7 @@ sub getopt {
 		"no-rename" => \$noRename,
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
-		"name-suffix" => \$nameSuffix,
+		"mtime" => \$mtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
 		"version" => \$ver,
@@ -244,31 +245,7 @@ foreach $file ( @files ) {
 		$newfilename = $file;
 	}
 	else {
-		if ( defined $nameSuffix ) {
-			if ( defined $info->{"ExposureTime"} ) {
-				$ExposureTime = $info->{"ExposureTime"};
-				$ExposureTime =~ s/\//by/g;
-			}
-			else { $ExposureTime = 0; }
-			if ( defined $info->{"WhiteBalance"} ) {
-				$WhiteBalance = $info->{"WhiteBalance"};
-				$WhiteBalance =~ s/[\s()]//g;
-			}
-			else { $WhiteBalance = 0; }
-
-			$suffix = ".W" . $WhiteBalance
-				. "I" . $info->{"ISO"}
-				. "A" . $info->{"FNumber"}
-				. "E" . $ExposureTime;
-		}
-
 		$newfilename = sprintf("%s.%s", template2name($NameTemplate), $extentionToProcessLowCase);
-
-		if ( $filenameshash{$newfilename} ) {
-			fatalmsg ("Filename $newfilename isn't unique!!!\n"), die;
-		}
-
-		$filenameshash{$newfilename} = 1;
 
 		if ( $file ne $newfilename ) {
 			rename ( $file, $newfilename )
@@ -348,6 +325,10 @@ foreach $file ( @files ) {
 	print "\n";
 	$filecounter++;
 	$anglesuffix = "";
+	if ( defined $mtime ) {
+		utime $mTime,$mTime,$newfilename;
+	}
+	$mTime="";
 }
 
 closedir(DIR);
@@ -498,8 +479,7 @@ infomsg (
 					it's for the files which were rotated, but thumbnail wasn't
 		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-template <TPL>	filename template (see manual for details)
-		--name-suffix		suffix to the filename, the values of aperture, exsposure time,
-					iso and white balance are added to the filename as suffix, see manual
+		--mtime			to set file mtime according DateTimeOriginal tag value
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
 ");
@@ -534,21 +514,31 @@ sub template2name {
 			$template = sprintf("%s.%s",$template,$fc);
 		}
 	}
-	else { $timestamp = $info->{"DateTimeOriginal"}; }
+	else {
+		$timestamp = $info->{"DateTimeOriginal"};
+		if ( defined $mtime ) {
+			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
+			$mTime = $info->{"DateTimeOriginal"};
+			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
+		}
+	}
 
 	my @templatearea = split (//, $template);
 	my %templatehash = ( 	'%' => "%",
 				'a' => $anglesuffix,
 				'c' => sprintf('%.4d', $filecounter),
 				'i' => $id,
-				's' => "suffix",
 				'Y' => substr($timestamp,0,4),
 				'y' => substr($timestamp,2,2),
 				'm' => substr($timestamp,4,2),
 				'd' => substr($timestamp,6,2),
 				'H' => substr($timestamp,8,2),
 				'M' => substr($timestamp,10,2),
-				'S' => substr($timestamp,12,2));
+				'S' => substr($timestamp,12,2),
+				'E' => "E",
+				'F' => "F",
+				'I' => "I",
+				'W' => "W");
 	my $thename = "";
 
 	my $substroffset = 0;
@@ -559,12 +549,38 @@ sub template2name {
 		$substrchar = $templatearea[$substroffset++];
 		if ( $substrchar eq "%" and $substroffset <= $#templatearea ) {
 			$substrchar = $templatearea[$substroffset++];
-			if ( defined $templatehash{$substrchar} ) {
+			if ( $substrchar eq "E" and defined $info->{"ExposureTime"} ) {
+				$ExposureTime = $info->{"ExposureTime"};
+				$ExposureTime =~ s/\//by/g;
+				$templatehash{$substrchar} .= $ExposureTime;
+				$thename .= $templatehash{$substrchar};
+			}
+			elsif ( $substrchar eq "W" and defined $info->{"WhiteBalance"} ) {
+				$WhiteBalance = $info->{"WhiteBalance"};
+				$WhiteBalance =~ s/[\s()]//g;
+				$templatehash{$substrchar} .= $WhiteBalance;
+				$thename .= $templatehash{$substrchar};
+			}
+			elsif ( $substrchar eq "I" and defined $info->{"ISO"} ) {
+				$templatehash{$substrchar} .= $info->{"ISO"};
+				$thename .= $templatehash{$substrchar};
+			}
+			elsif ( $substrchar eq "F" and defined $info->{"FNumber"} ) {
+				$templatehash{$substrchar} .= $info->{"FNumber"};
+				$thename .= $templatehash{$substrchar};
+			}
+			elsif ( defined $templatehash{$substrchar} ) {
 				$thename .= $templatehash{$substrchar};
 			}
 		}
 		else { $thename .= $substrchar; }
 	}
+
+	if ( $filenameshash{$thename} ) {
+		$thename .= $templatehash{"c"};
+	}
+
+	$filenameshash{$thename} = 1;
 
 	return $thename;
 }
@@ -654,6 +670,10 @@ file with commentary
 
 the version of this script
 
+=item B<--mtime>
+
+defines, whether to set mtime of the file, using DateTimeOriginal tag value
+
 =item B<--name-template> I<Name TEMPLATE>
 
 template, which is used for file name building while renaming. It could be
@@ -681,29 +701,36 @@ B<%m>	month (01-12)
 
 B<%S>	second (00-60)
 
-B<%s>	NameSuffix
-
 B<%Y>	year with century
 
 B<%y>	last two digits of year (00..99)
 
-=back
+B<%E>	value of EXIF tag ExposureTime if defined, otherwise E
 
-=item B<--name-suffix>
+B<%F>	value of EXIF tag FNumber if defined, otherwise F
 
-suffix to the filename, the value of tags: FNumber, CameraISO, WhiteBalance
-and ExposureTime, if defined, filenames looks like:
+B<%I>	value of EXIF tag ISO if defined, otherwise I
+
+B<%W>	value of EXIF tag WhiteBalance if defined, otherwise W
+
+=item B<EXAMPLE>
+
+the template "01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" produces nex names:
 
 =over
 
-20050813072758.a8-e1by1760-i400-wbDaylight.crw
+01.0021.20030414103656._NOTSET_.E1by40F2.8WAutoI160.jpg
 
-20050813072814.a6.3-e1by1244-i200-wbClowdy.jpg
+01.0024.20040131230857.100-0078.E1by320F2.8WAutoI50.jpg
+
+01.0022.20000820222108._NOTSET_.EFWI.jpg
 
 =back
 
-where I<a> stays for FNumber, I<e> for ExposureTime, I<i> for CameraISO and
-I<wb> for WhiteBalance
+=back
+
+where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for CameraISO and
+I<W> for WhiteBalance
 
 =head1 CONFIG
 
@@ -716,6 +743,10 @@ User defined config file can be given via B<--config-file> option.
 These tags could be set via config file:
 
 =over
+
+=item B<NameTemplate>
+
+Name template, which defines the file name look (see B<--name-template>).
 
 =item B<UserComment>
 

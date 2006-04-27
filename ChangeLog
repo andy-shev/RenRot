@@ -1,15 +1,19 @@
 $Log$
+Revision 1.41  2006/04/27 09:53:50  zeus
+mtime seting according the DateTimeOriginal tag implemented.
+possibility to add some EXIF details, like FNumber, ISO e.t.c. to the filename is added
+
 Revision 1.40  2006/04/27 07:23:14  andy
-Fix template bug (last symbol analysing).
+Fix template bug (last symbol analysing)
 
 Revision 1.39  2006/04/26 20:36:06  zeus
 Name template engine tunning.
 Added suffix for the name in case of the rotation.
-thanks to Alex Zasypkin added to THANKS section of README
+thanks to Alex Zasypkin added to THANKS section of README.
 
 Revision 1.38  2006/04/26 18:35:01  andy
 Formating inline documentation.
-First implementation of template for file naming
+First implementation of template for file naming.
 
 Revision 1.37  2006/04/26 15:19:58  andy
 README for windows users. Linguistiq fix for README.
