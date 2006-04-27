@@ -98,7 +98,7 @@ sub getopt {
 
 	# change user's parameter '*.ext' to 'ext'
 	$extentionToProcess =~ s/^\*\.//;
-	dbgmsg (1, "Process with '$extentionToProcess' extention.\n");
+	dbgmsg (1, "getopt(): Process with '$extentionToProcess' extention.\n");
 }
 
 # parse command-line options
@@ -206,7 +206,7 @@ foreach $file ( @files ) {
 	#
 	if ( defined $noRotation ) { infomsg ("No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotate ) {
-		dbgmsg (2, "We'll deal with: $file and $rotangles{$rotate}.\n");
+		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotate}.\n");
 		rotateFile($file, $rotangles{$rotate});
 		rotateThumbnail($file, $rotangles{$rotate});
 		$anglesuffix = $rotate . "cw";
@@ -306,7 +306,7 @@ foreach $file ( @files ) {
 	# writing the changes to the EXIFs
 	my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
 	if ( $res == 1 ) {
-		dbgmsg (2, "Writing to $comentedfilename ok.\n");
+		dbgmsg (2, "main(): Writing to $comentedfilename ok.\n");
 		rename ( $comentedfilename, $newfilename  )
 			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
 	}
@@ -320,13 +320,16 @@ foreach $file ( @files ) {
 		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
 		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
-	print "\n";
-	$filecounter++;
+
 	$anglesuffix = "";
 	if ( defined $mtime ) {
-		utime $mTime,$mTime,$newfilename;
+		#my $rc = $exifTool->SetFileModifyDate($newfilename);
+		utime $mTime,$mTime,$newfilename if ( timeValidator($mTime) );
+		$mTime = "";
 	}
-	$mTime = "";
+
+	print "\n";
+	$filecounter++;
 }
 
 closedir(DIR);
@@ -353,10 +356,10 @@ sub timeValidator {
 	my $timestamp = shift;
 
 	# check length (14)
-	return 1 if (length ($timestamp) != 14);
+	return 1 if (length($timestamp) != 14);
 
-	return 1 if (not $timestamp ~= m/(%d%d%d%d)(%d%d)(%d%d)(%d%d)(%d%d)(%d%d)/);
-	dbgmsg (4, "timeValidator(): timestamp: $1 $2 $3 $4 $5 $6\n");
+	return 1 if (not $timestamp =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	dbgmsg (4, "timeValidator(): $1 $2 $3 $4 $5 $6\n");
 
 	my $year = substr(timeNow(),0,4);
 
@@ -391,7 +394,7 @@ sub rotateFile {
 
 	# jpegtran the image
 	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
-	dbgmsg (3, "Rotate: $cmd\n");
+	dbgmsg (3, "rotateFile(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
@@ -407,7 +410,7 @@ sub rotateFile {
 	# writing the changes to the EXIFs
 	my $res = $exifAfterRot->WriteInfo($oldfile, $exifedfile);
 	if ( $res == 1 ) {
-		dbgmsg (2, "Writing to $exifedfile ok.\n");
+		dbgmsg (2, "rotateFile(): Writing to $exifedfile ok.\n");
 		rename ( $exifedfile, $oldfile )
 			|| ( fatalmsg ("$exifedfile -> $oldfile\n"), die );
 	}
@@ -443,7 +446,7 @@ sub rotateFile {
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
 		my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $ThumbnailOriginalRotated . " " . $ThumbnailOriginal;
-		dbgmsg (3, "Rotate thmb: $cmd\n");
+		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 		# preparing to write the just rotated thumbnail, back to the file
@@ -466,7 +469,7 @@ sub rotateFile {
 		# writing the changes to the EXIFs
 		my $res = $exifThumbnailed->WriteInfo($fileToThumbnail, $fileThumbnailed);
 		if ( $res == 1 ) {
-			dbgmsg (2, "Writing to $fileThumbnailed ok.\n");
+			dbgmsg (2, "rotateThumbnail(): Writing to $fileThumbnailed ok.\n");
 			rename ( $fileThumbnailed, $fileToThumbnail )
 				|| ( fatalmsg ("$fileThumbnailed -> $fileToThumbnail\n"), die );
 		}
@@ -528,26 +531,24 @@ sub template2name {
 
 	if ( defined $info->{"DateTimeOriginal"} ) {
 		$timestamp = $info->{"DateTimeOriginal"};
-
-		# fix invalid timestamp got from EXIF (i.e. Nikon issue)
-		if ( timeValidator($timestamp) ) {
-			$timestamp = timeNow();
-			warnmsg ("DateTimeOriginal isn't correct, using timeNow()!\n");
-		}
-		elsif ( defined $mtime ) {
-			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
-			$mTime = $info->{"DateTimeOriginal"};
-			$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
-		}
 	}
-	else {
+
+	# fix invalid timestamp got from EXIF (i.e. Nikon issue)
+	if ( timeValidator($timestamp) ) {
 		$timestamp = timeNow();
-		warnmsg ("DateTimeOriginal isn't set, using timeNow()!\n");
+		warnmsg ("DateTimeOriginal isn't correct, using timeNow()!\n");
+
 		my $fc = "%c"; # file counter occurence in the template flag
 		my $whethercounter = index $template,$fc;
 		if ( $whethercounter < 0 ) {
 			$template = sprintf("%s.%s",$template,$fc);
 		}
+	}
+
+	if ( defined $mtime ) {
+		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
+		$mTime = $info->{"DateTimeOriginal"};
+		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 	}
 
 	my $ExposureTime = "";
@@ -601,12 +602,12 @@ sub template2name {
 	my $substroffset = 0;
 	my $substrchar;
 
-	dbgmsg (4, "Template is: '$template' (length: " . ($#templatearea + 1) .")\n");
+	dbgmsg (4, "template2name(): '$template' (length: " . ($#templatearea + 1) .")\n");
 	while ( $substroffset <= $#templatearea ) {
 		$substrchar = $templatearea[$substroffset++];
 		if ( $substrchar eq "%" and $substroffset <= $#templatearea ) {
 			$substrchar = $templatearea[$substroffset++];
-			elsif ( defined $templatehash{$substrchar} ) {
+			if ( defined $templatehash{$substrchar} ) {
 				$thename .= $templatehash{$substrchar};
 			}
 		}
@@ -614,7 +615,7 @@ sub template2name {
 	}
 
 	if ( $filenameshash{$thename} ) {
-		$thename .= $templatehash{"c"};
+		$thename = sprintf("%s.%s",$thename,$templatehash{"c"});
 	}
 
 	$filenameshash{$thename} = 1;
