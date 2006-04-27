@@ -168,7 +168,7 @@ my @angles = ( ''
 	, '90cw'
 	, 'tv'
 	, '270cw' );
-	 
+
 my $errorMessage;
 my $warningMessage;
 my $suffix = "";
@@ -554,9 +554,10 @@ sub template2name {
 	my $substroffset = 0;
 	my $substrchar;
 
-	while ( $substroffset < $#templatearea ) {
+	dbgmsg (4, "Template is: '$template' (length: " . ($#templatearea + 1) .")\n");
+	while ( $substroffset <= $#templatearea ) {
 		$substrchar = $templatearea[$substroffset++];
-		if ( $substrchar eq "%" ) {
+		if ( $substrchar eq "%" and $substroffset <= $#templatearea ) {
 			$substrchar = $templatearea[$substroffset++];
 			if ( defined $templatehash{$substrchar} ) {
 				$thename .= $templatehash{$substrchar};

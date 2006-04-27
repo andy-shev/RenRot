@@ -1,4 +1,7 @@
 $Log$
+Revision 1.40  2006/04/27 07:23:14  andy
+Fix template bug (last symbol analysing).
+
 Revision 1.39  2006/04/26 20:36:06  zeus
 Name template engine tunning.
 Added suffix for the name in case of the rotation.
@@ -132,3 +135,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
