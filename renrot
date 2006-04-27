@@ -121,6 +121,7 @@ our $NameTemplate = '%Y%m%d%H%M%S'; # name template
 my $etc_rc = "/etc/renrot.rc";
 my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
 my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
+my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
 
 if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
 else {
@@ -134,7 +135,7 @@ if ( defined $nameTemplate ) {
 }
 
 our $exifTool = new Image::ExifTool;
-$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
+$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
 my $file;		# file in the directory
 my @files;		# array of the sorted filenames to process
@@ -568,6 +569,8 @@ sub template2name {
 	my $template = $_[0];	# $_[0] the template to be used
 
 	my $timestamp = getTimestamp();
+	my @tm = ($timestamp =~ m/(\d\d(\d\d))(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	dbgmsg (4, "template2name(): tm: @tm\n");
 
 	my $ExposureTime = "";
 	my $FileNumber = 'NA';
@@ -602,18 +605,18 @@ sub template2name {
 		'%' => "%",
 		'a' => $anglesuffix,
 		'c' => sprintf('%.4d', $filecounter),
-		'd' => substr($timestamp,6,2),
+		'd' => $tm[3],
 		'E' => "E" . $ExposureTime,
 		'F' => "F" . $FNumber,
-		'H' => substr($timestamp,8,2),
+		'H' => $tm[4],
 		'I' => "I" . $ISO,
 		'i' => $FileNumber,
-		'M' => substr($timestamp,10,2),
-		'm' => substr($timestamp,4,2),
-		'S' => substr($timestamp,12,2),
+		'M' => $tm[5],
+		'm' => $tm[2],
+		'S' => $tm[6],
 		'W' => "W" . $WhiteBalance,
-		'Y' => substr($timestamp,0,4),
-		'y' => substr($timestamp,2,2),
+		'Y' => $tm[0],
+		'y' => $tm[1],
 			   );
 	my $thename = "";
 

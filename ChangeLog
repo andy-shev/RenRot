@@ -1,4 +1,8 @@
 $Log$
+Revision 1.47  2006/04/27 22:21:28  andy
+Use regular expression instead of multiple substr().
+After our verbosity switch on exiftool's.
+
 Revision 1.46  2006/04/27 21:58:52  andy
 Split template2name() to a two additional functions: getTimestamp() and
 getUnixTime().
@@ -166,3 +170,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
