@@ -1,4 +1,9 @@
 $Log$
+Revision 1.44  2006/04/27 17:22:42  andy
+Remove obsoleted examples from README.
+Remove mtime code (now is not working).
+Add template sequences description to rc-file.
+
 Revision 1.43  2006/04/27 16:39:06  andy
 Fix several bugs (script does not run).
 Inject functions name to lead to argument of dbgmsg().
@@ -151,4 +156,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

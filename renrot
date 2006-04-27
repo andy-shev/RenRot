@@ -194,12 +194,17 @@ while ( defined ( $file = readdir DIR )) {
 
 @files = sort @filenames;
 
-our $anglesuffix = "0cw";	# the suffix to add to the end of the rotated files 90cw or 270cw
+our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 
 foreach $file ( @files ) {
 	print "Processing file: $file ...\n";
+
+	# Setup defaults
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
+	$anglesuffix = "0cw";
+	$mTime = "";
+
 	################################################################################################
 	#
 	## analyzing whether to rotate
@@ -321,11 +326,8 @@ foreach $file ( @files ) {
 		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
 
-	$anglesuffix = "";
 	if ( defined $mtime ) {
 		#my $rc = $exifTool->SetFileModifyDate($newfilename);
-		utime $mTime,$mTime,$newfilename if ( timeValidator($mTime) );
-		$mTime = "";
 	}
 
 	print "\n";
@@ -543,12 +545,6 @@ sub template2name {
 		if ( $whethercounter < 0 ) {
 			$template = sprintf("%s.%s",$template,$fc);
 		}
-	}
-
-	if ( defined $mtime ) {
-		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%s');
-		$mTime = $info->{"DateTimeOriginal"};
-		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 	}
 
 	my $ExposureTime = "";
