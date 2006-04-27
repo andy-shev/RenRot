@@ -132,7 +132,7 @@ if ( defined $nameTemplate ) {
 	$NameTemplate = $nameTemplate;
 }
 
-my $exifTool = new Image::ExifTool;
+our $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 
 my $file;		# file in the directory
@@ -327,7 +327,11 @@ foreach $file ( @files ) {
 	}
 
 	if ( defined $mtime ) {
-		#my $rc = $exifTool->SetFileModifyDate($newfilename);
+		$exifTool->Options(Unknown => 1, DateFormat => '%s');
+		$info = $exifTool->ImageInfo($newfilename);
+		$mTime = $info->{"DateTimeOriginal"};
+		utime $mTime,$mTime,$newfilename; 
+		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
 	}
 
 	print "\n";
