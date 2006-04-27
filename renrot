@@ -7,6 +7,7 @@
 use strict;
 require 5.004;
 use Time::localtime;
+use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
@@ -327,11 +328,9 @@ foreach $file ( @files ) {
 	}
 
 	if ( defined $mtime ) {
-		$exifTool->Options(Unknown => 1, DateFormat => '%s');
-		$info = $exifTool->ImageInfo($newfilename);
-		$mTime = $info->{"DateTimeOriginal"};
-		utime $mTime,$mTime,$newfilename; 
-		$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S');
+		my $timestamp = getTimestamp();
+		$mTime = getUnixTime($timestamp);
+		utime $mTime,$mTime,$newfilename;
 	}
 
 	print "\n";
@@ -347,7 +346,7 @@ exit 0;
 # timeNow() returns timestamp in form YYYYmmddHHMMSS
 #
 sub timeNow {
-	my $date = (localtime);
+	my $date = localtime();
 	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
 		$$date[5] + 1900, $$date[4] + 1, $$date[3],
 		$$date[2], $$date[1], $$date[0]);
@@ -364,25 +363,60 @@ sub timeValidator {
 	# check length (14)
 	return 1 if (length($timestamp) != 14);
 
-	return 1 if (not $timestamp =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
-	dbgmsg (4, "timeValidator(): $1 $2 $3 $4 $5 $6\n");
+	my @tm = ($timestamp =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	return 1 unless @tm == 6;
+	dbgmsg (4, "timeValidator(): @tm\n");
 
-	my $year = substr(timeNow(),0,4);
-
-	# check year
-	return 1 if (($1 > $year) or ($1 < 1900));
-	# check month
-	return 1 if (($2 > 12) or ($2 < 1));
-	# check day
-	return 1 if (($3 > 31) or ($3 < 1));
-	# check hour
-	return 1 if ($4 > 23);
-	# check mininute
-	return 1 if ($5 > 59);
-	# check second
-	return 1 if ($6 > 59);
+	if (
+		# check year
+		($tm[0] < 1900) or
+		# check month
+		(($tm[1] > 12) or ($tm[1] < 1)) or
+		# check day
+		(($tm[2] > 31) or ($tm[2] < 1)) or
+		# check hour, minute, second
+		($tm[3] > 23) or ($tm[4] > 59) or ($tm[5] > 59)
+	   ) {
+		return 1;
+	}
 
 	return 0;
+}
+
+########################################################################################
+#
+# getTimestamp() returns EXIF timestamp in form YYYYmmddHHMMSS
+#
+sub getTimestamp {
+	my $timestamp;
+
+	if ( defined $info->{"DateTimeOriginal"} ) {
+		$timestamp = $info->{"DateTimeOriginal"};
+	}
+	elsif ( defined $info->{"FileModifyDate"} ) {
+		$timestamp = $info->{"FileModifyDate"};
+	}
+
+	# fix invalid timestamp got from EXIF (i.e. Nikon issue)
+	if ( timeValidator($timestamp) ) {
+		$timestamp = timeNow();
+		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
+	}
+
+	return $timestamp;
+}
+
+########################################################################################
+#
+# getUnixTime() converts timestamp to unix time form
+#
+sub getUnixTime {
+	my $timestamp = shift;
+	my @tm = ($timestamp =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	$tm[0] -= 1900;     # convert year
+	$tm[1] -= 1;        # convert month
+	@tm = reverse @tm;  # change to order required by timelocal()
+	return Time::Local::timelocal(@tm);
 }
 
 ########################################################################################
@@ -533,23 +567,7 @@ sub template2name {
 
 	my $template = $_[0];	# $_[0] the template to be used
 
-	my $timestamp;
-
-	if ( defined $info->{"DateTimeOriginal"} ) {
-		$timestamp = $info->{"DateTimeOriginal"};
-	}
-
-	# fix invalid timestamp got from EXIF (i.e. Nikon issue)
-	if ( timeValidator($timestamp) ) {
-		$timestamp = timeNow();
-		warnmsg ("DateTimeOriginal isn't correct, using timeNow()!\n");
-
-		my $fc = "%c"; # file counter occurence in the template flag
-		my $whethercounter = index $template,$fc;
-		if ( $whethercounter < 0 ) {
-			$template = sprintf("%s.%s",$template,$fc);
-		}
-	}
+	my $timestamp = getTimestamp();
 
 	my $ExposureTime = "";
 	my $FileNumber = 'NA';

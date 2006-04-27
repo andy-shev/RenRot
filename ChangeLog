@@ -1,4 +1,10 @@
 $Log$
+Revision 1.46  2006/04/27 21:58:52  andy
+Split template2name() to a two additional functions: getTimestamp() and
+getUnixTime().
+Minor fixes in timeValidator().
+New mtime implementation.
+
 Revision 1.45  2006/04/27 17:55:26  andy
 Revert =back keyword to necessary places.
 Rewrote main description in pod part.
@@ -160,4 +166,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
