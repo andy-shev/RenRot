@@ -1,4 +1,8 @@
 $Log$
+Revision 1.45  2006/04/27 17:55:26  andy
+Revert =back keyword to necessary places.
+Rewrote main description in pod part.
+
 Revision 1.44  2006/04/27 17:22:42  andy
 Remove obsoleted examples from README.
 Remove mtime code (now is not working).
@@ -156,3 +160,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

@@ -631,32 +631,31 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-B<RenRot> is intended to work ONLY in current directory. You can change
-the behaviour by specify B<--work-directory> option.
+B<RenRot> is intended to work ONLY in current directory. You can change the
+behaviour by specify B<--work-directory> option.
 
-It renames files according the DateTimeOriginal EXIF tag if it's exists
-than if it isn't, according the FileModifyDate EXIF tag if it's exists
-than if it isn't, the name will be given according the current timestamp
-and will look as YYYYmmddHHMMSS.XXXX.jpg where XXXX is whether file ID,
-if exists in EXIF (as for Canon) or incrementable suffix to the name
+Renrot renames files according the DateTimeOriginal and FileModifyDate EXIF
+tags, if they exist. Otherwise, the name will be set according to the current
+timestamp and will look as YYYYmmddHHMMSS.XXXX.jpg, where XXXX is whether file
+ID, if exists in EXIF (as for Canon) or incrementable suffix to the name
 YYYYmmddHHMMSS.
 
-It rotates file and it's thumbnail, accordingly Orientation EXIF tag.
-If the tag is absent or miss set, than the script allows to rotate the file
-as well as it's thumbnail,
+Additionally, it rotates files and their thumbnails, accordingly Orientation
+EXIF tag. When the tag is absent or miss set the program allows to rotate the
+file as well as it's thumbnail.
 
-After all, the script can put the commentary to:
+The script can also put commentary into:
 
 =over
 
-- Commentary tag if commentary file provided with B<--comment-file> option
+- Commentary tag, if commentary file provided with B<--comment-file> option
 
-- UserComment tag if $COMMENTARY variable set in config file
+- UserComment tag, if $COMMENTARY variable set in config file
 
 =back
 
-Personal data could be specified via XMP tags defined in config file, look
-L<CONFIG> section.
+Personal details can be specified via XMP tags defined in a configuration
+file, look L<CONFIG> section.
 
 =head1 OPTIONS
 
@@ -712,7 +711,7 @@ defines, whether to set mtime of the file, using DateTimeOriginal tag value
 
 template, which is used for file name building while renaming. It could be
 defined in config file (the variable NameTemplate). The default is
-I<%Y%m%d%H%M%S>.
+I<%Y%m%d%H%M%S>. For practical results look L<EXAMPLES> section.
 
 Interpreted sequences are:
 
@@ -747,9 +746,13 @@ B<%Y>	year (1900, 1901, and so on)
 
 B<%y>	last two digits of year (00..99)
 
+=back
+
+=back
+
 =head1 B<EXAMPLES>
 
-The template "01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" may produces following names:
+The template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following names:
 
 =over
 
@@ -762,7 +765,7 @@ The template "01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" may produces following names:
 =back
 
 where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for CameraISO and
-I<W> for WhiteBalance
+I<W> for WhiteBalance.
 
 =head1 CONFIG
 
@@ -820,6 +823,8 @@ URL
 
 city
 
+=back
+
 =head1 FILES
 
 config file placement (with high priority first)
@@ -831,6 +836,8 @@ config file placement (with high priority first)
 =item B</usr/local/etc/renrot.rc>
 
 =item B</etc/renrot.rc>
+
+=back
 
 =head1 AUTHOR
 
