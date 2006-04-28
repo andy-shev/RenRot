@@ -1,7 +1,11 @@
 $Log$
+Revision 1.48  2006/04/28 09:53:50  zeus
+getTimestamp conditions reviewed.
+commentaries added where were missed
+
 Revision 1.47  2006/04/27 22:21:28  andy
 Use regular expression instead of multiple substr().
-After our verbosity switch on exiftool's.
+After our verbosity switch on exiftool's
 
 Revision 1.46  2006/04/27 21:58:52  andy
 Split template2name() to a two additional functions: getTimestamp() and

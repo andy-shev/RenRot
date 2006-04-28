@@ -159,10 +159,9 @@ my @rotparms = (''
         , '-transpose'
         , '-rotate 90'
         , '-transverse'
-        , '-rotate 270');
+        , '-rotate 270');	# array of options to jpegtran to rotate the file
 my %rotangles = ( '90' => '-rotate 90',
-		 '270' => '-rotate 270');
-
+		 '270' => '-rotate 270');	# array of options to rotate file "by hands"
 my @angles = ( ''
 	, 'fh'
 	, '180cw'
@@ -170,12 +169,9 @@ my @angles = ( ''
 	, 'tp'
 	, '90cw'
 	, 'tv'
-	, '270cw' );
-
+	, '270cw' );	# the array of suffixes to add to the newfilename after rotating
 my $errorMessage;
 my $warningMessage;
-my $suffix = "";
-my $Now = "";
 
 chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
 opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
@@ -328,10 +324,12 @@ foreach $file ( @files ) {
 		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
 
+	# seting mtime for the file if been asked for
 	if ( defined $mtime ) {
 		my $timestamp = getTimestamp();
 		$mTime = getUnixTime($timestamp);
 		utime $mTime,$mTime,$newfilename;
+		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
 	}
 
 	print "\n";
@@ -348,10 +346,10 @@ exit 0;
 #
 sub timeNow {
 	my $date = localtime();
-	my $result = sprintf("%04d%02d%02d%02d%02d%02d",
+	my $timeNow = sprintf("%04d%02d%02d%02d%02d%02d",
 		$$date[5] + 1900, $$date[4] + 1, $$date[3],
 		$$date[2], $$date[1], $$date[0]);
-	return $result;
+	return $timeNow;
 }
 
 ########################################################################################
@@ -386,20 +384,19 @@ sub timeValidator {
 
 ########################################################################################
 #
-# getTimestamp() returns EXIF timestamp in form YYYYmmddHHMMSS
+# getTimestamp() returns EXIF timestamp in form YYYYmmddHHMMSS if exists, otherwise
+# it returns timeNow()
 #
 sub getTimestamp {
 	my $timestamp;
 
-	if ( defined $info->{"DateTimeOriginal"} ) {
+	if ( defined $info->{"DateTimeOriginal"} and not timeValidator($info->{"DateTimeOriginal"}) ) {
 		$timestamp = $info->{"DateTimeOriginal"};
 	}
-	elsif ( defined $info->{"FileModifyDate"} ) {
+	elsif ( defined $info->{"FileModifyDate"} and not timeValidator($info->{"FileModifyDate"}) ) {
 		$timestamp = $info->{"FileModifyDate"};
 	}
-
-	# fix invalid timestamp got from EXIF (i.e. Nikon issue)
-	if ( timeValidator($timestamp) ) {
+	else {
 		$timestamp = timeNow();
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
