@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.15.1";	# the version of this script
+our $VERSION = "0.16";	# the version of this script
 
 my $noRotation;	# no rotation needed, default is to rotate
 my $rotate;	# define the angle, to rotate on, 90 or 270
@@ -815,11 +815,11 @@ City
 
 =item B<CiAdrCtry>
 
-street
+Country
 
 =item B<CiAdrExtadr>
 
-extended address
+extended address (usually street and apartments)
 
 =item B<CiAdrPcode>
 

@@ -1,10 +1,20 @@
-- to implement work with separate files rather than with whole directory
+TODO SEMANTICS
 
-- to implement possibility to add patterns for file naming ( to make it
-  possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
-  e.t.c.)
+-	not yet
++-	partialy done
++	already done
+?	need to be checked
 
-- to coplete verbose output option implementation
 
-- UTF8fy (comments, tags, ...)
+TODO LIST
+
+-  to implement work with separate files rather than with whole directory
+
++  to implement possibility to add patterns for file naming ( to make it
+   possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
+   e.t.c.)
+
++- to complete verbose output option implementation
+
+?  UTF8fy (comments, tags, ...)
 

@@ -27,6 +27,10 @@ defined like this:
 Final file name will look like YYYYmmddHHMMSS.XXXX.jpg, where XXXX is
 incrementable suffix to the name YYYYmmddHHMMSS.
 
+New template ideology was implemented. It includes flexibility in file name
+construction. In version 0.16 and later the described behaviour still present
+with default NameTemplate. For futher information, please, see applied manual.
+
 renrot rotates file and its thumbnail, accordingly to Orientation EXIF
 tag. If the tag is absent or miss set, than the script allows to rotate
 the file as well as it's thumbnail.
@@ -38,12 +42,28 @@ Futhermore, the script can put a comment to:
 Personal data could be specified via XMP tags defined in config file
 
 Examples:
+    renames according to given template
+	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
-    rotates all files by 90CW
-	renrot --rotate 90 --ext '*.jpg'
+    rotates all files by 90CW in specified directory
+	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"
 
     rotates thumbnails for all files included to EXIF by 90CCW
 	renrot --rotate-thumb 270 --ext jpg
+
+    fix file mtime accordingly to its EXIF tags or, when last are invalid, use
+    current timestamp
+	renrot --no-rotate --no-rename --ext '*.jpeg' --mtime
+
+
+DEBUGGING
+
+For advanced users and developers renrot provides debug interface. Amount of
+"-v" options in a command line defines level of verbosity. So script differs
+the nine levels of debugging such as:
+    from 1 till 4 - internal levels
+    from 5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for
+                    renrot
 
 
 INSTALLATION
@@ -89,3 +109,10 @@ ASPLinux company (http://www.asplinux.ru) has included renrot to
 their distribution.
 
 Alex Zasypkin for his help with documentation writing.
+
+
+ARE YOU WANT SOMETHING TO SAY?
+
+If you have notes, propositions, found bugs or smth. else do not hesitate to
+contact us!
+

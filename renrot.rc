@@ -2,7 +2,6 @@
 ## Template is used for file name building while renaming.
 #
 
-# (default: %Y%m%d%H%M%S)
 # Interpreted sequences are:
 #	%%  a literal %
 #	%c  file order number in the processed file set
@@ -46,7 +45,7 @@
 #
 
 #$CiAdrCity 	= 'Here Is Your City';
-#$CiAdrCtry 	= 'Here Is Your Street';
+#$CiAdrCtry 	= 'Here Is Your Country';
 #$CiAdrExtadr 	= 'Here Is Your Apartments';
 #$CiAdrPcode 	= 'Here Is Your Zip Code';
 #$CiAdrRegion 	= 'Here Is Your Region';
