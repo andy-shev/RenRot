@@ -1,4 +1,8 @@
 $Log$
+Revision 1.51  2006/04/30 20:37:49  zeus
+README is tailoded, WHY section is added.
+City tag is removed from core and rc file
+
 Revision 1.50  2006/04/30 14:12:10  andy
 Fix stylistic typos and add some explanations of project naming to README.
 
@@ -9,7 +13,7 @@ Release as 0.16.
 
 Revision 1.48  2006/04/28 09:53:50  zeus
 getTimestamp conditions reviewed.
-commentaries added where were missed
+commentaries added where were missed.
 
 Revision 1.47  2006/04/27 22:21:28  andy
 Use regular expression instead of multiple substr().

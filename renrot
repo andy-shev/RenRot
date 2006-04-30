@@ -13,21 +13,21 @@ use Getopt::Long;
 
 our $VERSION = "0.16";	# the version of this script
 
-my $noRotation;	# no rotation needed, default is to rotate
-my $rotate;	# define the angle, to rotate on, 90 or 270
-my $rotateThumbnail; # define the angle, to rotate on, 90 or 270
-my $noRename;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-my $noComment;	# no comment needed
+my $noRotation;		# no rotation needed, default is to rotate
+my $rotate;		# define the angle, to rotate on, 90 or 270
+my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
+my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+my $noComment;		# no comment needed
 my $nameTemplate;	# template for the filename taken from CLI
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
-my $configFile;	# config file
-my $comfile;	# file with commentary
+my $configFile;		# config file
+my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
-my $dir = ".";	# we'll work ONLY in current directory
-my $mtime;	# to set mtime
-our $mTime;	# mtime to use to set
+my $dir = ".";		# we'll work ONLY in current directory
+my $mtime;		# to set mtime
+our $mTime;		# mtime to use to set
 
 # information message
 sub infomsg {
@@ -115,13 +115,13 @@ our $CiAdrRegion;
 our $CiEmailWork;
 our $CiTelWork;
 our $CiUrlWork;
-our $City;
 our $NameTemplate = '%Y%m%d%H%M%S'; # name template
+
+my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
 
 my $etc_rc = "/etc/renrot.rc";
 my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
 my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
-my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
 
 if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
 else {
@@ -152,6 +152,7 @@ our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is ab
 my $counterprefix;	# 4 digit file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 my $rotas;		# how to rotate
+
 my @rotparms = (''
 	, '-flip horizontal'
         , '-rotate 180'
@@ -160,8 +161,10 @@ my @rotparms = (''
         , '-rotate 90'
         , '-transverse'
         , '-rotate 270');	# array of options to jpegtran to rotate the file
+
 my %rotangles = ( '90' => '-rotate 90',
 		 '270' => '-rotate 270');	# array of options to rotate file "by hands"
+
 my @angles = ( ''
 	, 'fh'
 	, '180cw'
@@ -170,6 +173,7 @@ my @angles = ( ''
 	, '90cw'
 	, 'tv'
 	, '270cw' );	# the array of suffixes to add to the newfilename after rotating
+
 my $errorMessage;
 my $warningMessage;
 
@@ -301,9 +305,6 @@ foreach $file ( @files ) {
 	}
 	if ( defined ( $CiUrlWork ) ) {
 		$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
-	}
-	if ( defined ( $City ) ) {
-		$exifTool->SetNewValue('City', $City, Group=>'XMP');
 	}
 
 	# writing the changes to the EXIFs

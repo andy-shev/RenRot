@@ -7,6 +7,41 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
+Renrot is intended to work ONLY in current directory with all files of the
+extention, specified after --ext.
+
+New template ideology was implemented. It includes flexibility in file name
+construction. In version 0.16 and later the described behaviour still present
+with default NameTemplate. The template can containe different data, from
+direct name to EXIF data ( the date, id or shoting detailes such as
+WhiteBalance, ISO e.t.c. ).  For futher information, please, see applied
+manual.
+
+Renrot rotates file and its thumbnail, according to EXIF tag Orientation. If
+the tag is absent or miss set, than the script allows to rotate the file as
+well as it's thumbnail "by hands".
+
+Futhermore, the script can put a comment to:
+    - Comment tag if comment file provided with --comment-file option
+    - UserComment tag if $COMMENTARY variable set in config file
+
+Personal data could be specified via XMP tags defined in config file
+
+
+WHY RenRot?
+
+Several projecs like renrot are available in the net, but why to choose namely
+renrot? Because:
+    - it does just what it has to do - renames and rotates, 
+      nothing more than that
+    - it is pure CLI whith all it's advantage ( no need KDE or any other monstr 
+      to run :) )
+    - it uses Image::ExifTool ( the best open tool to work with EXIF data )
+    - it uses libjpeg6 ( the best open tool to operate JPEG format files, 
+      to correctly rotate both, the very file and the thumbnail inside it )
+    - it has very much flex file naming template engine
+    - it works in batch mode
+
 
 GETTING
 
@@ -19,44 +54,19 @@ from the following sites:
 
 RUNNING
 
-Renrot is intended to work ONLY in current directory with all files of
-the extention, specified after --ext.
-
-It renames files according to a picture date. The picture date is
-defined like this:
-- if DateTimeOriginal EXIF tag exists, it is used as the picture date
-- otherwise, if FileModifyDate EXIF tag exists, it is used as the
-  picture date
-- otherwise current timestamp is used as the picture date.
-Final file name will look like YYYYmmddHHMMSS.XXXX.jpg, where XXXX is
-incrementable suffix to the name YYYYmmddHHMMSS.
-
-New template ideology was implemented. It includes flexibility in file name
-construction. In version 0.16 and later the described behaviour still present
-with default NameTemplate. For futher information, please, see applied manual.
-
-renrot rotates file and its thumbnail, accordingly to Orientation EXIF
-tag. If the tag is absent or miss set, than the script allows to rotate
-the file as well as it's thumbnail.
-
-Futhermore, the script can put a comment to:
-    - Comment tag if comment file provided with --comment-file option
-    - UserComment tag if $COMMENTARY variable set in config file
-
-Personal data could be specified via XMP tags defined in config file
-
 Examples:
-    rename according to given template
+    rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
-    rotate all files by 90CW in specified directory
+    rotate each files and their thumbnails by 90CW in specified directory
 	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"
 
-    rotate thumbnails for all files included to EXIF by 90CCW
+    rotate thumbnails, included to EXIF, for each files by 90CCW
 	renrot --rotate-thumb 270 --ext jpg
 
-    fix file mtime accordingly to its EXIF tags or, when last are invalid, use
-    current timestamp
+    fix file mtime according to its EXIF tags or current timestamp, when EXIF
+    tags are invalid
+    
 	renrot --no-rotate --no-rename --ext '*.jpeg' --mtime
 
 
@@ -75,9 +85,9 @@ INSTALLATION
 You can install renrot to make it available for use by other users by
 typing the following:
 
-  perl Makefile.PL PREFIX=/usr/local
-  make
-  make install PREFIX=/usr/local
+    perl Makefile.PL PREFIX=/usr/local
+    make
+    make install PREFIX=/usr/local
 
 Notes:
    i) You need root access for the last step above.
@@ -91,11 +101,13 @@ Notes:
 
 DEPENDENCIES
 
-Requires Perl version 5.6.0 or later. No other special libraries are
-required, except:
-Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
-Getopt::Long 		cpan:Getopt::Long (usually, inside in perl distribution)
-jpegtran (libjpeg6)	http://www.ijg.org/
+    Requires Perl version 5.6.0 or later. No other special libraries are
+    required, except:
+    Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
+    Getopt::Long 		cpan:Getopt::Long (usually, included in perl 
+				distribution)
+    jpegtran (libjpeg6)		http://www.ijg.org/
+    
 
 
 LICENSING
