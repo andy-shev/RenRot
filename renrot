@@ -362,7 +362,7 @@ sub timeValidator {
 	# check length (14)
 	return 1 if (length($timestamp) != 14);
 
-	my @tm = ($timestamp =~ m/(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	my @tm = ($timestamp =~ m/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
 	return 1 unless @tm == 6;
 	dbgmsg (4, "timeValidator(): @tm\n");
 
@@ -410,7 +410,7 @@ sub getTimestamp {
 #
 sub getUnixTime {
 	my $timestamp = shift;
-	my @tm = ($timestamp =~ /(\d\d\d\d)(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	my @tm = ($timestamp =~ /(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
 	$tm[0] -= 1900;     # convert year
 	$tm[1] -= 1;        # convert month
 	@tm = reverse @tm;  # change to order required by timelocal()
@@ -786,7 +786,7 @@ The template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following names:
 
 =back
 
-where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for CameraISO and
+where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for ISO and
 I<W> for WhiteBalance.
 
 =head1 CONFIG

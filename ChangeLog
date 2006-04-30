@@ -1,4 +1,7 @@
 $Log$
+Revision 1.50  2006/04/30 14:12:10  andy
+Fix stylistic typos and add some explanations of project naming to README.
+
 Revision 1.49  2006/04/30 11:35:07  andy
 Expand documentation accordingly to last code changes (template ideology,
 mtime option, and so on).
@@ -179,3 +182,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

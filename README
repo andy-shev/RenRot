@@ -3,6 +3,10 @@ WHAT IS IT?
 RenRot is a program to rename and lossless rotate for JPEG format files,
 according to their EXIF tags.
 
+For prevent incorrect associations some explanations are needed here. The name
+of project is short form of 'REName and ROTate' and no other interpretation
+will be used.
+
 
 GETTING
 
@@ -42,13 +46,13 @@ Futhermore, the script can put a comment to:
 Personal data could be specified via XMP tags defined in config file
 
 Examples:
-    renames according to given template
+    rename according to given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
-    rotates all files by 90CW in specified directory
+    rotate all files by 90CW in specified directory
 	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"
 
-    rotates thumbnails for all files included to EXIF by 90CCW
+    rotate thumbnails for all files included to EXIF by 90CCW
 	renrot --rotate-thumb 270 --ext jpg
 
     fix file mtime accordingly to its EXIF tags or, when last are invalid, use
