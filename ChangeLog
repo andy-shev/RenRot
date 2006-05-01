@@ -1,4 +1,9 @@
 $Log$
+Revision 1.53  2006/05/01 08:01:05  andy
+Minor fixes in README.
+Fix bug in rename algorithm when file with generated filename already exists.
+Add some words about licensing into manual.
+
 Revision 1.52  2006/05/01 06:39:21  andy
 Fix many typos (found by aspell).
 Add new TODO item.
@@ -190,3 +195,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

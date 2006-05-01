@@ -5,7 +5,7 @@
 #
 
 use strict;
-require 5.004;
+require 5.006;
 use Time::localtime;
 use Time::Local;
 use Image::ExifTool;
@@ -253,6 +253,9 @@ foreach $file ( @files ) {
 		$newfilename = sprintf("%s.%s", template2name($NameTemplate), $extentionToProcessLowCase);
 
 		if ( $file ne $newfilename ) {
+			if ( -f $newfilename ) {
+				fatalmsg ("File $newfilename already exists!\n"), die
+			};
 			rename ( $file, $newfilename )
 				|| ( fatalmsg ("Unable to rename $file -> $newfilename.\n"), die );
 			print "Renamed: $file -> $newfilename\n";
@@ -463,11 +466,11 @@ sub rotateFile {
 	$oldfile = $origfile = $newfile = "";
  }
 
- ########################################################################################
- #
- # rotate thubnail only, where the file was rotated but thumbnail was left untouched
- #
- sub rotateThumbnail {
+########################################################################################
+#
+# rotate thubnail only, where the file was rotated but thumbnail was left untouched
+#
+sub rotateThumbnail {
 	# $_[0] - file, which thumbnale to transform with jpegtran
 	# $_[1] - the switch for jpegtran to rotate the thumbnail
 
@@ -526,7 +529,7 @@ sub rotateFile {
 	else {
 		warnmsg ("No thumbnail found.\n");
 	}
- }
+}
 
 ########################################################################################
 #
@@ -842,10 +845,6 @@ phone
 
 URL
 
-=item B<City>
-
-city
-
 =back
 
 =head1 FILES
@@ -865,6 +864,9 @@ configuration file placement (with high priority first)
 =head1 AUTHOR
 
 Copyright 2005-2006, Zeus Panchenko
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =head1 SEE ALSO
 

@@ -7,14 +7,16 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
-Renrot is intended to work ONLY in current directory with all files of the
-extension, specified after --ext.
+Renrot is intended to work only in current directory with all files of the
+extension, specified after --ext. You can change the behaviour by specify
+--work-directory option.
 
 New template ideology was implemented. It includes flexibility in file name
-construction. In version 0.16 and later the described behaviour still present
+construction. In version 0.16 and later the previous behaviour still present
 with default NameTemplate. The template can contain different data, from
 direct name to EXIF data (the date, id or shooting details such as
-WhiteBalance, ISO e.t.c.). For further information, please, see applied manual.
+WhiteBalance, ISO e.t.c.). For further information, please, see applied
+manual.
 
 Renrot rotates file and its thumbnail, according to EXIF tag Orientation. If
 the tag is absent or miss set, than the script allows to rotate the file as
@@ -29,8 +31,8 @@ Personal data could be specified via XMP tags defined in configuration file.
 
 WHY RenRot?
 
-Several projects like RenRot are available in the net, but why to choose namely
-RenRot? Because:
+Several projects like RenRot are available in the net, but why to choose
+namely RenRot? Because:
     - it does just what it would do - renames and rotates, nothing more than
       that;
     - it is pure CLI with all it's advantage (no need KDE or any other monster
@@ -44,8 +46,8 @@ RenRot? Because:
 
 GETTING
 
-RenRot home page is an ftp site for now. You can download script package
-from the following sites:
+RenRot home page is an ftp site for now. You can download script package from
+the following sites:
  ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
  ftp://andriy.asplinux.com.ua/pub/people/andy/renrot/ (mirror)
  ftp://ftp.asplinux.ru/ (looking for renrot package in RPM)
@@ -53,7 +55,9 @@ from the following sites:
 
 RUNNING
 
-Examples:
+After installation process was done renrot running by typing its name in
+console as usual. The next several examples provide general applications of
+the script:
     rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
@@ -71,8 +75,8 @@ Examples:
 DEBUGGING
 
 For advanced users and developers renrot provides debug interface. Amount of
-"-v" options in a command line defines level of verbosity. So script differs
-the nine levels of debugging such as:
+-v options in a command line defines level of verbosity. So script differs the
+nine levels of debugging such as:
     from 1 till 4 - internal levels
     from 5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for
                     renrot
