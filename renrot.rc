@@ -13,7 +13,7 @@
 #	%i  FileNumber tag if exists (otherwise, it'll be replaced by string "NA")
 #	%M  minute (00-59)
 #	%m  month (01-12)
-#	%S  second (00-60)
+#	%S  second (00-59)
 #	%W  WhiteBalance tag value if defined, otherwise W
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
