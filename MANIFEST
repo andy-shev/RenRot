@@ -6,6 +6,6 @@ META.yml                                 Module meta-data (added by MakeMaker)
 README
 README.Windows                           Installation instructions for windows users
 renrot                                   RenRot script
-renrot.rc                                Sample of config file
+renrot.rc                                Sample of configuration file
 renrot.spec                              RPM spec file
 TODO

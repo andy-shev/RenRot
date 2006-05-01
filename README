@@ -8,39 +8,38 @@ of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
 Renrot is intended to work ONLY in current directory with all files of the
-extention, specified after --ext.
+extension, specified after --ext.
 
 New template ideology was implemented. It includes flexibility in file name
 construction. In version 0.16 and later the described behaviour still present
-with default NameTemplate. The template can containe different data, from
-direct name to EXIF data ( the date, id or shoting detailes such as
-WhiteBalance, ISO e.t.c. ).  For futher information, please, see applied
-manual.
+with default NameTemplate. The template can contain different data, from
+direct name to EXIF data (the date, id or shooting details such as
+WhiteBalance, ISO e.t.c.). For further information, please, see applied manual.
 
 Renrot rotates file and its thumbnail, according to EXIF tag Orientation. If
 the tag is absent or miss set, than the script allows to rotate the file as
 well as it's thumbnail "by hands".
 
-Futhermore, the script can put a comment to:
+Furthermore, the script can put a comment to:
     - Comment tag if comment file provided with --comment-file option
-    - UserComment tag if $COMMENTARY variable set in config file
+    - UserComment tag if $COMMENTARY variable set in configuration file
 
-Personal data could be specified via XMP tags defined in config file
+Personal data could be specified via XMP tags defined in configuration file.
 
 
 WHY RenRot?
 
-Several projecs like renrot are available in the net, but why to choose namely
-renrot? Because:
-    - it does just what it has to do - renames and rotates, 
-      nothing more than that
-    - it is pure CLI whith all it's advantage ( no need KDE or any other monstr 
-      to run :) )
-    - it uses Image::ExifTool ( the best open tool to work with EXIF data )
-    - it uses libjpeg6 ( the best open tool to operate JPEG format files, 
-      to correctly rotate both, the very file and the thumbnail inside it )
-    - it has very much flex file naming template engine
-    - it works in batch mode
+Several projects like RenRot are available in the net, but why to choose namely
+RenRot? Because:
+    - it does just what it would do - renames and rotates, nothing more than
+      that;
+    - it is pure CLI with all it's advantage (no need KDE or any other monster
+      to run);
+    - it uses Image::ExifTool (the best open tool to work with EXIF data) and
+      libjpeg6 (the best open tool to operate JPEG format files, to correctly
+      rotate both, the very file and the thumbnail inside it);
+    - it has very much flex file naming template engine;
+    - it works in batch mode.
 
 
 GETTING
@@ -58,15 +57,14 @@ Examples:
     rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
-    rotate each files and their thumbnails by 90CW in specified directory
+    rotate each file and their thumbnail by 90CW in specified directory
 	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"
 
-    rotate thumbnails, included to EXIF, for each files by 90CCW
+    rotate thumbnails, included to EXIF, for each file by 90CCW
 	renrot --rotate-thumb 270 --ext jpg
 
-    fix file mtime according to its EXIF tags or current timestamp, when EXIF
-    tags are invalid
-    
+    fix file mtime according to its EXIF tags or current time stamp, when tags
+    are invalid
 	renrot --no-rotate --no-rename --ext '*.jpeg' --mtime
 
 
@@ -101,13 +99,12 @@ Notes:
 
 DEPENDENCIES
 
-    Requires Perl version 5.6.0 or later. No other special libraries are
-    required, except:
+Requires Perl version 5.6.0 or later. No other special libraries are required,
+except:
     Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
-    Getopt::Long 		cpan:Getopt::Long (usually, included in perl 
+    Getopt::Long 		cpan:Getopt::Long (usually, included in perl
 				distribution)
     jpegtran (libjpeg6)		http://www.ijg.org/
-    
 
 
 LICENSING
@@ -129,6 +126,6 @@ Alex Zasypkin for his help with documentation writing.
 
 ARE YOU WANT SOMETHING TO SAY?
 
-If you have notes, propositions, found bugs or smth. else do not hesitate to
-contact us!
+If you have notes, propositions, found bugs or something else do not hesitate
+to contact us!
 

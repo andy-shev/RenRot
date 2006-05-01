@@ -538,7 +538,7 @@ infomsg (
 		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
 
 		-h | --help		this very page
-		-c | --config-file	use this config file (see manual for details)
+		-c | --config-file	use this configuration file (see manual for details)
 		--work-directory <DIR>	specify working directory
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
@@ -659,8 +659,8 @@ behaviour by specify B<--work-directory> option.
 
 Renrot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current
-timestamp and will look as YYYYmmddHHMMSS.XXXX.jpg, where XXXX is whether file
-ID, if exists in EXIF (as for Canon) or incrementable suffix to the name
+time stamp and will look as YYYYmmddHHMMSS.XXXX.jpg, where XXXX is whether file
+ID, if exists in EXIF (as for Canon) or incremental suffix to the name
 YYYYmmddHHMMSS.
 
 Additionally, it rotates files and their thumbnails, accordingly Orientation
@@ -673,7 +673,7 @@ The script can also put commentary into:
 
 - Commentary tag, if commentary file provided with B<--comment-file> option
 
-- UserComment tag, if $COMMENTARY variable set in config file
+- UserComment tag, if $COMMENTARY variable set in configuration file
 
 =back
 
@@ -688,9 +688,9 @@ file, look L<CONFIG> section.
 
 the help
 
-=item B<-c> or B<--config-file> I<Config FILE>
+=item B<-c> or B<--config-file> I<Configuration FILE>
 
-location of the config file
+location of the configuration file
 
 =item B<--work-directory> I<DIR>
 
@@ -698,7 +698,7 @@ define the working directory
 
 =item B<--ext> I<EXTENTION>
 
-extention of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
+extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
 =item B<--rotate> I<90> or I<270>
 
@@ -733,7 +733,7 @@ defines, whether to set mtime of the file, using DateTimeOriginal tag value
 =item B<--name-template> I<Name TEMPLATE>
 
 template, which is used for file name building while renaming. It could be
-defined in config file (the variable NameTemplate). The default is
+defined in configuration file (the variable NameTemplate). The default is
 I<%Y%m%d%H%M%S>. For practical results look L<EXAMPLES> section.
 
 Interpreted sequences are:
@@ -796,9 +796,9 @@ Config file could be used to set some variables. Config file is just perl
 code. B<Renrot> looks for B<--config-file> option firstly, than it looks for
 file named renrot.rc in system directories such as /etc and /usr/local/etc.
 And finally it looks for file named .renrotrc in home directory of the user.
-User defined config file can be given via B<--config-file> option.
+User defined configuration file can be given via B<--config-file> option.
 
-These tags could be set via config file:
+These tags could be set via configuration file:
 
 =over
 
@@ -850,7 +850,7 @@ city
 
 =head1 FILES
 
-config file placement (with high priority first)
+configuration file placement (with high priority first)
 
 =over
 

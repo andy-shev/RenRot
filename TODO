@@ -18,4 +18,6 @@ TODO LIST
 
 ?  UTF8fy (comments, tags, ...)
 
+-  decrease disk IO operations as possible
+
 -  to review XMP tags related code

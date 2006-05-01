@@ -13,10 +13,10 @@ Currently you don't have to provide any personal info for download, but
 if you are still in doubt, you can try to follow direct link
     http://www.activestate.com/Products/Download/Download.plex?id=ActivePerl
 and choose a build for Windows (as msi package - clickable option for
-novice, or zip file for more experinced users). Once you have Perl
+novice, or zip file for more experienced users). Once you have Perl
 installed (it goes to C:\Perl by default), you can type
-  perl --version
-to see istalled version.
+    perl --version
+to see installed version.
 
 STEP 2
 
@@ -32,7 +32,7 @@ the NMAKE.ERR files to your Perl bin directory, normally C:\Perl\bin.
 
 STEP 3
 
-Now download all dependencies (like Exiftool), unpack and install them,
+Now download all dependencies (like ExifTool), unpack and install them,
 using nmake command instead of make. Use cpan for needed modules like
 running
     cpan Image::ExifTool
@@ -51,7 +51,7 @@ You are ready to go!
 NOTES:
 
 1. To unpack tar.gz-files you can use WinZip (make sure that you extract
-files including full path, especially for ExiffTool), or use free
+files including full path, especially for ExifTool), or use free
 utility 7-zip
     http://www.7-zip.org/
 
