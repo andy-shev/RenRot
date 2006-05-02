@@ -55,9 +55,9 @@ the following sites:
 
 RUNNING
 
-After installation process was done renrot running by typing its name in
-console as usual. The next several examples provide general applications of
-the script:
+After installation process was done renrot is being running by typing
+its name in console as usual. The next several examples provide general
+applications of the script:
     rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
 
@@ -70,6 +70,15 @@ the script:
     fix file mtime according to its EXIF tags or current time stamp, when tags
     are invalid
 	renrot --no-rotate --no-rename --ext '*.jpeg' --mtime
+
+
+RESTRICTIONS
+
+RenRot has some restrictions at runtime. First off, script handles a
+whole directory without recursion and only with one extension of files.
+Second, algorithm guesses the each file with given extension is a image.
+Otherwise, file will be renamed to a current time stamp when --no-rename
+option is omitted.
 
 
 DEBUGGING

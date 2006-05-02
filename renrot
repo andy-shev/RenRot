@@ -464,7 +464,7 @@ sub rotateFile {
 		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
 	}
 	$oldfile = $origfile = $newfile = "";
- }
+}
 
 ########################################################################################
 #
