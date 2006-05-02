@@ -542,6 +542,7 @@ infomsg (
 
 		-h | --help		this very page
 		-c | --config-file	use this configuration file (see manual for details)
+		-v [-v -v ... ]		verbose, debug level
 		--work-directory <DIR>	specify working directory
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
 		--no-rotate		no rotation needed, default is to rotate
@@ -694,6 +695,11 @@ the help
 =item B<-c> or B<--config-file> I<Configuration FILE>
 
 location of the configuration file
+
+=item B<-v>
+
+one or more I<-v> sets debug level. from 1 to 4 - internal levels, 
+5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot
 
 =item B<--work-directory> I<DIR>
 
