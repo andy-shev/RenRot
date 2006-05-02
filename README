@@ -76,8 +76,8 @@ RESTRICTIONS
 
 RenRot has some restrictions at runtime. First off, script handles a
 whole directory without recursion and only with one extension of files.
-Second, algorithm guesses the each file with given extension is a image.
-Otherwise, file will be renamed to a current time stamp when --no-rename
+Second, algorithm treat each file with given extension as the image.
+Otherwise, file will be renamed to the current time stamp when --no-rename
 option is omitted.
 
 

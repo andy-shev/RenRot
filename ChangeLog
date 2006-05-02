@@ -1,4 +1,8 @@
 $Log$
+Revision 1.56  2006/05/02 19:08:59  zeus
+item about aggregation is added to TODO.
+minor language ixes in README
+
 Revision 1.55  2006/05/02 09:07:02  andy
 Wrote RESTRICTIONS section in README.
 
@@ -16,7 +20,7 @@ Add new TODO item.
 
 Revision 1.51  2006/04/30 20:37:49  zeus
 README is tailoded, WHY section is added.
-City tag is removed from core and rc file
+City tag is removed from core and rc file.
 
 Revision 1.50  2006/04/30 14:12:10  andy
 Fix stylistic typos and add some explanations of project naming to README.
