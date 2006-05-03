@@ -8,7 +8,7 @@ of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
 Renrot is intended to work only in current directory with all files of the
-extension, specified after --ext. You can change the behaviour by specify
+extension, specified after --ext. You can change the behaviour by specifying
 --work-directory option.
 
 New template ideology was implemented. It includes flexibility in file name
@@ -28,6 +28,8 @@ Furthermore, the script can put a comment to:
 
 Personal data could be specified via XMP tags defined in configuration file.
 
+In addition renrot can aggregate all files in directories according the given 
+date/time pattern template, set with --aggr-template.
 
 WHY RenRot?
 
@@ -41,6 +43,7 @@ namely RenRot? Because:
       libjpeg6 (the best open tool to operate JPEG format files, to correctly
       rotate both, the very file and the thumbnail inside it);
     - it has very much flex file naming template engine;
+    - it has very much flex file aggregation template engine;
     - it works in batch mode.
 
 
@@ -60,6 +63,10 @@ its name in console as usual. The next several examples provide general
 applications of the script:
     rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
+
+    rename each file according to the given template and files aggregation
+    according the date
+	renrot --name-template="%y%m%d%H%M%S.%i" --aggr-template "%Y%m%d" --ext JPG
 
     rotate each file and their thumbnail by 90CW in specified directory
 	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"

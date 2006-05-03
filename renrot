@@ -19,6 +19,7 @@ my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $noComment;		# no comment needed
 my $nameTemplate;	# template for the filename taken from CLI
+my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $extentionToProcess;	# the extention of files to work with
 my $extentionToProcessLowCase; # lowercased extention of files to work with
 my $usageOutput = 0;	# flag to show the usage
@@ -71,6 +72,7 @@ sub getopt {
 		"no-rename" => \$noRename,
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
+		"aggr-template=s" => \$aggrTemplate,
 		"mtime" => \$mtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
@@ -247,15 +249,23 @@ foreach $file ( @files ) {
 	#
 	if ( defined $noRename ) {
 		infomsg ("No renaming asked, filename is left untouched.\n");
-		$newfilename = $file;
+		if ( ($newfilename) = ( $file =~ /^(.*)\.jpg/ ) ) {
+			$filenameshash{$newfilename} = 1;
+		}
 	}
 	else {
-		$newfilename = sprintf("%s.%s", template2name($NameTemplate), $extentionToProcessLowCase);
+		$newfilename = template2name($NameTemplate);
+		if ( $filenameshash{$newfilename} ) {
+			$newfilename = sprintf("%s.%.4d",$newfilename,$filecounter);
+		}
+		$filenameshash{$newfilename} = 1;
+		
+		$newfilename = sprintf("%s.%s", $newfilename, $extentionToProcessLowCase);
 
 		if ( $file ne $newfilename ) {
 			if ( -f $newfilename ) {
-				fatalmsg ("File $newfilename already exists!\n"), die
-			};
+				fatalmsg ("File $newfilename already exists!\n"), die;
+			}
 			rename ( $file, $newfilename )
 				|| ( fatalmsg ("Unable to rename $file -> $newfilename.\n"), die );
 			print "Renamed: $file -> $newfilename\n";
@@ -342,6 +352,27 @@ foreach $file ( @files ) {
 
 closedir(DIR);
 
+########################################################################################
+#
+# file aggregation if requested
+#
+if ( defined $aggrTemplate ) {
+	infomsg ("NOW IS FILE AGGREGATION\n=======================\n\n");
+	$filecounter=1;
+	foreach $file ( sort ( keys %filenameshash ) ) {
+		$file .= ".jpg";
+		$info = $exifTool->ImageInfo($file);
+		$newfilename = template2name($aggrTemplate);
+		if ( not -d $newfilename ) {
+			unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
+		}
+		infomsg ( "$file has been aggregated to the directory $newfilename\n" );
+		$newfilename .= "/" . $file;
+		rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
+		$filecounter++;
+	}
+}
+
 exit 0;
 
 ########################################################################################
@@ -404,7 +435,7 @@ sub getTimestamp {
 		$timestamp = timeNow();
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
-
+	
 	return $timestamp;
 }
 
@@ -553,6 +584,7 @@ infomsg (
 					it's for the files which were rotated, but thumbnail wasn't
 		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-template <TPL>	filename template (see manual for details)
+		--aggr-template <TPL>	aggregation template (see manual for details)
 		--mtime			to set file mtime according DateTimeOriginal tag value
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
@@ -637,12 +669,6 @@ sub template2name {
 		else { $thename .= $substrchar; }
 	}
 
-	if ( $filenameshash{$thename} ) {
-		$thename = sprintf("%s.%s",$thename,$templatehash{"c"});
-	}
-
-	$filenameshash{$thename} = 1;
-
 	return $thename;
 }
 
@@ -659,7 +685,7 @@ renrot [OPTIONS]
 =head1 DESCRIPTION
 
 B<RenRot> is intended to work ONLY in current directory. You can change the
-behaviour by specify B<--work-directory> option.
+behaviour by specifying B<--work-directory> option.
 
 Renrot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current
@@ -683,6 +709,9 @@ The script can also put commentary into:
 
 Personal details can be specified via XMP tags defined in a configuration
 file, look L<CONFIG> section.
+
+In addition renrot can aggregate all files in directories according the given 
+date/time pattern template, set with B<--aggr-template>.
 
 =head1 OPTIONS
 
@@ -773,6 +802,28 @@ B<%m>	month (01-12)
 B<%S>	second (00-59)
 
 B<%W>	WhiteBalance tag value if defined, otherwise W
+
+B<%Y>	year (1900, 1901, and so on)
+
+B<%y>	last two digits of year (00..99)
+
+=back
+
+=item B<--aggr-template> I<Aggregation TEMPLATE>
+
+template, which is used for file aggregation. Aggragation fulfils according date/time patterns.
+
+=over
+
+B<%d>	day of the month (01-31)
+
+B<%H>	hour (00-23)
+
+B<%M>	minute (00-59)
+
+B<%m>	month (01-12)
+
+B<%S>	second (00-59)
 
 B<%Y>	year (1900, 1901, and so on)
 
