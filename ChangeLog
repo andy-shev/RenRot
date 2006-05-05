@@ -1,8 +1,11 @@
 $Log$
+Revision 1.58  2006/05/05 21:31:38  zeus
+TODO item added
+
 Revision 1.57  2006/05/03 21:59:52  zeus
 file aggregation via option --aggr-template has been implemented.
 control code for file name originality has been moved from template2name() to main().
-README edited
+README edited.
 
 Revision 1.56  2006/05/02 19:08:59  zeus
 item about aggregation is added to TODO.

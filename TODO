@@ -8,6 +8,8 @@ TODO SEMANTICS
 
 TODO LIST
 
+-  to write to some EXIF tag sometning like "Processed with renrot" 
+
 -  to implement work with separate files rather than with whole directory
 
 +  to implement possibility to add patterns for file naming ( to make it
@@ -22,10 +24,10 @@ TODO LIST
 
 +- to review XMP tags related code
 
--  to implement aggregation option ( to aggregate large bundle of files 
-   according the different time intervals, perhapse with some kind of 
+-  to implement aggregation option ( to aggregate large bundle of files
+   according the different time intervals, perhapse with some kind of
    euristics for analyzing the bigest time interval between shots )
 
--  to make the file name counter format of the dynamic length, according 
-   the files number in the directory to process, i mean 0xx for the number 
+-  to make the file name counter format of the dynamic length, according
+   the files number in the directory to process, i mean 0xx for the number
    less than 100, e.t.c.
