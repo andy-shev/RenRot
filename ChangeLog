@@ -1,16 +1,22 @@
 $Log$
+Revision 1.61  2006/05/06 14:51:04  andy
+Use --no-mtime as opposite to --mtime. Add $setMtime to config file.
+(Needs to be checked)
+
+Minor changes in the documentation.
+
 Revision 1.60  2006/05/06 10:00:36  zeus
 bug fixed, when --no-rename requested it was rewriting XMP tags, now it'd fixed.
-TODO edited
+TODO edited.
 
 Revision 1.59  2006/05/06 07:32:14  andy
 Minor changes of documentation. Removing trailing spaces.
-Restructure TODO
+Restructure TODO.
 Add -q option for suppressing process messages.
 Release 0.16.2.
 
 Revision 1.58  2006/05/05 21:31:38  zeus
-TODO item added
+TODO item added.
 
 Revision 1.57  2006/05/03 21:59:52  zeus
 file aggregation via option --aggr-template has been implemented.
@@ -54,7 +60,7 @@ commentaries added where were missed.
 
 Revision 1.47  2006/04/27 22:21:28  andy
 Use regular expression instead of multiple substr().
-After our verbosity switch on exiftool's
+After our verbosity switch on exiftool's.
 
 Revision 1.46  2006/04/27 21:58:52  andy
 Split template2name() to a two additional functions: getTimestamp() and
@@ -88,7 +94,7 @@ mtime seting according the DateTimeOriginal tag implemented.
 possibility to add some EXIF details, like FNumber, ISO e.t.c. to the filename is added
 
 Revision 1.40  2006/04/27 07:23:14  andy
-Fix template bug (last symbol analysing)
+Fix template bug (last symbol analysing).
 
 Revision 1.39  2006/04/26 20:36:06  zeus
 Name template engine tunning.
@@ -139,7 +145,7 @@ Revision 1.26  2006/04/21 11:16:00  andy
 Fix DEPENDENCIES section. Fix Requires in spec.
 
 Revision 1.25  2006/04/20 13:33:01  zeus
-README is edited, URL for DEPENDENCIES are added
+README is edited, URL for DEPENDENCIES are added.
 
 Revision 1.24  2006/04/20 08:24:23  zeus
 ISO tag choosen instead of CameraISO, since not all cameras has the last one.
@@ -148,7 +154,7 @@ Revision 1.23  2006/04/19 20:02:02  zeus
 README section WHAT IS IT edited.
 
 Revision 1.22  2006/04/19 16:24:59  andy
-Wrote several examples to README
+Wrote several examples to README.
 
 Revision 1.21  2006/04/19 13:23:54  andy
 Use sprintf() instead of multiple concatenation.
@@ -185,7 +191,7 @@ Added renrot.spec for RPM-based linux distributions.
 Bump version (0.14.1).
 
 Revision 1.12  2006/04/17 12:57:47  zeus
-README edited
+README edited.
 
 Revision 1.11  2006/02/17 20:35:12  zeus
 The bug with --name-prefix-only fixed (it was defined as string in getopt()
@@ -195,10 +201,10 @@ Revision 1.10  2006/01/10 12:16:07  zeus
 Documentation tailored a bit, the info concerning the jpegtran URL is added.
 
 Revision 1.9  2005/11/19 22:53:31  andy
-Append new files to MANIFEST
+Append new files to MANIFEST.
 
 Revision 1.8  2005/11/19 09:45:56  zeus
-Minor script output formating
+Minor script output formating.
 
 Revision 1.7  2005/11/18 14:19:26  andy
 Fix documentation part according to last code changes.

@@ -13,23 +13,24 @@ use Getopt::Long;
 
 our $VERSION = "0.16.2";	# the version of this script
 
+# Command line options
 my $noRotation;		# no rotation needed, default is to rotate
 my $rotate;		# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-my $noComment;		# no comment needed
 my $nameTemplate;	# template for the filename taken from CLI
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $extentionToProcess;	# the extention of files to work with
-my $extentionToProcessLowCase; # lowercased extention of files to work with
-my $usageOutput = 0;	# flag to show the usage
 my $configFile;		# config file
 my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
 my $quiet = 0;		# suppressing messages
 my $dir = ".";		# we'll work ONLY in current directory
-my $mtime;		# to set mtime
-our $mTime;		# mtime to use to set
+my $yesMtime = 0;	# to set mtime
+my $noMtime;		# no mtime trigger
+
+my $noComment;		# no comment needed
+my $usageOutput = 0;	# flag to show the usage
 
 # processing message
 sub procmsg {
@@ -65,8 +66,8 @@ sub dbgmsg {
     print STDERR @_ if ($verbose >= $level);
 }
 
-# parse command line
-sub getopt {
+# parse command line arguments
+sub getOptions {
 	my $ver;	# need version
 	my $help;	# need help
 	my $getopt = GetOptions (
@@ -79,7 +80,8 @@ sub getopt {
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
 		"aggr-template=s" => \$aggrTemplate,
-		"mtime" => \$mtime,
+		"mtime" => \$yesMtime,
+		"no-mtime" => \$noMtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
 		"q" => \$quiet,
@@ -97,8 +99,7 @@ sub getopt {
 	}
 
 	if (not defined $extentionToProcess) {
-	    errmsg ("Extention of files is required!\n");
-	    exit 1;
+	    fatalmsg ("Extention of files is required!\n"), die;
 	}
 
 	if ($getopt == 0) {
@@ -109,10 +110,15 @@ sub getopt {
 	# change user's parameter '*.ext' to 'ext'
 	$extentionToProcess =~ s/^\*\.//;
 	dbgmsg (1, "getopt(): Process with '$extentionToProcess' extention.\n");
+
+	# check $yesMtime and noMtime collision
+	if (defined $noMtime and ($yesMtime != 0)) {
+		fatalmsg ("You can't define opposite keys (--mtime and --no-mtime)!\n"), die;
+	}
 }
 
-# parse command-line options
-getopt();
+# parse command line options
+getOptions();
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -124,7 +130,8 @@ our $CiAdrRegion;
 our $CiEmailWork;
 our $CiTelWork;
 our $CiUrlWork;
-our $NameTemplate = '%Y%m%d%H%M%S'; # name template
+our $NameTemplate = '%Y%m%d%H%M%S';	# name template
+our $setMtime = 0;				# to set mtime
 
 my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
 
@@ -141,6 +148,10 @@ else {
 
 if ( defined $nameTemplate ) {
 	$NameTemplate = $nameTemplate;
+}
+
+if (defined $noMtime or $yesMtime != 0) {
+	$setMtime = $yesMtime;
 }
 
 our $exifTool = new Image::ExifTool;
@@ -185,6 +196,7 @@ my @angles = ( ''
 
 my $errorMessage;
 my $warningMessage;
+my $extentionToProcessLowCase;	# lowercased extention of files to work with
 
 chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
 opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
@@ -206,6 +218,7 @@ while ( defined ( $file = readdir DIR )) {
 @files = sort @filenames;
 
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
+our $mTime;		# mtime to use to set
 
 foreach $file ( @files ) {
 	procmsg ("Processing file: $file ...\n");
@@ -302,7 +315,7 @@ foreach $file ( @files ) {
 	#
 	if ( not defined $noRename ) {
 		if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
-        
+
 		if ( defined ( $CiAdrCity ) ) {
 			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
 		}
@@ -348,7 +361,7 @@ foreach $file ( @files ) {
 	}
 
 	# seting mtime for the file if been asked for
-	if ( defined $mtime ) {
+	if ($setMtime != 0) {
 		my $timestamp = getTimestamp();
 		$mTime = getUnixTime($timestamp);
 		utime $mTime,$mTime,$newfilename;

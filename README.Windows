@@ -20,7 +20,8 @@ to see installed version.
 
 STEP 2
 
-Now you need make/nmake to continue. This article
+Now you need make/nmake to continue. You can skip this step if you have
+installed MS Visual Studio. The next article
     http://johnbokma.com/perl/make-for-windows.html
 explains what to do and what to make, but shortly go to Microsoft's
 Q132084
@@ -34,9 +35,9 @@ STEP 3
 
 Now download all dependencies (like ExifTool), unpack and install them,
 using nmake command instead of make. Use cpan for needed modules like
-running
+running (automatic mode)
     cpan Image::ExifTool
-or by cpan shell starting with
+or by cpan shell starting with (manual mode)
     perl -MCPAN -e shell
 
 STEP 4

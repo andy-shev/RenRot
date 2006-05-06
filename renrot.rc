@@ -1,3 +1,7 @@
+# Process files with or without mtime modification. This option is
+# overriding by command line keys --mtime or --no-mtime.
+#$setMtime = 0;
+
 #
 ## Template is used for file name building while renaming.
 #
