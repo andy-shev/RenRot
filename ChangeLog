@@ -1,7 +1,11 @@
 $Log$
+Revision 1.60  2006/05/06 10:00:36  zeus
+bug fixed, when --no-rename requested it was rewriting XMP tags, now it'd fixed.
+TODO edited
+
 Revision 1.59  2006/05/06 07:32:14  andy
 Minor changes of documentation. Removing trailing spaces.
-Restructure TODO.
+Restructure TODO
 Add -q option for suppressing process messages.
 Release 0.16.2.
 

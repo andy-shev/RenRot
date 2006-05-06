@@ -21,6 +21,9 @@ Disk I/O
 
 -  decrease disk IO operations as possible
 
+-  to implement possibility to work with other formats, which use EXIF
+   mechanism
+
 
 File naming
 
@@ -48,3 +51,6 @@ Other
 
 ?  UTF8fy (comments, tags, ...)
 
+-  to implement --no-mtime, and put it to the config
+
+?  to write the function 'on/off validator'

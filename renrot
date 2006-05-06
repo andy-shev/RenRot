@@ -300,31 +300,33 @@ foreach $file ( @files ) {
 	#
 	## preparing to write the UserComment and some additional tags
 	#
-	if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
-
-	if ( defined ( $CiAdrCity ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
-	}
-	if ( defined ( $CiAdrCtry ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
-	}
-	if ( defined ( $CiAdrExtadr ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
-	}
-	if ( defined ( $CiAdrPcode ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
-	}
-	if ( defined ( $CiAdrRegion ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
-	}
-	if ( defined ( $CiEmailWork ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
-	}
-	if ( defined ( $CiTelWork ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
-	}
-	if ( defined ( $CiUrlWork ) ) {
-		$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
+	if ( not defined $noRename ) {
+		if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
+        
+		if ( defined ( $CiAdrCity ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrCtry ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrExtadr ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrPcode ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
+		}
+		if ( defined ( $CiAdrRegion ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
+		}
+		if ( defined ( $CiEmailWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
+		}
+		if ( defined ( $CiTelWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
+		}
+		if ( defined ( $CiUrlWork ) ) {
+			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
+		}
 	}
 
 	# writing the changes to the EXIFs
