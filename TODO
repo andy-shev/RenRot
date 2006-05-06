@@ -4,13 +4,13 @@ TODO SEMANTICS
 +-	partialy done
 +	already done
 ?	needs to be checked
-
+q	optional feature
 
 EXIF tags
 
 -  to write to some tag sometning like "Processed with RenRot"
 
-?  to write to some tag the options passed to renrot
+q  to write to some tag the options passed to renrot
 
 +- to review XMP tags related code
 
@@ -44,7 +44,7 @@ Verbosity
 
 +- to complete verbose output option implementation
 
-?  to implement progress indicator or spinning indicator
+q  to implement progress indicator or spinning indicator
 
 
 Other
@@ -53,4 +53,4 @@ Other
 
 +  to implement --no-mtime, and put it to the config
 
-?  to write the function 'on/off validator'
+q  to write the function 'on/off validator'
