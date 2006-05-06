@@ -6,23 +6,27 @@ TODO SEMANTICS
 ?	needs to be checked
 
 
-TODO LIST
+EXIF tags
 
--  to write to some EXIF tag sometning like "Processed with renrot"
+-  to write to some tag sometning like "Processed with RenRot"
+
+?  to write to some tag the options passed to renrot
+
++- to review XMP tags related code
+
+
+Disk I/O
 
 -  to implement work with separate files rather than with whole directory
+
+-  decrease disk IO operations as possible
+
+
+File naming
 
 +  to implement possibility to add patterns for file naming ( to make it
    possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
    e.t.c.)
-
-+- to complete verbose output option implementation
-
-?  UTF8fy (comments, tags, ...)
-
--  decrease disk IO operations as possible
-
-+- to review XMP tags related code
 
 -  to implement aggregation option ( to aggregate large bundle of files
    according the different time intervals, perhapse with some kind of
@@ -32,6 +36,15 @@ TODO LIST
    the files number in the directory to process, i mean 0xx for the number
    less than 100, e.t.c.
 
+
+Verbosity
+
++- to complete verbose output option implementation
+
 ?  to implement progress indicator or spinning indicator
 
-?  to write to some EXIF tag the options passed to renrot
+
+Other
+
+?  UTF8fy (comments, tags, ...)
+

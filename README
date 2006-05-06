@@ -7,7 +7,7 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
-Renrot is intended to work only in current directory with all files of the
+RenRot is intended to work only in current directory with all files of the
 extension, specified after --ext. You can change the behaviour by specifying
 --work-directory option.
 
@@ -18,7 +18,7 @@ direct name to EXIF data (the date, id or shooting details such as
 WhiteBalance, ISO e.t.c.). For further information, please, see applied
 manual.
 
-Renrot rotates file and its thumbnail, according to EXIF tag Orientation. If
+RenRot rotates file and its thumbnail, according to EXIF tag Orientation. If
 the tag is absent or miss set, than the script allows to rotate the file as
 well as it's thumbnail "by hands".
 
@@ -28,7 +28,7 @@ Furthermore, the script can put a comment to:
 
 Personal data could be specified via XMP tags defined in configuration file.
 
-In addition renrot can aggregate all files in directories according the given 
+In addition RenRot can aggregate all files in directories according the given
 date/time pattern template, set with --aggr-template.
 
 WHY RenRot?

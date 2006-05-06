@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.16.1";	# the version of this script
+our $VERSION = "0.16.2";	# the version of this script
 
 my $noRotation;		# no rotation needed, default is to rotate
 my $rotate;		# define the angle, to rotate on, 90 or 270
@@ -26,9 +26,15 @@ my $usageOutput = 0;	# flag to show the usage
 my $configFile;		# config file
 my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
+my $quiet = 0;		# suppressing messages
 my $dir = ".";		# we'll work ONLY in current directory
 my $mtime;		# to set mtime
 our $mTime;		# mtime to use to set
+
+# processing message
+sub procmsg {
+    print @_ if ($quiet == 0);
+}
 
 # information message
 sub infomsg {
@@ -76,6 +82,7 @@ sub getopt {
 		"mtime" => \$mtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
+		"q" => \$quiet,
 		"version" => \$ver,
 		"help|?"   => \$help);
 
@@ -201,7 +208,7 @@ while ( defined ( $file = readdir DIR )) {
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 
 foreach $file ( @files ) {
-	print "Processing file: $file ...\n";
+	procmsg ("Processing file: $file ...\n");
 
 	# Setup defaults
 	$info = $exifTool->ImageInfo($file);
@@ -259,7 +266,7 @@ foreach $file ( @files ) {
 			$newfilename = sprintf("%s.%.4d",$newfilename,$filecounter);
 		}
 		$filenameshash{$newfilename} = 1;
-		
+
 		$newfilename = sprintf("%s.%s", $newfilename, $extentionToProcessLowCase);
 
 		if ( $file ne $newfilename ) {
@@ -268,7 +275,7 @@ foreach $file ( @files ) {
 			}
 			rename ( $file, $newfilename )
 				|| ( fatalmsg ("Unable to rename $file -> $newfilename.\n"), die );
-			print "Renamed: $file -> $newfilename\n";
+			procmsg ("Renamed: $file -> $newfilename\n");
 		}
 		else { warnmsg ("No renaming needed for $newfilename, it looks as needed!\n"); }
 	}
@@ -346,7 +353,7 @@ foreach $file ( @files ) {
 		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
 	}
 
-	print "\n";
+	procmsg ("\n");
 	$filecounter++;
 }
 
@@ -357,7 +364,7 @@ closedir(DIR);
 # file aggregation if requested
 #
 if ( defined $aggrTemplate ) {
-	infomsg ("NOW IS FILE AGGREGATION\n=======================\n\n");
+	procmsg ("NOW IS FILE AGGREGATION\n=======================\n");
 	$filecounter=1;
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$file .= ".jpg";
@@ -366,9 +373,10 @@ if ( defined $aggrTemplate ) {
 		if ( not -d $newfilename ) {
 			unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
 		}
-		infomsg ( "$file has been aggregated to the directory $newfilename\n" );
+		procmsg ( "$file has been aggregated to the directory $newfilename\n" );
 		$newfilename .= "/" . $file;
 		rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
+		procmsg ("\n");
 		$filecounter++;
 	}
 }
@@ -435,7 +443,7 @@ sub getTimestamp {
 		$timestamp = timeNow();
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
-	
+
 	return $timestamp;
 }
 
@@ -687,7 +695,7 @@ renrot [OPTIONS]
 B<RenRot> is intended to work ONLY in current directory. You can change the
 behaviour by specifying B<--work-directory> option.
 
-Renrot renames files according the DateTimeOriginal and FileModifyDate EXIF
+RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current
 time stamp and will look as YYYYmmddHHMMSS.XXXX.jpg, where XXXX is whether file
 ID, if exists in EXIF (as for Canon) or incremental suffix to the name
@@ -710,7 +718,7 @@ The script can also put commentary into:
 Personal details can be specified via XMP tags defined in a configuration
 file, look L<CONFIG> section.
 
-In addition renrot can aggregate all files in directories according the given 
+In addition RenRot can aggregate all files in directories according the given
 date/time pattern template, set with B<--aggr-template>.
 
 =head1 OPTIONS
@@ -727,8 +735,8 @@ location of the configuration file
 
 =item B<-v>
 
-one or more I<-v> sets debug level. from 1 to 4 - internal levels, 
-5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot
+one or more I<-v> sets debug level. from 1 to 4 - internal levels,
+5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
 
 =item B<--work-directory> I<DIR>
 
@@ -811,25 +819,10 @@ B<%y>	last two digits of year (00..99)
 
 =item B<--aggr-template> I<Aggregation TEMPLATE>
 
-template, which is used for file aggregation. Aggragation fulfils according date/time patterns.
-
-=over
-
-B<%d>	day of the month (01-31)
-
-B<%H>	hour (00-23)
-
-B<%M>	minute (00-59)
-
-B<%m>	month (01-12)
-
-B<%S>	second (00-59)
-
-B<%Y>	year (1900, 1901, and so on)
-
-B<%y>	last two digits of year (00..99)
-
-=back
+template, which is used for file aggregation. Aggregation fulfils according
+date/time patterns.  You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
+B<%S>, B<%Y>, and/or B<%y> keys. For detailed description, please, turn to
+B<--name-template> option.
 
 =back
 

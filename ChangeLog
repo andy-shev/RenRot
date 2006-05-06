@@ -1,4 +1,10 @@
 $Log$
+Revision 1.59  2006/05/06 07:32:14  andy
+Minor changes of documentation. Removing trailing spaces.
+Restructure TODO.
+Add -q option for suppressing process messages.
+Release 0.16.2.
+
 Revision 1.58  2006/05/05 21:31:38  zeus
 TODO item added
 
@@ -213,4 +219,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
