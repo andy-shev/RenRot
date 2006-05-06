@@ -36,7 +36,7 @@ File naming
    euristics for analyzing the bigest time interval between shots )
 
 -  to make the file name counter format of the dynamic length, according
-   the files number in the directory to process, i mean 0xx for the number
+   the files number in the directory to process, it means NN for the number
    less than 100, e.t.c.
 
 
@@ -51,6 +51,6 @@ Other
 
 ?  UTF8fy (comments, tags, ...)
 
--  to implement --no-mtime, and put it to the config
++  to implement --no-mtime, and put it to the config
 
 ?  to write the function 'on/off validator'
