@@ -8,7 +8,7 @@ TODO SEMANTICS
 
 TODO LIST
 
--  to write to some EXIF tag sometning like "Processed with renrot" 
+-  to write to some EXIF tag sometning like "Processed with renrot"
 
 -  to implement work with separate files rather than with whole directory
 
@@ -31,3 +31,7 @@ TODO LIST
 -  to make the file name counter format of the dynamic length, according
    the files number in the directory to process, i mean 0xx for the number
    less than 100, e.t.c.
+
+?  to implement progress indicator or spinning indicator
+
+?  to write to some EXIF tag the options passed to renrot
