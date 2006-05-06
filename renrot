@@ -131,6 +131,8 @@ our $CiEmailWork;
 our $CiTelWork;
 our $CiUrlWork;
 our $NameTemplate = '%Y%m%d%H%M%S';	# name template
+our $Software; # in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
+
 our $setMtime = 0;				# to set mtime
 
 my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
@@ -163,13 +165,14 @@ my @filenames;		# array of the filenames to process
 our $info;		# ImageInfo object
 my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
-my $filenameshashkey;
+my $filenameshashkey;	# keys %filenameshash
 my $orientation = '';	# Orientation tag value
 my @filenameSplited;	# array to hold filename splitted to the parts
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
 our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
-my $counterprefix;	# 4 digit file number counter
+our $counterprefixsize;	# number of digits in $counterprefix
+my $counterprefix;	# file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 my $rotas;		# how to rotate
 
@@ -212,8 +215,16 @@ while ( defined ( $file = readdir DIR )) {
 	# if we have defined extention files here
 	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extentionToProcess ) ) {
 		push @filenames, $file;
+		$filecounter++;
 	}
 }
+
+# here we're preparing the variable, which contains the format
+# of the counter output
+my @z = split (//, $filecounter);
+$counterprefixsize = "%." . ($#z + 1) . "d";
+
+$filecounter = 1;
 
 @files = sort @filenames;
 
@@ -340,24 +351,28 @@ foreach $file ( @files ) {
 		if ( defined ( $CiUrlWork ) ) {
 			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
 		}
-	}
 
-	# writing the changes to the EXIFs
-	my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
-	if ( $res == 1 ) {
-		dbgmsg (2, "main(): Writing to $comentedfilename ok.\n");
-		rename ( $comentedfilename, $newfilename  )
-			|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
-	}
-	elsif ( $res == 2 ) {
-		warnmsg ("No changes between $newfilename and $comentedfilename. No EXIF was written.\n");
-		unlink $comentedfilename;
-	}
-	else {
-		my $errorMessage   = $exifTool->GetValue('Error');
-		my $warningMessage = $exifTool->GetValue('Warning');
-		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
-		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
+		if ( defined ( $Software ) ) {
+			$exifTool->SetNewValue('Software', $Software, Group=>'EXIF'); # Software tag
+		}
+
+		# writing the changes to the EXIFs
+		my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
+		if ( $res == 1 ) {
+			dbgmsg (2, "main(): Writing to $comentedfilename ok.\n");
+			rename ( $comentedfilename, $newfilename  )
+				|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
+		}
+		elsif ( $res == 2 ) {
+			warnmsg ("No changes between $newfilename and $comentedfilename. No EXIF was written.\n");
+			unlink $comentedfilename;
+		}
+		else {
+			my $errorMessage   = $exifTool->GetValue('Error');
+			my $warningMessage = $exifTool->GetValue('Warning');
+			if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
+			if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
+		}
 	}
 
 	# seting mtime for the file if been asked for
@@ -661,7 +676,7 @@ sub template2name {
 	my %templatehash = (
 		'%' => "%",
 		'a' => $anglesuffix,
-		'c' => sprintf('%.4d', $filecounter),
+		'c' => sprintf($counterprefixsize, $filecounter),
 		'd' => $tm[3],
 		'E' => "E" . $ExposureTime,
 		'F' => "F" . $FNumber,

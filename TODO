@@ -8,7 +8,7 @@ q	optional feature
 
 EXIF tags
 
--  to write to some tag sometning like "Processed with RenRot"
++  to write to some tag sometning like "Processed with RenRot"
 
 q  to write to some tag the options passed to renrot
 
@@ -18,6 +18,9 @@ q  to write to some tag the options passed to renrot
 Disk I/O
 
 -  to implement work with separate files rather than with whole directory
+
+-  to implement possibility to work with several in directories and to
+   output to the set out directory
 
 -  decrease disk IO operations as possible
 
@@ -35,7 +38,7 @@ File naming
    according the different time intervals, perhapse with some kind of
    euristics for analyzing the bigest time interval between shots )
 
--  to make the file name counter format of the dynamic length, according
++  to make the file name counter format of the dynamic length, according
    the files number in the directory to process, it means NN for the number
    less than 100, e.t.c.
 

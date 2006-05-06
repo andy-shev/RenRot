@@ -1,6 +1,11 @@
 $Log$
+Revision 1.63  2006/05/06 21:14:13  zeus
+names and versions of the programs used to process the file now is written to the tag Software.
+dynamic length file name counter format is implemented.
+TODO edited, rc edited
+
 Revision 1.62  2006/05/06 15:17:04  andy
-Expand TODO semantics.
+Expand TODO semantics
 
 Revision 1.61  2006/05/06 14:51:04  andy
 Use --no-mtime as opposite to --mtime. Add $setMtime to config file.
