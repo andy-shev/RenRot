@@ -1,11 +1,13 @@
+#
+## mtime modification
+#
 # Process files with or without mtime modification. This option is
-# overriding by command line keys --mtime or --no-mtime.
-#$setMtime = 0;
+# overriden by CLI options --mtime or --nomtime.
+#$Mtime = 1;
 
 #
-## Template is used for file name building while renaming.
+## Template used for file name building while renaming.
 #
-
 # Interpreted sequences are:
 #	%%  a literal %
 #	%c  file order number in the processed file set
@@ -21,14 +23,27 @@
 #	%W  WhiteBalance tag value if defined, otherwise W
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
+# default is '%Y%m%d%H%M%S'
 #$NameTemplate  = '%Y%m%d%H%M%S';
+
+#
+## Template used for file aggregation.
+#
+# Interpreted sequences are:
+#	%d  day of the month (01-31)
+#	%H  hour (00-23)
+#	%M  minute (00-59)
+#	%m  month (01-12)
+#	%S  second (00-59)
+#	%Y  year (1900, 1901, and so on)
+#	%y  last two digits of year (00..99)
+#
+#$AggrTemplate  = '%Y%m%d%H';
 
 #
 ## the commentary to put to UserComment tag
 #
-
 #$COMMENTARY    = <<__COMMENTARY__;
-#
 #This image was shot by HERE-IS-YOUR-NAME for private purposes
 #and is copyrighted by him (me). The copyright is governed by
 #copyright laws. This image cannot be copied in any form
@@ -41,13 +56,11 @@
 #
 #You can use this image anyhow ONLY if you have received the
 #assignment of permition to use from HERE-IS-YOUR-NAME.
-#
 #__COMMENTARY__
 
 #
-## XMP tags
+## personal information could be set to XMP tags
 #
-
 #$CiAdrCity 	= 'Here Is Your City';
 #$CiAdrCtry 	= 'Here Is Your Country';
 #$CiAdrExtadr 	= 'Here Is Your Apartments';
@@ -58,8 +71,12 @@
 #$CiUrlWork 	= 'Here Is Your URL';
 
 #
-## What will be put to the EXIF tag [EXIF] Software default is
+## What will be put to the EXIF tag [EXIF] Software
 #
+# to disable set it
+# $Software = "";
+#
+# default is:
 $Software = sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
 
 

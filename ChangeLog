@@ -1,8 +1,16 @@
 $Log$
+Revision 1.64  2006/05/08 15:14:05  zeus
+implemented work with separate files via --files and -- options.
+rewritten code concerning the "no mtime" option, according the GetOptions features.
+syntaxis changed to the GetOptions ( no-rotate -> norotate e.t.c.)
+AggrTemplate option added to the config file.
+documentation edited according the changes.
+TODO, AUTHORS edited
+
 Revision 1.63  2006/05/06 21:14:13  zeus
 names and versions of the programs used to process the file now is written to the tag Software.
 dynamic length file name counter format is implemented.
-TODO edited, rc edited
+TODO edited, rc edited.
 
 Revision 1.62  2006/05/06 15:17:04  andy
 Expand TODO semantics

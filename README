@@ -7,9 +7,11 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
-RenRot is intended to work only in current directory with all files of the
-extension, specified after --ext. You can change the behaviour by specifying
---work-directory option.
+RenRot is intended to work  with files of B<--ext> extention, containing 
+EXIF date and can do two things with them - rename and rotate. It runs in batch
+mode in current or set with B<--work-directory> directory, as well as selective
+mode for separate files, set with single or multiply B<--files>, or everything
+after B<-->.
 
 New template ideology was implemented. It includes flexibility in file name
 construction. In version 0.16 and later the previous behaviour still present
@@ -22,7 +24,7 @@ RenRot rotates file and its thumbnail, according to EXIF tag Orientation. If
 the tag is absent or miss set, than the script allows to rotate the file as
 well as it's thumbnail "by hands".
 
-Furthermore, the script can put a comment to:
+Furthermore, the script put a comment to:
     - Comment tag if comment file provided with --comment-file option
     - UserComment tag if $COMMENTARY variable set in configuration file
 
@@ -76,8 +78,13 @@ applications of the script:
 
     fix file mtime according to its EXIF tags or current time stamp, when tags
     are invalid
-	renrot --no-rotate --no-rename --ext '*.jpeg' --mtime
+	renrot --norotate --norename --ext '*.jpeg' --mtime
 
+    to leave mtime untouched
+	renrot --ext 'jpg' --nomtime
+
+    aggregate files by YYmmddHH 
+	renrot --ext 'jpg' --aggr-template '%y%m%d%H'
 
 RESTRICTIONS
 

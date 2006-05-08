@@ -17,10 +17,10 @@ q  to write to some tag the options passed to renrot
 
 Disk I/O
 
--  to implement work with separate files rather than with whole directory
++  to implement work with separate files rather than with whole directory
 
--  to implement possibility to work with several in directories and to
-   output to the set out directory
+-  to implement possibility to work with several IN directories and to
+   output to the set of OUT directories
 
 -  decrease disk IO operations as possible
 
@@ -52,8 +52,8 @@ q  to implement progress indicator or spinning indicator
 
 Other
 
-?  UTF8fy (comments, tags, ...)
+-  UTF8fy (comments, tags, ...) since it's not implemented in ExifTool yet
 
 +  to implement --no-mtime, and put it to the config
 
-q  to write the function 'on/off validator'
+?  to write the function 'on/off validator' NO NEED SINCE IT'S IMPLEMENTED IN getOptions()

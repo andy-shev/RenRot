@@ -22,17 +22,16 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $extentionToProcess;	# the extention of files to work with
 my $configFile;		# config file
+my $mtime;		# mtime taken from CLI
 my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
 my $quiet = 0;		# suppressing messages
 my $dir = ".";		# we'll work ONLY in current directory
-my $yesMtime = 0;	# to set mtime
-my $noMtime;		# no mtime trigger
-
 my $noComment;		# no comment needed
 my $usageOutput = 0;	# flag to show the usage
+my @files;		# array of the sorted filenames to process
 
-# processing message
+# processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
 sub procmsg {
     print @_ if ($quiet == 0);
 }
@@ -75,18 +74,18 @@ sub getOptions {
 		"ext|e=s" => \$extentionToProcess,
 		"rotate|r=i" => \$rotate,
 		"rotate-thumb=i" => \$rotateThumbnail,
-		"no-rotate" => \$noRotation,
-		"no-rename" => \$noRename,
+		"norotate" => \$noRotation,
+		"norename" => \$noRename,
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
 		"aggr-template=s" => \$aggrTemplate,
-		"mtime" => \$yesMtime,
-		"no-mtime" => \$noMtime,
+		"mtime!" => \$mtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
 		"q" => \$quiet,
 		"version" => \$ver,
-		"help|?"   => \$help);
+		"help|?"   => \$help,
+		"files=s" => \@files);
 
 	if (defined $help && $help != 0) {
 		usage();
@@ -99,7 +98,7 @@ sub getOptions {
 	}
 
 	if (not defined $extentionToProcess) {
-	    fatalmsg ("Extention of files is required!\n"), die;
+	    fatalmsg ("Extention of files is required!\n"), exit 1;
 	}
 
 	if ($getopt == 0) {
@@ -111,14 +110,12 @@ sub getOptions {
 	$extentionToProcess =~ s/^\*\.//;
 	dbgmsg (1, "getopt(): Process with '$extentionToProcess' extention.\n");
 
-	# check $yesMtime and noMtime collision
-	if (defined $noMtime and ($yesMtime != 0)) {
-		fatalmsg ("You can't define opposite keys (--mtime and --no-mtime)!\n"), die;
-	}
 }
 
 # parse command line options
 getOptions();
+
+@files = @ARGV;	# all things after "--" in CLI will be treated as file names to process
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -130,10 +127,10 @@ our $CiAdrRegion;
 our $CiEmailWork;
 our $CiTelWork;
 our $CiUrlWork;
+our $Mtime = 1;
 our $NameTemplate = '%Y%m%d%H%M%S';	# name template
-our $Software; # in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
-
-our $setMtime = 0;				# to set mtime
+our $AggrTemplate;			# aggregation template
+our $Software; 	# in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
 
 my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
 
@@ -148,21 +145,28 @@ else {
 	if ( -f $homedir_rc ) { do $homedir_rc; }
 }
 
+# redefining options set in config with set via CLI ones
 if ( defined $nameTemplate ) {
 	$NameTemplate = $nameTemplate;
 }
 
-if (defined $noMtime or $yesMtime != 0) {
-	$setMtime = $yesMtime;
+if ( defined $aggrTemplate ) {
+	$AggrTemplate = $aggrTemplate;
 }
 
+if ( defined $mtime ) {
+	$Mtime = $mtime;
+}
+
+# ExifTool object configuration
 our $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
-my $file;		# file in the directory
-my @files;		# array of the sorted filenames to process
-my @filenames;		# array of the filenames to process
 our $info;		# ImageInfo object
+our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
+our $counterprefixsize;	# number of digits in $counterprefix
+my $file;		# file in the directory
+my @filenames;		# array of the filenames to process
 my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
@@ -170,8 +174,6 @@ my $orientation = '';	# Orientation tag value
 my @filenameSplited;	# array to hold filename splitted to the parts
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
-our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
-our $counterprefixsize;	# number of digits in $counterprefix
 my $counterprefix;	# file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 my $rotas;		# how to rotate
@@ -201,15 +203,23 @@ my $errorMessage;
 my $warningMessage;
 my $extentionToProcessLowCase;	# lowercased extention of files to work with
 
-chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
-opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
+# if none --files set
+if ( $#files < 0 and not @files ) {
+	chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
+	opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
+	while ( defined ( $file = readdir DIR )) {
+		next if $file =~ /^\.\.?$/;	# skip the current directory entry
+		next if ( -d $file );		# is this a directory?
 
-while ( defined ( $file = readdir DIR )) {
+		push @files, $file;
+	}
+	closedir(DIR);
+}
+
+# independently of @files initialization ( whole DIR or --files ), doing this
+foreach $file ( @files ) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
 	next if ( -d $file );		# is this a directory?
-
-	$extentionToProcessLowCase = $extentionToProcess;
-	$extentionToProcessLowCase =~ tr/A-Z/a-z/;
 
 	@filenameSplited = split (/\./,$file);
 	# if we have defined extention files here
@@ -218,6 +228,9 @@ while ( defined ( $file = readdir DIR )) {
 		$filecounter++;
 	}
 }
+
+$extentionToProcessLowCase = $extentionToProcess;
+$extentionToProcessLowCase =~ tr/A-Z/a-z/;
 
 # here we're preparing the variable, which contains the format
 # of the counter output
@@ -376,7 +389,7 @@ foreach $file ( @files ) {
 	}
 
 	# seting mtime for the file if been asked for
-	if ($setMtime != 0) {
+	if ( $Mtime == 1 ) {
 		my $timestamp = getTimestamp();
 		$mTime = getUnixTime($timestamp);
 		utime $mTime,$mTime,$newfilename;
@@ -387,13 +400,12 @@ foreach $file ( @files ) {
 	$filecounter++;
 }
 
-closedir(DIR);
-
 ########################################################################################
 #
 # file aggregation if requested
 #
-if ( defined $aggrTemplate ) {
+
+if ( $AggrTemplate ) {
 	procmsg ("NOW IS FILE AGGREGATION\n=======================\n");
 	$filecounter=1;
 	foreach $file ( sort ( keys %filenameshash ) ) {
@@ -608,24 +620,29 @@ sub usage {
 infomsg (
 "Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
+		[--files FILE1] [--file FILE2 ...]
+		[-- FILE1 FILE2 ...]
 
 		-h | --help		this very page
 		-c | --config-file	use this configuration file (see manual for details)
 		-v [-v -v ... ]		verbose, debug level
 		--work-directory <DIR>	specify working directory
 		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
-		--no-rotate		no rotation needed, default is to rotate
+		--norotate		no rotation needed, default is to rotate
 		--rotate <90|270>	define the angle, to rotate file and the thumbnail on,
 					90 or 270. it's for the files where no Orientation tag
 					is present and set right way
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
-		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+		--norename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-template <TPL>	filename template (see manual for details)
 		--aggr-template <TPL>	aggregation template (see manual for details)
 		--mtime			to set file mtime according DateTimeOriginal tag value
+		--nomtime		to not set file mtime according DateTimeOriginal tag value
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
+		--files <FILE> ...	multiple values option, contains file to be renroted
+		--			everything after this option will be treated as file/s to be processed
 ");
 }
 
@@ -635,7 +652,7 @@ infomsg (
 #
 sub template2name {
 	if ( not defined $_[0] ) {
-		fatalmsg ("NameTemplate isn't given!\n"), die;
+		fatalmsg ("Template isn't given!\n"), die;
 	}
 
 	my $template = $_[0];	# $_[0] the template to be used
@@ -722,8 +739,11 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-B<RenRot> is intended to work ONLY in current directory. You can change the
-behaviour by specifying B<--work-directory> option.
+B<RenRot> is intended to work with files of B<--ext> extention, containing
+EXIF date and can do two things with them - rename and rotate. It runs in batch
+mode in current or set with B<--work-directory> directory, as well as selective
+mode for separate files, set with single or multiply B<--files>, or everything
+after B<-->.
 
 RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current
@@ -732,10 +752,10 @@ ID, if exists in EXIF (as for Canon) or incremental suffix to the name
 YYYYmmddHHMMSS.
 
 Additionally, it rotates files and their thumbnails, accordingly Orientation
-EXIF tag. When the tag is absent or miss set the program allows to rotate the
-file as well as it's thumbnail.
+EXIF tag. When the tag is absent or miss set, the program allows to rotate the
+file as well as it's thumbnail via B<--rotate> and B<--rotate-thumb> options.
 
-The script can also put commentary into:
+The script, also, is placing commentary into:
 
 =over
 
@@ -748,7 +768,7 @@ The script can also put commentary into:
 Personal details can be specified via XMP tags defined in a configuration
 file, look L<CONFIG> section.
 
-In addition RenRot can aggregate all files in directories according the given
+In addition, RenRot can aggregate all files in directories according the given
 date/time pattern template, set with B<--aggr-template>.
 
 =head1 OPTIONS
@@ -776,6 +796,10 @@ define the working directory
 
 extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
+=item B<--norotate>
+
+no rotation needed, default is to rotate according EXIF data
+
 =item B<--rotate> I<90> or I<270>
 
 define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the
@@ -785,14 +809,6 @@ files where no Orientation tag is set right way
 
 rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were
 rotated, but thumbnail wasn't
-
-=item B<--no-rotate>
-
-no rotation needed, default is to rotate
-
-=item B<--no-rename>
-
-no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 
 =item B<--comment-file> I<Comment FILE>
 
@@ -805,6 +821,15 @@ the version of this script
 =item B<--mtime>
 
 defines, whether to set mtime of the file, using DateTimeOriginal tag value
+
+=item B<--nomtime>
+
+defines, to not set mtime of the file, using DateTimeOriginal tag value.
+mtime of the file will be the one after processing
+
+=item B<--norename>
+
+no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 
 =item B<--name-template> I<Name TEMPLATE>
 
@@ -851,14 +876,16 @@ B<%y>	last two digits of year (00..99)
 
 template, which is used for file aggregation. Aggregation fulfils according
 date/time patterns.  You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
-B<%S>, B<%Y>, and/or B<%y> keys. For detailed description, please, turn to
-B<--name-template> option.
+B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
+(the variable AggrTemplate). The default is I<%Y%m%d%H>. For detailed
+description, please, turn to B<--name-template> option.  For practical results
+look L<EXAMPLES> section.
 
 =back
 
 =head1 B<EXAMPLES>
 
-The template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following names:
+The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> produces following names:
 
 =over
 
@@ -873,6 +900,32 @@ The template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following names:
 where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for ISO and
 I<W> for WhiteBalance.
 
+The aggregation template C<%Y%m%d%H> produces following aggregation:
+
+=over
+files
+
+01.11.20030414103656.NA.jpg
+
+01.12.20030414103813.NA.jpg
+
+01.13.20030414103959.NA.jpg
+
+will be put to the directory I<2003041410>
+
+01.14.20040131130857.100-0078.jpg
+
+01.15.20040131131857.100-0079.jpg
+
+01.16.20040131133019.100-0080.jpg
+
+01.17.20040131135857.100-0083.jpg
+
+will be put to the directory I<2004013113>
+
+=back
+
+
 =head1 CONFIG
 
 Config file could be used to set some variables. Config file is just perl
@@ -885,9 +938,17 @@ These tags could be set via configuration file:
 
 =over
 
+=item B<Mtime>
+
+to do set 1 or 0 to not to do mtime modification
+
 =item B<NameTemplate>
 
 Name template, which defines the file name look (see B<--name-template>).
+
+=item B<AggrTemplate>
+
+Aggregation template, which defines the file aggregation (see B<--aggr-template>).
 
 =item B<UserComment>
 
