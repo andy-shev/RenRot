@@ -444,7 +444,7 @@ if ( $AggrTemplate ) {
 		if ( $AggrTemplate eq "delta" and $filecounter == 1 ) {
 			$timestampPrev = $filenameshash{$filetmp};
 			$filePrev = $filetmp;
-			$NewDir = $aggrDir . $DirCounter;
+			$NewDir = sprintf("%s%.3d",$aggrDir,$DirCounter);
 			$DirCounter++;
 			$newfilename = $NewDir . "/" . $file;
 			if ( $aggrDumb == 1 ) {
@@ -461,7 +461,7 @@ if ( $AggrTemplate ) {
 		elsif ( $AggrTemplate eq "delta" ) {
 			$isNewDir = $filenameshash{$filetmp} - $timestampPrev;
 			if ( $isNewDir > $aggrDelta ) {
-				$NewDir = $aggrDir . $DirCounter;
+				$NewDir = sprintf("%s%.3d",$aggrDir,$DirCounter);
 				$DirCounter++;
 			}
 			$newfilename = $NewDir . "/" . $file;

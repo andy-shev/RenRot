@@ -1,6 +1,11 @@
 $Log$
+Revision 1.67  2006/05/09 21:51:39  zeus
+delay aggregation directory counter format changed on "001" rather "1"
+
 Revision 1.66  2006/05/09 20:52:24  zeus
-the bug with --aggr-template 'delta' fixed (the situation when directory wasn't possible to create (it was bug, the attept to create 'dir/file.ext' rather than 'dir'))
+the bug with --aggr-template 'delta' fixed (the situation when directory
+wasn't possible to create (it was bug, the attept to create 'dir/file.ext'
+rather than 'dir')).
 
 Revision 1.65  2006/05/09 12:22:25  zeus
 so called "delta" aggregation mode had been added.
@@ -16,8 +21,8 @@ documentation edited according the changes.
 TODO, AUTHORS edited.
 
 Revision 1.63  2006/05/06 21:14:13  zeus
-names and versions of the programs used to process the file now is written to the tag Software.
-dynamic length file name counter format is implemented.
+names and versions of the programs used to process the file now is written to
+the tag Software.  dynamic length file name counter format is implemented.
 TODO edited, rc edited.
 
 Revision 1.62  2006/05/06 15:17:04  andy
