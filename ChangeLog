@@ -1,8 +1,11 @@
 $Log$
+Revision 1.66  2006/05/09 20:52:24  zeus
+the bug with --aggr-template 'delta' fixed (the situation when directory wasn't possible to create (it was bug, the attept to create 'dir/file.ext' rather than 'dir'))
+
 Revision 1.65  2006/05/09 12:22:25  zeus
 so called "delta" aggregation mode had been added.
 new options added: --aggr-delta, --aggr-dir and --aggr-dumb/--noaggr-dumb.
-TODO and renrot.rc are edited
+TODO and renrot.rc are edited.
 
 Revision 1.64  2006/05/08 15:14:05  zeus
 implemented work with separate files via --files and -- options.

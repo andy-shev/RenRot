@@ -136,6 +136,7 @@ our $CiUrlWork;
 our $Mtime = 1;
 our $NameTemplate = '%Y%m%d%H%M%S';	# name template
 our $AggrTemplate;			# aggregation template
+our $AggrDelta = $aggrDelta;
 our $AggrDir = $aggrDir;
 our $AggrDumb = $aggrDumb;
 our $Software; 	# in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
@@ -462,15 +463,15 @@ if ( $AggrTemplate ) {
 			if ( $isNewDir > $aggrDelta ) {
 				$NewDir = $aggrDir . $DirCounter;
 				$DirCounter++;
-				if ( not -d $NewDir and $aggrDumb == 0 ) {
-					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
-				}
 			}
 			$newfilename = $NewDir . "/" . $file;
-			if ( $aggrDumb == 1 ) {
+			if ( $AggrDumb == 1 ) {
 				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
 			}
 			else {
+				if ( not -d $NewDir ) {
+					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
+				}
 				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
 				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
 			}
@@ -480,14 +481,14 @@ if ( $AggrTemplate ) {
 		}
 		else {
 			$newfilename = template2name($aggrTemplate);
-			$newfilename .= "/" . $file;
-			if ( $aggrDumb == 1 ) {
+			if ( $AggrDumb == 1 ) {
 				procmsg ( "aggregate $file to $newfilename\n" );
 			}
 			else {
-				if ( not -d $newfilename and $aggrDumb == 0 ) {
+				if ( not -d $newfilename ) {
 					unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
 				}
+				$newfilename .= "/" . $file;
 				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
 				procmsg ( "aggregate $file to $newfilename\n" );
 			}
