@@ -39,7 +39,9 @@
 #	%y  last two digits of year (00..99)
 #
 #$AggrTemplate  = '%Y%m%d%H';
-
+#$AggrDelta = 900;	
+#$AggrDumb = 1;
+#$AggrDir = "DIR";
 #
 ## the commentary to put to UserComment tag
 #

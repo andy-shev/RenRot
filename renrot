@@ -20,6 +20,9 @@ my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $nameTemplate;	# template for the filename taken from CLI
 my $aggrTemplate;	# template for the files aggregation taken from CLI
+my $aggrDelta = 900;	# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
+my $aggrDir = "DIR.";	# counterless directory name for "delta" type aggregation
+my $aggrDumb = 1;	# no real moving to catalogues done, only to sho how it'll be without this flag
 my $extentionToProcess;	# the extention of files to work with
 my $configFile;		# config file
 my $mtime;		# mtime taken from CLI
@@ -79,6 +82,9 @@ sub getOptions {
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
 		"aggr-template=s" => \$aggrTemplate,
+		"aggr-delta=i" => \$aggrDelta,
+		"aggr-dir=s" => \$aggrDir,
+		"aggr-dumb!" => \$aggrDumb,
 		"mtime!" => \$mtime,
 		"config-file|c=s" => \$configFile,
 		"v+" => \$verbose,
@@ -130,6 +136,8 @@ our $CiUrlWork;
 our $Mtime = 1;
 our $NameTemplate = '%Y%m%d%H%M%S';	# name template
 our $AggrTemplate;			# aggregation template
+our $AggrDir = $aggrDir;
+our $AggrDumb = $aggrDumb;
 our $Software; 	# in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
 
 my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
@@ -156,6 +164,18 @@ if ( defined $aggrTemplate ) {
 
 if ( defined $mtime ) {
 	$Mtime = $mtime;
+}
+
+if ( defined $aggrDelta ) {
+	$AggrDelta = $aggrDelta;
+}
+
+if ( defined $aggrDumb ) {
+	$AggrDumb = $aggrDumb;
+}
+
+if ( defined $aggrDir ) {
+	$AggrDir = $aggrDir;
 }
 
 # ExifTool object configuration
@@ -244,6 +264,8 @@ $filecounter = 1;
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 our $mTime;		# mtime to use to set
 
+procmsg ("RENAMING / ROTATING\n=======================\n");
+
 foreach $file ( @files ) {
 	procmsg ("Processing file: $file ...\n");
 
@@ -257,7 +279,7 @@ foreach $file ( @files ) {
 	#
 	## analyzing whether to rotate
 	#
-	if ( defined $noRotation ) { infomsg ("No rotation asked, file orientation is left untouched.\n"); }
+	if ( defined $noRotation ) { dbgmsg (2, "No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotate ) {
 		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotate}.\n");
 		rotateFile($file, $rotangles{$rotate});
@@ -276,7 +298,7 @@ foreach $file ( @files ) {
 				$anglesuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
-				infomsg ("No need to rotate, orientation is: Horisontal (normal).\n");
+				dbgmsg (2, "No need to rotate, orientation is: Horisontal (normal).\n");
 			}
 			else {
 				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
@@ -292,9 +314,9 @@ foreach $file ( @files ) {
 	## analyzing whether and how to rename file
 	#
 	if ( defined $noRename ) {
-		infomsg ("No renaming asked, filename is left untouched.\n");
+		dbgmsg (2, "No renaming asked, filename is left untouched.\n");
 		if ( ($newfilename) = ( $file =~ /^(.*)\.jpg/ ) ) {
-			$filenameshash{$newfilename} = 1;
+			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 		}
 	}
 	else {
@@ -302,7 +324,7 @@ foreach $file ( @files ) {
 		if ( $filenameshash{$newfilename} ) {
 			$newfilename = sprintf("%s.%.4d",$newfilename,$filecounter);
 		}
-		$filenameshash{$newfilename} = 1;
+		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 
 		$newfilename = sprintf("%s.%s", $newfilename, $extentionToProcessLowCase);
 
@@ -331,7 +353,7 @@ foreach $file ( @files ) {
 			$exifTool->SetNewValue(Comment => $comment);
 		}
 	}
-	else { infomsg ("No commenting, file commentary is left untouched.\n"); }
+	else { dbgmsg (2, "No commenting, file commentary is left untouched.\n"); }
 
 	######################################
 	#
@@ -404,21 +426,72 @@ foreach $file ( @files ) {
 #
 # file aggregation if requested
 #
-
+my $filetmp;
+my $timestampPrev;
+my $filePrev;
+my $isNewDir;
+my $NewDir;
+my $DirCounter = 1;
 if ( $AggrTemplate ) {
-	procmsg ("NOW IS FILE AGGREGATION\n=======================\n");
+	procmsg ("\nAGGREGATION\naccording the template: $AggrTemplate\n=======================\n");
 	$filecounter=1;
 	foreach $file ( sort ( keys %filenameshash ) ) {
+		$filetmp = $file;
 		$file .= ".jpg";
 		$info = $exifTool->ImageInfo($file);
-		$newfilename = template2name($aggrTemplate);
-		if ( not -d $newfilename ) {
-			unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
+
+		if ( $AggrTemplate eq "delta" and $filecounter == 1 ) {
+			$timestampPrev = $filenameshash{$filetmp};
+			$filePrev = $filetmp;
+			$NewDir = $aggrDir . $DirCounter;
+			$DirCounter++;
+			$newfilename = $NewDir . "/" . $file;
+			if ( $aggrDumb == 1 ) {
+				procmsg ("aggregate " . $filePrev . " to " . $NewDir . "\n");
+			}
+			else {
+				if ( not -d $NewDir ) {
+					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
+				}
+				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
+				procmsg ("aggregate " . $filePrev . " to " . $NewDir . "\n");
+			}
 		}
-		procmsg ( "$file has been aggregated to the directory $newfilename\n" );
-		$newfilename .= "/" . $file;
-		rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-		procmsg ("\n");
+		elsif ( $AggrTemplate eq "delta" ) {
+			$isNewDir = $filenameshash{$filetmp} - $timestampPrev;
+			if ( $isNewDir > $aggrDelta ) {
+				$NewDir = $aggrDir . $DirCounter;
+				$DirCounter++;
+				if ( not -d $NewDir and $aggrDumb == 0 ) {
+					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
+				}
+			}
+			$newfilename = $NewDir . "/" . $file;
+			if ( $aggrDumb == 1 ) {
+				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
+			}
+			else {
+				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
+				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
+			}
+
+			$timestampPrev = $filenameshash{$filetmp};
+
+		}
+		else {
+			$newfilename = template2name($aggrTemplate);
+			$newfilename .= "/" . $file;
+			if ( $aggrDumb == 1 ) {
+				procmsg ( "aggregate $file to $newfilename\n" );
+			}
+			else {
+				if ( not -d $newfilename and $aggrDumb == 0 ) {
+					unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
+				}
+				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
+				procmsg ( "aggregate $file to $newfilename\n" );
+			}
+		}
 		$filecounter++;
 	}
 }
@@ -620,8 +693,7 @@ sub usage {
 infomsg (
 "Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
 		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
-		[--files FILE1] [--file FILE2 ...]
-		[-- FILE1 FILE2 ...]
+		[[--files FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
 
 		-h | --help		this very page
 		-c | --config-file	use this configuration file (see manual for details)
@@ -637,6 +709,11 @@ infomsg (
 		--norename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-template <TPL>	filename template (see manual for details)
 		--aggr-template <TPL>	aggregation template (see manual for details)
+		--aggr-delta		aggregation time delta ( file with delta > --aggr-delta is placed to
+					the --aggr-dir folowed by directory name counter starting from 1 )
+		--aggr-dir		counterless aggregation directory name
+		--aggr-dumb		dumb aggregation mode. no file moved or directory created.
+		--noaggr-dumb		aggregation mode when files are moved to directories created.
 		--mtime			to set file mtime according DateTimeOriginal tag value
 		--nomtime		to not set file mtime according DateTimeOriginal tag value
 		--comment-file <FILE>	file with commentary
@@ -882,6 +959,26 @@ description, please, turn to B<--name-template> option.  For practical results
 look L<EXAMPLES> section.
 
 =back
+
+==item B<--aggr-delta>
+
+the type of aggregation "delta". really it is aggregation time delta in seconds
+( file with DateTimeOriginal and the one of the previous file delta, greater
+than B<--aggr-delta> is placed to the B<--aggr-dir> folowed by directory name
+counter )
+
+==item B<--aggr-dir>
+
+counterless aggregation directory name
+
+==item B<--aggr-dumb>
+
+dumb aggregation mode. no file moved or directory created. useful to look
+whether result fits expectations. default is on.
+
+==item B<--noaggr-dumb>
+
+aggregation mode when files are moved to directories created.
 
 =head1 B<EXAMPLES>
 
