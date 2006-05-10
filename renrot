@@ -12,6 +12,7 @@ use Image::ExifTool;
 use Getopt::Long;
 
 our $VERSION = "0.16.2";	# the version of this script
+my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
 my $noRotation;		# no rotation needed, default is to rotate
@@ -21,7 +22,7 @@ my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jp
 my $nameTemplate;	# template for the filename taken from CLI
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrDelta = 900;	# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
-my $aggrDir = "DIR.";	# counterless directory name for "delta" type aggregation
+my $aggrDir = 'DIR';	# counterless directory name for "delta" type aggregation
 my $aggrDumb = 1;	# no real moving to catalogues done, only to sho how it'll be without this flag
 my $extentionToProcess;	# the extention of files to work with
 my $configFile;		# config file
@@ -29,7 +30,7 @@ my $mtime;		# mtime taken from CLI
 my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
 my $quiet = 0;		# suppressing messages
-my $dir = ".";		# we'll work ONLY in current directory
+my $dir = '.';		# we'll work ONLY in current directory
 my $noComment;		# no comment needed
 my $usageOutput = 0;	# flag to show the usage
 my @files;		# array of the sorted filenames to process
@@ -139,19 +140,19 @@ our $AggrTemplate;			# aggregation template
 our $AggrDelta = $aggrDelta;
 our $AggrDir = $aggrDir;
 our $AggrDumb = $aggrDumb;
-our $Software; 	# in rc file is: sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
+our $Software = 1;			# put software versions
 
-my $exiftoolVerbose = ($verbose > 4) ? ($verbose - 4) : 0;
+my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
 my $etc_rc = "/etc/renrot.rc";
-my $usrlocaletc_rc = "/usr/local/etc/renrot.rc";
-my $homedir_rc = $ENV{"HOME"} . "/.renrotrc";;
+my $usr_local_etc_rc = "/usr/local/etc/renrot.rc";
+my $home_rc = $ENV{"HOME"} . "/.renrotrc";;
 
 if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
 else {
 	if ( -f $etc_rc ) { do $etc_rc; }
-	if ( -f $usrlocaletc_rc ) { do $usrlocaletc_rc; }
-	if ( -f $homedir_rc ) { do $homedir_rc; }
+	if ( -f $usr_local_etc_rc ) { do $usr_local_etc_rc; }
+	if ( -f $home_rc ) { do $home_rc; }
 }
 
 # redefining options set in config with set via CLI ones
@@ -252,6 +253,9 @@ foreach $file ( @files ) {
 
 $extentionToProcessLowCase = $extentionToProcess;
 $extentionToProcessLowCase =~ tr/A-Z/a-z/;
+
+# Prepare software string for EXIF injection
+my $softwareString = sprintf("ExifTool v.%s, RenRot v.%s", $Image::ExifTool::VERSION, $VERSION);
 
 # here we're preparing the variable, which contains the format
 # of the counter output
@@ -388,12 +392,12 @@ foreach $file ( @files ) {
 			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
 		}
 
-		if ( defined ( $Software ) ) {
-			$exifTool->SetNewValue('Software', $Software, Group=>'EXIF'); # Software tag
+		if ( $Software != 0 ) {
+			$exifTool->SetNewValue('Software', $softwareString, Group=>'EXIF');
 		}
 
 		# writing the changes to the EXIFs
-		my $res = $exifTool->WriteInfo( $newfilename, $comentedfilename);
+		my $res = $exifTool->WriteInfo($newfilename, $comentedfilename);
 		if ( $res == 1 ) {
 			dbgmsg (2, "main(): Writing to $comentedfilename ok.\n");
 			rename ( $comentedfilename, $newfilename  )

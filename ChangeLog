@@ -1,4 +1,8 @@
 $Log$
+Revision 1.69  2006/05/10 19:03:34  andy
+Renaming several internal variables.
+Use $Software as boolean variable (user would not changed the string).
+
 Revision 1.68  2006/05/10 10:58:57  zeus
 TODO edited.
 
@@ -261,3 +265,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

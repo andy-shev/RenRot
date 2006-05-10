@@ -1,13 +1,22 @@
+##
+## This is configuration file for RenRot.
+## See commented variables for defaults.
+##
+
+
 #
-## mtime modification
+## mtime modification.
 #
+
 # Process files with or without mtime modification. This option is
 # overriden by CLI options --mtime or --nomtime.
 #$Mtime = 1;
 
+
 #
 ## Template used for file name building while renaming.
 #
+
 # Interpreted sequences are:
 #	%%  a literal %
 #	%c  file order number in the processed file set
@@ -23,12 +32,13 @@
 #	%W  WhiteBalance tag value if defined, otherwise W
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
-# default is '%Y%m%d%H%M%S'
 #$NameTemplate  = '%Y%m%d%H%M%S';
+
 
 #
 ## Template used for file aggregation.
 #
+
 # Interpreted sequences are:
 #	%d  day of the month (01-31)
 #	%H  hour (00-23)
@@ -37,14 +47,17 @@
 #	%S  second (00-59)
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
-#
 #$AggrTemplate  = '%Y%m%d%H';
+
 #$AggrDelta = 900;
 #$AggrDumb = 1;
-#$AggrDir = "DIR";
+#$AggrDir = 'DIR';
+
+
 #
-## the commentary to put to UserComment tag
+## The commentary to put to UserComment tag.
 #
+
 #$COMMENTARY    = <<__COMMENTARY__;
 #This image was shot by HERE-IS-YOUR-NAME for private purposes
 #and is copyrighted by him (me). The copyright is governed by
@@ -60,9 +73,11 @@
 #assignment of permition to use from HERE-IS-YOUR-NAME.
 #__COMMENTARY__
 
+
 #
-## personal information could be set to XMP tags
+## Personal information could be set to XMP tags.
 #
+
 #$CiAdrCity 	= 'Here Is Your City';
 #$CiAdrCtry 	= 'Here Is Your Country';
 #$CiAdrExtadr 	= 'Here Is Your Apartments';
@@ -72,13 +87,10 @@
 #$CiTelWork 	= 'Here Is Your Phone';
 #$CiUrlWork 	= 'Here Is Your URL';
 
-#
-## What will be put to the EXIF tag [EXIF] Software
-#
-# to disable set it
-# $Software = "";
-#
-# default is:
-$Software = sprintf("ExifTool v.%s; renrot v.%s", $Image::ExifTool::VERSION, $VERSION);
 
+#
+## Whether versions of tools will be put to the EXIF tag [EXIF] Software.
+#
+
+#$Software = 1;
 
