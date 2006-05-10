@@ -7,7 +7,7 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
-RenRot is intended to work  with files of B<--ext> extention, containing 
+RenRot is intended to work  with files of B<--ext> extention, containing
 EXIF date and can do two things with them - rename and rotate. It runs in batch
 mode in current or set with B<--work-directory> directory, as well as selective
 mode for separate files, set with single or multiply B<--files>, or everything
@@ -83,7 +83,7 @@ applications of the script:
     to leave mtime untouched
 	renrot --ext 'jpg' --nomtime
 
-    aggregate files by YYmmddHH 
+    aggregate files by YYmmddHH
 	renrot --ext 'jpg' --aggr-template '%y%m%d%H'
 
 RESTRICTIONS

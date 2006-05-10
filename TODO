@@ -42,8 +42,12 @@ File naming
    the files number in the directory to process, it means NN for the number
    less than 100, e.t.c.
 
--  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
+?  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
    name, no % character and than renrot moves all to SOMENAME directory
+
+-  to add --counter-from option to let counting start from any desired number
+
+-  to add --counter-step
 
 Verbosity
 
