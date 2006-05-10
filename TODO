@@ -6,6 +6,7 @@ TODO SEMANTICS
 ?	needs to be checked
 q	optional feature
 
+
 EXIF tags
 
 +  to write to some tag sometning like "Processed with RenRot"
@@ -13,6 +14,8 @@ EXIF tags
 q  to write to some tag the options passed to renrot
 
 +- to review XMP tags related code
+
+q  to implement %t in name template, where the array of desired tags will be inited
 
 
 Disk I/O
@@ -26,6 +29,10 @@ Disk I/O
 
 -  to implement possibility to work with other formats, which use EXIF
    mechanism
+
+-  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
+   name, no % character and than renrot moves all to SOMENAME directory it'll 
+   be called OUTDIR
 
 
 File naming
@@ -42,12 +49,9 @@ File naming
    the files number in the directory to process, it means NN for the number
    less than 100, e.t.c.
 
-?  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
-   name, no % character and than renrot moves all to SOMENAME directory
-
 -  to add --counter-from option to let counting start from any desired number
+   and add --counter-step
 
--  to add --counter-step
 
 Verbosity
 
@@ -62,4 +66,13 @@ Other
 
 +  to implement --no-mtime, and put it to the config
 
-?  to write the function 'on/off validator' NO NEED SINCE IT'S IMPLEMENTED IN getOptions()
+?  to write the function 'on/off validator' NO NEED SINCE IT'S IMPLEMENTED IN
+   getOptions()
+
+-  temporary turn back the option syntax no-...
+
+-  to tune style look of comments, code e.t.c.
+
+-  to review the code to optimize it where it's possible.
+
+q  to write intellectual aggregation on clisp

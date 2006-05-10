@@ -1,6 +1,9 @@
 $Log$
+Revision 1.68  2006/05/10 10:58:57  zeus
+TODO edited.
+
 Revision 1.67  2006/05/09 21:51:39  zeus
-delay aggregation directory counter format changed on "001" rather "1"
+delay aggregation directory counter format changed on "001" rather "1".
 
 Revision 1.66  2006/05/09 20:52:24  zeus
 the bug with --aggr-template 'delta' fixed (the situation when directory
@@ -15,7 +18,7 @@ TODO and renrot.rc are edited.
 Revision 1.64  2006/05/08 15:14:05  zeus
 implemented work with separate files via --files and -- options.
 rewritten code concerning the "no mtime" option, according the GetOptions features.
-syntaxis changed to the GetOptions ( no-rotate -> norotate e.t.c.)
+syntaxis changed to the GetOptions (no-rotate -> norotate e.t.c.).
 AggrTemplate option added to the config file.
 documentation edited according the changes.
 TODO, AUTHORS edited.
@@ -258,4 +261,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
