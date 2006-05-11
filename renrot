@@ -484,7 +484,7 @@ if ( $AggrTemplate ) {
 
 		}
 		else {
-			$newfilename = template2name($aggrTemplate);
+			$newfilename = template2name($AggrTemplate);
 			if ( $AggrDumb == 1 ) {
 				procmsg ( "aggregate $file to $newfilename\n" );
 			}
@@ -561,6 +561,7 @@ sub getTimestamp {
 	}
 	else {
 		$timestamp = timeNow();
+		$exifTool->SetNewValue('FileModifyDate', $timestamp, Group=>'File');
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
 

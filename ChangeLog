@@ -1,4 +1,8 @@
 $Log$
+Revision 1.70  2006/05/11 10:11:47  zeus
+fixing typo in parameter to template2name.
+adding FileModifyDate writing in DateTimeOriginal tag absence.
+
 Revision 1.69  2006/05/10 19:03:34  andy
 Renaming several internal variables.
 Use $Software as boolean variable (user would not changed the string).
@@ -265,4 +269,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
