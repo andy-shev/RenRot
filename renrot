@@ -10,6 +10,7 @@ use Time::localtime;
 use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
+use POSIX qw(ceil log);
 
 our $VERSION = "0.18.3";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
@@ -21,16 +22,16 @@ my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $nameTemplate;	# template for the filename taken from CLI
 my $aggrTemplate;	# template for the files aggregation taken from CLI
-my $aggrDelta = 900;	# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
-my $aggrDir = 'DIR';	# counterless directory name for "delta" type aggregation
-my $aggrDumb = 1;	# no real moving to catalogues done, only to sho how it'll be without this flag
+my $aggrDelta;		# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
+my $aggrDir;		# counterless directory name for "delta" type aggregation
+my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be without this flag
 my $extensionToProcess;	# the extension of files to work with
 my $configFile;		# config file
 my $mtime;		# mtime taken from CLI
 my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
 my $quiet = 0;		# suppressing messages
-my $dir = '.';		# we'll work ONLY in current directory
+my $workDir = '.';	# we'll work ONLY in current directory
 my @files;		# array of the sorted filenames to process
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
@@ -138,7 +139,7 @@ sub getOptions {
 # parse command line options
 getOptions();
 
-@files = @ARGV;	# all things after "--" in CLI will be treated as file names to process
+@files = (@files, @ARGV);	# all things after "--" in CLI will be treated as file names to process
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -152,10 +153,10 @@ our $CiTelWork;
 our $CiUrlWork;
 our $Mtime = 1;
 our $NameTemplate = '%Y%m%d%H%M%S';	# name template
-our $AggrTemplate;			# aggregation template
-our $AggrDelta = $aggrDelta;
-our $AggrDir = $aggrDir;
-our $AggrDumb = $aggrDumb;
+our $AggrTemplate = '%Y%m%d';		# aggregation template
+our $AggrDelta = 900;
+our $AggrDir = 'DIR';
+our $AggrDumb = 1;
 
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
@@ -171,29 +172,12 @@ else {
 }
 
 # redefining options set in config with set via CLI ones
-if ( defined $nameTemplate ) {
-	$NameTemplate = $nameTemplate;
-}
-
-if ( defined $aggrTemplate ) {
-	$AggrTemplate = $aggrTemplate;
-}
-
-if ( defined $mtime ) {
-	$Mtime = $mtime;
-}
-
-if ( defined $aggrDelta ) {
-	$AggrDelta = $aggrDelta;
-}
-
-if ( defined $aggrDumb ) {
-	$AggrDumb = $aggrDumb;
-}
-
-if ( defined $aggrDir ) {
-	$AggrDir = $aggrDir;
-}
+$Mtime		= $mtime if (defined $mtime);
+$NameTemplate	= $nameTemplate if (defined $nameTemplate);
+$AggrTemplate	= $aggrTemplate if (defined $aggrTemplate);
+$AggrDelta	= $aggrDelta if (defined $aggrDelta);
+$AggrDumb	= $aggrDumb if (defined $aggrDumb);
+$AggrDir	= $aggrDir if (defined $aggrDir);
 
 # ExifTool object configuration
 our $exifTool = new Image::ExifTool;
@@ -208,7 +192,6 @@ my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
 my $orientation = '';	# Orientation tag value
-my @filenameSplited;	# array to hold filename splitted to the parts
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
 my $counterprefix;	# file number counter
@@ -239,14 +222,13 @@ my @angles = ( ''
 my $errorMessage;
 my $warningMessage;
 
+chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
+
 # if none --file set
 if ( $#files < 0 and not @files ) {
-	chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
-	opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
+	opendir (DIR, $workDir) || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
-		next if $file =~ /^\.\.?$/;	# skip the current directory entry
-		next if ( -d $file );		# is this a directory?
-
+		next if (-d $file);	# skip directories, no recursion
 		push @files, $file;
 	}
 	closedir(DIR);
@@ -254,15 +236,10 @@ if ( $#files < 0 and not @files ) {
 
 # independently of @files initialization (whole DIR or --file), doing this
 foreach $file ( @files ) {
-	next if $file =~ /^\.\.?$/;	# skip the current directory entry
-	next if ( -d $file );		# is this a directory?
-
-	@filenameSplited = split (/\./,$file);
-	# if we have defined extension files here
-	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extensionToProcess ) ) {
+	next if (-d $file);		# skip directories, no recursion
+	if ($file =~ m/\.$extensionToProcess$/) {
 		push @filenames, $file;
 		dbgmsg (4, "main(): Pushing file: $file\n");
-		$filecounter++;
 	}
 }
 
@@ -272,11 +249,8 @@ dbgmsg (1, "main(): Software: $softwareString\n");
 
 # here we're preparing the variable, which contains the format
 # of the counter output
-my @z = split (//, $filecounter);
-$counterprefixsize = "%." . ($#z + 1) . "d";
+$counterprefixsize = "%." . ceil(log($#filenames + 1) / log(10)) . "d";
 dbgmsg (1, "main(): Processing with counter size: $counterprefixsize\n");
-
-$filecounter = 1;
 
 @files = sort @filenames;
 
@@ -341,7 +315,7 @@ foreach $file ( @files ) {
 	else {
 		$newfilename = template2name($NameTemplate);
 		if ( $filenameshash{$newfilename} ) {
-			$newfilename = sprintf("%s.%.4d",$newfilename,$filecounter);
+			$newfilename .= "." . sprintf($counterprefixsize,$filecounter);
 		}
 		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 

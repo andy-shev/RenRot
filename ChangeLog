@@ -1,4 +1,11 @@
 $Log$
+Revision 1.74  2006/05/13 15:18:08  andy
+Correct definition of aggregation related variables.
+Merge files from ARGV and --file option.
+Optimize file cache generation.
+Use mathematic definition of counter size (needs to be tested on windows).
+Use counter size for default template (was four digits independently of files amount).
+
 Revision 1.73  2006/05/13 15:03:38  andy
 Modify debug outputs.
 Add new debug messages to main() and getOptions().
@@ -286,4 +293,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
