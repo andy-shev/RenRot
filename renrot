@@ -35,36 +35,35 @@ my @files;		# array of the sorted filenames to process
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
 sub procmsg {
-    print @_ if ($quiet == 0);
+	print @_ if ($quiet == 0);
 }
 
 # information message
 sub infomsg {
-    print STDERR @_;
+	print STDERR @_;
 }
 
 # warning message
 sub warnmsg {
-    print STDERR "Warning: ";
-    print STDERR @_;
+	print STDERR "Warning: ", @_;
 }
 
 # error message
 sub errmsg {
-    print STDERR "ERROR: ";
-    print STDERR @_;
+	print STDERR "ERROR: ", @_;
 }
 
 # fatal message
 sub fatalmsg {
-    print STDERR "FATAL: ";
-    print STDERR @_;
+	print STDERR "FATAL: ", @_;
 }
 
 # debug message
 sub dbgmsg {
-    my $level = shift;
-    print STDERR @_ if ($verbose >= $level);
+	my $level = shift;
+	if ($verbose >= $level) {
+		print STDERR "DEBUG[$level]: ", @_;
+	}
 }
 
 # parse command line arguments
@@ -92,6 +91,24 @@ sub getOptions {
 					"version" => \$showVersion,
 					"work-directory|d=s" => \$workDir,
 				    );
+
+	dbgmsg (3, "getOptions(): GetOptions results:\n");
+	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
+	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
+	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
+	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "getOptions(): --no-rotate: $noRotation\n") if (defined $noRotation);
+	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
+	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
+	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
+	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
+	dbgmsg (3, "getOptions(): --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
+	dbgmsg (3, "getOptions(): --aggr-dir: $aggrDir\n") if (defined $aggrDir);
+	dbgmsg (3, "getOptions(): --aggr-dumb: $aggrDumb\n") if (defined $aggrDumb);
+	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
+	dbgmsg (3, "getOptions(): --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "getOptions(): --file:\n\t", join("\n\t", @files), "\n") if ($#files >= 0);
+	dbgmsg (3, "getOptions(): ARGV:\n\t", join("\n\t", @ARGV), "\n") if ($#ARGV >= 0);
 
 	if ($showHelp != 0) {
 		usage();
@@ -244,17 +261,20 @@ foreach $file ( @files ) {
 	# if we have defined extension files here
 	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extensionToProcess ) ) {
 		push @filenames, $file;
+		dbgmsg (4, "main(): Pushing file: $file\n");
 		$filecounter++;
 	}
 }
 
 # Prepare software string for EXIF injection
-my $softwareString = sprintf("ExifTool v.%s, RenRot v.%s", $Image::ExifTool::VERSION, $VERSION);
+my $softwareString = sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION);
+dbgmsg (1, "main(): Software: $softwareString\n");
 
 # here we're preparing the variable, which contains the format
 # of the counter output
 my @z = split (//, $filecounter);
 $counterprefixsize = "%." . ($#z + 1) . "d";
+dbgmsg (1, "main(): Processing with counter size: $counterprefixsize\n");
 
 $filecounter = 1;
 
@@ -278,7 +298,7 @@ foreach $file ( @files ) {
 	#
 	## analyzing whether to rotate
 	#
-	if ( defined $noRotation ) { dbgmsg (2, "No rotation asked, file orientation is left untouched.\n"); }
+	if ( defined $noRotation ) { dbgmsg (2, "main(): No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotateAngle ) {
 		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
 		rotateFile($file, $rotangles{$rotateAngle});
@@ -297,7 +317,7 @@ foreach $file ( @files ) {
 				$anglesuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
-				dbgmsg (2, "No need to rotate, orientation is: Horisontal (normal).\n");
+				dbgmsg (2, "main(): No need to rotate, orientation is: Horisontal (normal).\n");
 			}
 			else {
 				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
@@ -313,7 +333,7 @@ foreach $file ( @files ) {
 	## analyzing whether and how to rename file
 	#
 	if ( defined $noRename ) {
-		dbgmsg (2, "No renaming asked, filename is left untouched.\n");
+		dbgmsg (2, "main(): No renaming asked, filename is left untouched.\n");
 		if ( ($newfilename) = ( $file =~ /^(.*)\.jpg/ ) ) {
 			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 		}
@@ -352,7 +372,7 @@ foreach $file ( @files ) {
 			$exifTool->SetNewValue(Comment => $comment);
 		}
 	}
-	else { dbgmsg (2, "No commenting, file commentary is left untouched.\n"); }
+	else { dbgmsg (2, "main(): No commenting, file commentary is left untouched.\n"); }
 
 	######################################
 	#
@@ -430,8 +450,9 @@ my $isNewDir;
 my $NewDir;
 my $DirCounter = 1;
 if ( $AggrTemplate ) {
-	procmsg ("\nAGGREGATION\naccording the template: $AggrTemplate\n=======================\n");
-	$filecounter=1;
+	procmsg ("AGGREGATION\n=======================\n");
+	dbgmsg (1, "Aggregation template: $AggrTemplate\n");
+	$filecounter = 1;
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
 		$file .= ".jpg";
@@ -444,14 +465,14 @@ if ( $AggrTemplate ) {
 			$DirCounter++;
 			$newfilename = $NewDir . "/" . $file;
 			if ( $aggrDumb == 1 ) {
-				procmsg ("aggregate " . $filePrev . " to " . $NewDir . "\n");
+				procmsg ("Aggregate " . $filePrev . " to " . $NewDir . "\n");
 			}
 			else {
 				if ( not -d $NewDir ) {
 					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
 				}
 				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ("aggregate " . $filePrev . " to " . $NewDir . "\n");
+				procmsg ("Aggregate " . $filePrev . " to " . $NewDir . "\n");
 			}
 		}
 		elsif ( $AggrTemplate eq "delta" ) {
@@ -462,14 +483,14 @@ if ( $AggrTemplate ) {
 			}
 			$newfilename = $NewDir . "/" . $file;
 			if ( $AggrDumb == 1 ) {
-				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
+				procmsg ("Aggregate " . $file . " to " . $NewDir . "\n");
 			}
 			else {
 				if ( not -d $NewDir ) {
 					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
 				}
 				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ("aggregate " . $file . " to " . $NewDir . "\n");
+				procmsg ("Aggregate " . $file . " to " . $NewDir . "\n");
 			}
 
 			$timestampPrev = $filenameshash{$filetmp};
@@ -478,7 +499,7 @@ if ( $AggrTemplate ) {
 		else {
 			$newfilename = template2name($AggrTemplate);
 			if ( $AggrDumb == 1 ) {
-				procmsg ( "aggregate $file to $newfilename\n" );
+				procmsg ( "Aggregate $file to $newfilename\n" );
 			}
 			else {
 				if ( not -d $newfilename ) {
@@ -486,9 +507,10 @@ if ( $AggrTemplate ) {
 				}
 				$newfilename .= "/" . $file;
 				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ( "aggregate $file to $newfilename\n" );
+				procmsg ( "Aggregate $file to $newfilename\n" );
 			}
 		}
+		procmsg ("\n");
 		$filecounter++;
 	}
 }
@@ -760,21 +782,21 @@ sub template2name {
 
 	my @templatearea = split (//, $template);
 	my %templatehash = (
-		'%' => "%",
-		'a' => $anglesuffix,
-		'c' => sprintf($counterprefixsize, $filecounter),
-		'd' => $tm[3],
-		'E' => "E" . $ExposureTime,
-		'F' => "F" . $FNumber,
-		'H' => $tm[4],
-		'I' => "I" . $ISO,
-		'i' => $FileNumber,
-		'M' => $tm[5],
-		'm' => $tm[2],
-		'S' => $tm[6],
-		'W' => "W" . $WhiteBalance,
-		'Y' => $tm[0],
-		'y' => $tm[1],
+				'%' => "%",
+				'a' => $anglesuffix,
+				'c' => sprintf($counterprefixsize, $filecounter),
+				'd' => $tm[3],
+				'E' => "E" . $ExposureTime,
+				'F' => "F" . $FNumber,
+				'H' => $tm[4],
+				'I' => "I" . $ISO,
+				'i' => $FileNumber,
+				'M' => $tm[5],
+				'm' => $tm[2],
+				'S' => $tm[6],
+				'W' => "W" . $WhiteBalance,
+				'Y' => $tm[0],
+				'y' => $tm[1],
 			   );
 	my $thename = "";
 
@@ -1005,7 +1027,7 @@ this couple of files
 
 =back
 
-will be put to the directory I<20030414>
+will be put to the directory I<20030414> and
 
 =over
 

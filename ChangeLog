@@ -1,4 +1,8 @@
 $Log$
+Revision 1.73  2006/05/13 15:03:38  andy
+Modify debug outputs.
+Add new debug messages to main() and getOptions().
+
 Revision 1.72  2006/05/13 14:53:22  andy
 Reformat usage() outputs.
 Fix internal documentation according to last changes.
@@ -282,3 +286,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
