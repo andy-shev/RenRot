@@ -1,4 +1,8 @@
 $Log$
+Revision 1.72  2006/05/13 14:53:22  andy
+Reformat usage() outputs.
+Fix internal documentation according to last changes.
+
 Revision 1.71  2006/05/13 14:33:33  andy
 Change --files to --file, --rotate to --rotate-angle and --ext to --extension.
 Revert back --no-rotate and --no-rename.
@@ -278,4 +282,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

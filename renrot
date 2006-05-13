@@ -31,8 +31,6 @@ my $comfile;		# file with commentary
 my $verbose = 0;	# verbosity of output
 my $quiet = 0;		# suppressing messages
 my $dir = '.';		# we'll work ONLY in current directory
-my $noComment;		# no comment needed
-my $usageOutput = 0;	# flag to show the usage
 my @files;		# array of the sorted filenames to process
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
@@ -71,45 +69,46 @@ sub dbgmsg {
 
 # parse command line arguments
 sub getOptions {
-	my $ver;	# need version
-	my $help;	# need help
-	my $getopt = GetOptions (
-		"work-directory|d=s" => \$dir,
-		"extension|ext|e=s" => \$extensionToProcess,
-		"rotate-angle|rotate|r=i" => \$rotateAngle,
-		"rotate|r=i" => \$rotate,
-		"rotate-thumb=i" => \$rotateThumbnail,
-		"no-rotate" => \$noRotation,
-		"no-rename" => \$noRename,
-		"comment-file=s" => \$comfile,
-		"name-template=s" => \$nameTemplate,
-		"aggr-template=s" => \$aggrTemplate,
-		"aggr-delta=i" => \$aggrDelta,
-		"aggr-dir=s" => \$aggrDir,
-		"aggr-dumb!" => \$aggrDumb,
-		"mtime!" => \$mtime,
-		"config-file|c=s" => \$configFile,
-		"v+" => \$verbose,
-		"q" => \$quiet,
-		"version" => \$ver,
-		"help|?"   => \$help,
-		"file=s" => \@files);
+	my $showVersion = 0;	# need version
+	my $showHelp = 0;	# need help
+	my $getOptions = GetOptions (
+					"aggr-delta=i" => \$aggrDelta,
+					"aggr-dir=s" => \$aggrDir,
+					"aggr-dumb!" => \$aggrDumb,
+					"aggr-template=s" => \$aggrTemplate,
+					"comment-file=s" => \$comfile,
+					"config-file|c=s" => \$configFile,
+					"extension|ext|e=s" => \$extensionToProcess,
+					"file=s" => \@files,
+					"help|?"   => \$showHelp,
+					"mtime!" => \$mtime,
+					"name-template=s" => \$nameTemplate,
+					"no-rename" => \$noRename,
+					"no-rotate" => \$noRotation,
+					"quiet|q" => \$quiet,
+					"rotate-angle|rotate|r=i" => \$rotateAngle,
+					"rotate-thumb=i" => \$rotateThumbnail,
+					"v+" => \$verbose,
+					"version" => \$showVersion,
+					"work-directory|d=s" => \$workDir,
+				    );
 
-	if (defined $help && $help != 0) {
+	if ($showHelp != 0) {
 		usage();
 		exit 0;
 	}
 
-	if (defined $ver && $ver != 0) {
+	if ($showVersion != 0) {
 		infomsg ("RenRot version $VERSION\n");
 		exit 0;
 	}
 
 	if (not defined $extensionToProcess) {
-	    fatalmsg ("Extention of files is required!\n"), exit 1;
+		fatalmsg ("Extension of files is required!\n");
+		exit 1;
 	}
 
-	if ($getopt == 0) {
+	if ($getOptions == 0) {
 		usage();
 		exit 1;
 	}
@@ -690,33 +689,27 @@ sub rotateThumbnail {
 #
 sub usage {
 infomsg (
-"Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
-		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--extension EXTENSION>
-		[[--file FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
+"Usage:	renrot 	<--extension EXTENSION> [--help] [--version] [--quiet] [--no-rotate] [--no-rename] [--no-mtime] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--file FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
 
-		-h | --help		this very page
-		-c | --config-file	use this configuration file (see manual for details)
-		-v [-v -v ... ]		verbose, debug level
-		--work-directory <DIR>	specify working directory
-		--extension <EXTENSION>	extension of files to be processed, JPG, jpg, JPEG e.t.c.
-		--no-rotate		no rotation needed, default is to rotate
-		--rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on,
-					90 or 270. it's for the files where no Orientation tag
-					is present and set right way
-		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
-					it's for the files which were rotated, but thumbnail wasn't
-		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-		--name-template <TPL>	filename template (see manual for details)
-		--aggr-template <TPL>	aggregation template (see manual for details)
-		--aggr-delta		aggregation time delta ( file with delta > --aggr-delta is placed to
-					the --aggr-dir folowed by directory name counter starting from 1 )
-		--aggr-dir		counterless aggregation directory name
-		--aggr-dumb (*)		dumb aggregation mode. no file moved or directory created.
-		--mtime	(*)		to set file mtime according DateTimeOriginal tag value
-		--comment-file <FILE>	file with commentary
-		--version		the version of this script
-		--file <FILE> ...	multiple values option, contains file to be processed
-		--			everything after this option will be treated as file/s to be processed
+Options:
+  -c, --config-file		use this configuration file
+  -d, --work-directory <DIR>	specify working directory
+  -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
+  --no-rotate			no rotation needed, default is to rotate
+  -r, --rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on, 90 or 270 (it's for the files where no Orientation tag is present and set right way)
+  --rotate-thumb <90|270>	rotate only thumbnail by 90 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
+  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+  --name-template <TPL>		filename template (see manual for details)
+  --aggr-template <TPL>		aggregation template (see manual for details)
+  --aggr-delta			aggregation time delta (file with delta great than --aggr-delta is placed to the --aggr-dir followed by directory name counter starting from 1)
+  --aggr-dir			counterless aggregation directory name
+  --aggr-dumb (*)		dumb aggregation mode: no file will be moved or directory will be created
+  --mtime (*)			to set file mtime according DateTimeOriginal tag value
+  --comment-file <FILE>		file with commentary
+  --file <FILE> ...		multiple values option, contains file to be processed
+  -v [-v -v ...]		amount of these options defines debug level
+  -h, --help			display this help and exit
+  --version			output version information and exit
 
 (*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' and '--no-mtime' (negative value will be assigned).
 ");
@@ -811,7 +804,7 @@ renrot - rename and rotate images according EXIF data
 
 =head1 SYNOPSIS
 
-renrot [OPTIONS]
+renrot [OPTIONS] [B<--> FILE1 FILE2 ...]
 
 =head1 DESCRIPTION
 
@@ -829,7 +822,8 @@ YYYYmmddHHMMSS.
 
 Additionally, it rotates files and their thumbnails, accordingly Orientation
 EXIF tag. When the tag is absent or miss set, the program allows to rotate the
-file as well as it's thumbnail via B<--rotate> and B<--rotate-thumb> options.
+file as well as it's thumbnail via B<--rotate-angle> and B<--rotate-thumb>
+options.
 
 The script, also, is placing commentary into:
 
@@ -861,7 +855,7 @@ location of the configuration file
 
 =item B<-v>
 
-one or more I<-v> sets debug level. from 1 to 4 - internal levels,
+one or more I<-v> sets debug level. From 1 to 4 - internal levels,
 5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
 
 =item B<--work-directory> I<DIR>
@@ -872,19 +866,19 @@ define the working directory
 
 extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
-=item B<--norotate>
+=item B<--no-rotate>
 
 no rotation needed, default is to rotate according EXIF data
 
-=item B<--rotate> I<90> or I<270>
+=item B<--rotate-angle> I<90> or I<270>
 
-define the angle, to rotate file and the thumbnail on, 90 or 270 it's for the
-files where no Orientation tag is set right way
+define the angle, to rotate file and the thumbnail on, 90 or 270. It's for the
+files where no Orientation tag is set right way.
 
 =item B<--rotate-thumb> I<90> or I<270>
 
-rotate thumbnail ONLY. 90 or 270 degree. it's for the files which were
-rotated, but thumbnail wasn't
+rotate only thumbnail by 90 or 270 degree. It's for the files which were
+rotated, but thumbnail wasn't.
 
 =item B<--comment-file> I<Comment FILE>
 
@@ -898,12 +892,11 @@ the version of this script
 
 defines, whether to set mtime of the file, using DateTimeOriginal tag value
 
-=item B<--nomtime>
+=item B<--no-mtime>
 
-defines, to not set mtime of the file, using DateTimeOriginal tag value.
-mtime of the file will be the one after processing
+opposite to B<--mtime>. mtime of the file will be the one after processing
 
-=item B<--norename>
+=item B<--no-rename>
 
 no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 
@@ -953,8 +946,8 @@ B<%y>	last two digits of year (00..99)
 template, which is used for file aggregation. Aggregation fulfils according
 date/time patterns.  You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
 B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
-(the variable AggrTemplate). The default is I<%Y%m%d%H>. For detailed
-description, please, turn to B<--name-template> option.  For practical results
+(the variable AggrTemplate). The default is I<%Y%m%d>. For detailed
+description, please, turn to B<--name-template> option. For practical results
 look L<EXAMPLES> section.
 
 =back
@@ -975,7 +968,7 @@ counterless aggregation directory name
 dumb aggregation mode. no file moved or directory created. useful to look
 whether result fits expectations. default is on.
 
-==item B<--noaggr-dumb>
+==item B<--no-aggr-dumb>
 
 aggregation mode when files are moved to directories created.
 
@@ -996,10 +989,13 @@ The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> produces following names:
 where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for ISO and
 I<W> for WhiteBalance.
 
-The aggregation template C<%Y%m%d%H> produces following aggregation:
+The aggregation template C<%Y%m%d> produces following aggregation:
 
 =over
-files
+
+this couple of files
+
+=over
 
 01.11.20030414103656.NA.jpg
 
@@ -1007,7 +1003,11 @@ files
 
 01.13.20030414103959.NA.jpg
 
-will be put to the directory I<2003041410>
+=back
+
+will be put to the directory I<20030414>
+
+=over
 
 01.14.20040131130857.100-0078.jpg
 
@@ -1017,10 +1017,11 @@ will be put to the directory I<2003041410>
 
 01.17.20040131135857.100-0083.jpg
 
-will be put to the directory I<2004013113>
-
 =back
 
+will be put to the directory I<20040131>
+
+=back
 
 =head1 CONFIG
 
@@ -1036,7 +1037,7 @@ These tags could be set via configuration file:
 
 =item B<Mtime>
 
-to do set 1 or 0 to not to do mtime modification
+set to 1 for synchronize mtime with tags, otherwise set it to 0
 
 =item B<NameTemplate>
 
