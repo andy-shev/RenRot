@@ -7,11 +7,11 @@ For prevent incorrect associations some explanations are needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 
-RenRot is intended to work  with files of B<--ext> extention, containing
-EXIF date and can do two things with them - rename and rotate. It runs in batch
-mode in current or set with B<--work-directory> directory, as well as selective
-mode for separate files, set with single or multiply B<--files>, or everything
-after B<-->.
+RenRot is intended to work  with files of --extension extension containing
+EXIF date and can do two things with them - rename and rotate. It runs in
+batch mode in current or set with --work-directory directory as well as
+selective mode for separate files, set with single or multiply --file, or
+everything after --.
 
 New template ideology was implemented. It includes flexibility in file name
 construction. In version 0.16 and later the previous behaviour still present
@@ -44,8 +44,7 @@ namely RenRot? Because:
     - it uses Image::ExifTool (the best open tool to work with EXIF data) and
       libjpeg6 (the best open tool to operate JPEG format files, to correctly
       rotate both, the very file and the thumbnail inside it);
-    - it has very much flex file naming template engine;
-    - it has very much flex file aggregation template engine;
+    - it has very much flex file naming and aggregation template engines;
     - it works in batch mode.
 
 
@@ -60,36 +59,37 @@ the following sites:
 
 RUNNING
 
-After installation process was done renrot is being running by typing
-its name in console as usual. The next several examples provide general
-applications of the script:
+After installation process was done renrot is being running by typing its name
+in console as usual. The next several examples provide general applications of
+the script:
     rename each file according to the given template
-	renrot --name-template="01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I" --ext JPG
+	renrot --name-template="01.%c.%Y%m%d%H%M%S.%E%F%W%I" --extension JPG
 
     rename each file according to the given template and files aggregation
     according the date
-	renrot --name-template="%y%m%d%H%M%S.%i" --aggr-template "%Y%m%d" --ext JPG
+	renrot --name-template="%y%m%d%H%M%S.%i" --aggr-template="%Y%m%d" --extension JPG
 
     rotate each file and their thumbnail by 90CW in specified directory
-	renrot --rotate 90 --ext '*.jpg' --work-directory="/tmp/images"
+	renrot --rotate-angle 90 --work-directory="/tmp/images" --extension jpg
 
     rotate thumbnails, included to EXIF, for each file by 90CCW
-	renrot --rotate-thumb 270 --ext jpg
+	renrot --rotate-thumb 270 --extension jpg
 
     fix file mtime according to its EXIF tags or current time stamp, when tags
     are invalid
-	renrot --norotate --norename --ext '*.jpeg' --mtime
+	renrot --no-rotate --no-rename --mtime --extension jpeg
 
-    to leave mtime untouched
-	renrot --ext 'jpg' --nomtime
+    leave mtime untouched
+	renrot --no-mtime --extension JPG
 
-    aggregate files by YYmmddHH
-	renrot --ext 'jpg' --aggr-template '%y%m%d%H'
+    aggregate files by yymmddHHMM
+	renrot --aggr-template="%y%m%d%H%M" --extension jpg
+
 
 RESTRICTIONS
 
-RenRot has some restrictions at runtime. First off, script handles a
-whole directory without recursion and only with one extension of files.
+RenRot has some restrictions at runtime. First off, script handles a whole
+directory without recursion and only with one extension of files.
 Second, algorithm treat each file with given extension as the image.
 Otherwise, file will be renamed to the current time stamp when --no-rename
 option is omitted.
@@ -107,9 +107,8 @@ nine levels of debugging such as:
 
 INSTALLATION
 
-You can install renrot to make it available for use by other users by
-typing the following:
-
+You can install RenRot to make it available for use by other users by typing
+the following:
     perl Makefile.PL PREFIX=/usr/local
     make
     make install PREFIX=/usr/local
@@ -129,24 +128,34 @@ DEPENDENCIES
 Requires Perl version 5.6.0 or later. No other special libraries are required,
 except:
     Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
-    Getopt::Long 		cpan:Getopt::Long (usually, included in perl
-				distribution)
+    Getopt::Long 		cpan:Getopt::Long (usually, it's included in
+    				perl distribution)
     jpegtran (libjpeg6)		http://www.ijg.org/
 
 
 LICENSING
 
-Renrot is an Open Source project distributed under GPL or Artistic
-license.
+RenRot is an Open Source project distributed under GPL or Artistic license.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 THANKS
 
-Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/)
-for his valued comments and suggestions.
+Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) for his valued
+comments and suggestions.
 
-ASPLinux company (http://www.asplinux.ru) has included renrot to
-their distribution.
+ASPLinux company (http://www.asplinux.ru) has included renrot to their
+distribution.
 
 Alex Zasypkin for his help with documentation writing.
 

@@ -1,4 +1,13 @@
 $Log$
+Revision 1.71  2006/05/13 14:33:33  andy
+Change --files to --file, --rotate to --rotate-angle and --ext to --extension.
+Revert back --no-rotate and --no-rename.
+Exclude single quotas from README examples part due to undesired interpretation in cmd.exe. Also, put note to README.Windows.
+Add no warranty part to README.
+Correct low case makeup.
+Always writting Software tag.
+Release as 0.18.3.
+
 Revision 1.70  2006/05/11 10:11:47  zeus
 fixing typo in parameter to template2name.
 adding FileModifyDate writing in DateTimeOriginal tag absence.
@@ -269,3 +278,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

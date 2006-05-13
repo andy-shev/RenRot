@@ -9,7 +9,7 @@
 #
 
 # Process files with or without mtime modification. This option is
-# overriden by CLI options --mtime or --nomtime.
+# overriden by CLI options --mtime or --no-mtime.
 #$Mtime = 1;
 
 
@@ -47,7 +47,7 @@
 #	%S  second (00-59)
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
-#$AggrTemplate  = '%Y%m%d%H';
+#$AggrTemplate  = '%Y%m%d';
 
 #$AggrDelta = 900;
 #$AggrDumb = 1;
@@ -86,11 +86,4 @@
 #$CiEmailWork 	= 'Here Is Your Email';
 #$CiTelWork 	= 'Here Is Your Phone';
 #$CiUrlWork 	= 'Here Is Your URL';
-
-
-#
-## Whether versions of tools will be put to the EXIF tag [EXIF] Software.
-#
-
-#$Software = 1;
 

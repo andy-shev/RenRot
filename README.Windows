@@ -62,3 +62,6 @@ utility 7-zip
 not provide binaries for Windows platform. To be able to rotate images,
 you must build it from source code yourself or download from this site
     http://sylvana.net/jpegcrop/jpegtran/
+
+4. Use double quotes instead of single in command line for disabling
+   misinterpretation of arguments.

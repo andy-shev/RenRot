@@ -11,12 +11,12 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.16.2";	# the version of this script
+our $VERSION = "0.18.3";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
 my $noRotation;		# no rotation needed, default is to rotate
-my $rotate;		# define the angle, to rotate on, 90 or 270
+my $rotateAngle;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $nameTemplate;	# template for the filename taken from CLI
@@ -24,7 +24,7 @@ my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrDelta = 900;	# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
 my $aggrDir = 'DIR';	# counterless directory name for "delta" type aggregation
 my $aggrDumb = 1;	# no real moving to catalogues done, only to sho how it'll be without this flag
-my $extentionToProcess;	# the extention of files to work with
+my $extensionToProcess;	# the extension of files to work with
 my $configFile;		# config file
 my $mtime;		# mtime taken from CLI
 my $comfile;		# file with commentary
@@ -74,12 +74,13 @@ sub getOptions {
 	my $ver;	# need version
 	my $help;	# need help
 	my $getopt = GetOptions (
-		"work-directory|w=s" => \$dir,
-		"ext|e=s" => \$extentionToProcess,
+		"work-directory|d=s" => \$dir,
+		"extension|ext|e=s" => \$extensionToProcess,
+		"rotate-angle|rotate|r=i" => \$rotateAngle,
 		"rotate|r=i" => \$rotate,
 		"rotate-thumb=i" => \$rotateThumbnail,
-		"norotate" => \$noRotation,
-		"norename" => \$noRename,
+		"no-rotate" => \$noRotation,
+		"no-rename" => \$noRename,
 		"comment-file=s" => \$comfile,
 		"name-template=s" => \$nameTemplate,
 		"aggr-template=s" => \$aggrTemplate,
@@ -92,7 +93,7 @@ sub getOptions {
 		"q" => \$quiet,
 		"version" => \$ver,
 		"help|?"   => \$help,
-		"files=s" => \@files);
+		"file=s" => \@files);
 
 	if (defined $help && $help != 0) {
 		usage();
@@ -100,11 +101,11 @@ sub getOptions {
 	}
 
 	if (defined $ver && $ver != 0) {
-		infomsg ("renrot version $VERSION\n");
+		infomsg ("RenRot version $VERSION\n");
 		exit 0;
 	}
 
-	if (not defined $extentionToProcess) {
+	if (not defined $extensionToProcess) {
 	    fatalmsg ("Extention of files is required!\n"), exit 1;
 	}
 
@@ -114,9 +115,8 @@ sub getOptions {
 	}
 
 	# change user's parameter '*.ext' to 'ext'
-	$extentionToProcess =~ s/^\*\.//;
-	dbgmsg (1, "getopt(): Process with '$extentionToProcess' extention.\n");
-
+	$extensionToProcess =~ s/^\*\.//;
+	dbgmsg (1, "getOptions(): Process with '$extensionToProcess' extension.\n");
 }
 
 # parse command line options
@@ -140,7 +140,6 @@ our $AggrTemplate;			# aggregation template
 our $AggrDelta = $aggrDelta;
 our $AggrDir = $aggrDir;
 our $AggrDumb = $aggrDumb;
-our $Software = 1;			# put software versions
 
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
@@ -223,9 +222,8 @@ my @angles = ( ''
 
 my $errorMessage;
 my $warningMessage;
-my $extentionToProcessLowCase;	# lowercased extention of files to work with
 
-# if none --files set
+# if none --file set
 if ( $#files < 0 and not @files ) {
 	chdir ($dir) || ( fatalmsg ("Can't enter to $dir!\n"), die );
 	opendir (DIR, $dir) || ( fatalmsg ("Can't open $dir!\n"), die );
@@ -238,21 +236,18 @@ if ( $#files < 0 and not @files ) {
 	closedir(DIR);
 }
 
-# independently of @files initialization ( whole DIR or --files ), doing this
+# independently of @files initialization (whole DIR or --file), doing this
 foreach $file ( @files ) {
 	next if $file =~ /^\.\.?$/;	# skip the current directory entry
 	next if ( -d $file );		# is this a directory?
 
 	@filenameSplited = split (/\./,$file);
-	# if we have defined extention files here
-	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extentionToProcess ) ) {
+	# if we have defined extension files here
+	if ( $filenameSplited[$#filenameSplited] && ( $filenameSplited[$#filenameSplited] eq $extensionToProcess ) ) {
 		push @filenames, $file;
 		$filecounter++;
 	}
 }
-
-$extentionToProcessLowCase = $extentionToProcess;
-$extentionToProcessLowCase =~ tr/A-Z/a-z/;
 
 # Prepare software string for EXIF injection
 my $softwareString = sprintf("ExifTool v.%s, RenRot v.%s", $Image::ExifTool::VERSION, $VERSION);
@@ -285,11 +280,11 @@ foreach $file ( @files ) {
 	## analyzing whether to rotate
 	#
 	if ( defined $noRotation ) { dbgmsg (2, "No rotation asked, file orientation is left untouched.\n"); }
-	elsif ( defined $rotate ) {
-		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotate}.\n");
-		rotateFile($file, $rotangles{$rotate});
-		rotateThumbnail($file, $rotangles{$rotate});
-		$anglesuffix = $rotate . "cw";
+	elsif ( defined $rotateAngle ) {
+		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
+		rotateFile($file, $rotangles{$rotateAngle});
+		rotateThumbnail($file, $rotangles{$rotateAngle});
+		$anglesuffix = $rotateAngle . "cw";
 	}
 	elsif ( defined $rotateThumbnail ) {
 		rotateThumbnail($file, $rotangles{$rotateThumbnail});
@@ -331,7 +326,7 @@ foreach $file ( @files ) {
 		}
 		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 
-		$newfilename = sprintf("%s.%s", $newfilename, $extentionToProcessLowCase);
+		$newfilename = sprintf("%s.%s", $newfilename, lc($extensionToProcess));
 
 		if ( $file ne $newfilename ) {
 			if ( -f $newfilename ) {
@@ -392,9 +387,7 @@ foreach $file ( @files ) {
 			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
 		}
 
-		if ( $Software != 0 ) {
-			$exifTool->SetNewValue('Software', $softwareString, Group=>'EXIF');
-		}
+		$exifTool->SetNewValue('Software', $softwareString, Group=>'EXIF');
 
 		# writing the changes to the EXIFs
 		my $res = $exifTool->WriteInfo($newfilename, $comentedfilename);
@@ -698,34 +691,34 @@ sub rotateThumbnail {
 sub usage {
 infomsg (
 "Usage:	renrot 	[-h|--help] [--no-rotate] [--no-rename] [--comment-file FILE]
-		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--ext EXTENTION>
-		[[--files FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
+		[--version] [--name-prefix PREFIX] [--work-directory DIR] <--extension EXTENSION>
+		[[--file FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
 
 		-h | --help		this very page
 		-c | --config-file	use this configuration file (see manual for details)
 		-v [-v -v ... ]		verbose, debug level
 		--work-directory <DIR>	specify working directory
-		--ext <EXTENTION>	extention of files to be processed, JPG, jpg, JPEG e.t.c.
-		--norotate		no rotation needed, default is to rotate
-		--rotate <90|270>	define the angle, to rotate file and the thumbnail on,
+		--extension <EXTENSION>	extension of files to be processed, JPG, jpg, JPEG e.t.c.
+		--no-rotate		no rotation needed, default is to rotate
+		--rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on,
 					90 or 270. it's for the files where no Orientation tag
 					is present and set right way
 		--rotate-thumb <90|270>	rotate thumbnail ONLY. 90 or 270 degree
 					it's for the files which were rotated, but thumbnail wasn't
-		--norename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+		--no-rename		no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 		--name-template <TPL>	filename template (see manual for details)
 		--aggr-template <TPL>	aggregation template (see manual for details)
 		--aggr-delta		aggregation time delta ( file with delta > --aggr-delta is placed to
 					the --aggr-dir folowed by directory name counter starting from 1 )
 		--aggr-dir		counterless aggregation directory name
-		--aggr-dumb		dumb aggregation mode. no file moved or directory created.
-		--noaggr-dumb		aggregation mode when files are moved to directories created.
-		--mtime			to set file mtime according DateTimeOriginal tag value
-		--nomtime		to not set file mtime according DateTimeOriginal tag value
+		--aggr-dumb (*)		dumb aggregation mode. no file moved or directory created.
+		--mtime	(*)		to set file mtime according DateTimeOriginal tag value
 		--comment-file <FILE>	file with commentary
 		--version		the version of this script
-		--files <FILE> ...	multiple values option, contains file to be renroted
+		--file <FILE> ...	multiple values option, contains file to be processed
 		--			everything after this option will be treated as file/s to be processed
+
+(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' and '--no-mtime' (negative value will be assigned).
 ");
 }
 
@@ -822,10 +815,10 @@ renrot [OPTIONS]
 
 =head1 DESCRIPTION
 
-B<RenRot> is intended to work with files of B<--ext> extention, containing
+B<RenRot> is intended to work with files of B<--extension> extension, containing
 EXIF date and can do two things with them - rename and rotate. It runs in batch
 mode in current or set with B<--work-directory> directory, as well as selective
-mode for separate files, set with single or multiply B<--files>, or everything
+mode for separate files, set with single or multiply B<--file>, or everything
 after B<-->.
 
 RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
@@ -875,7 +868,7 @@ one or more I<-v> sets debug level. from 1 to 4 - internal levels,
 
 define the working directory
 
-=item B<--ext> I<EXTENTION>
+=item B<--extension> I<EXTENSION>
 
 extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
@@ -1032,7 +1025,7 @@ will be put to the directory I<2004013113>
 =head1 CONFIG
 
 Config file could be used to set some variables. Config file is just perl
-code. B<Renrot> looks for B<--config-file> option firstly, than it looks for
+code. B<RenRot> looks for B<--config-file> option firstly, than it looks for
 file named renrot.rc in system directories such as /etc and /usr/local/etc.
 And finally it looks for file named .renrotrc in home directory of the user.
 User defined configuration file can be given via B<--config-file> option.
