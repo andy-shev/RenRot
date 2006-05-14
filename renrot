@@ -12,7 +12,7 @@ use Image::ExifTool;
 use Getopt::Long;
 use POSIX qw(ceil log);
 
-our $VERSION = "0.18.3";	# the version of this script
+our $VERSION = "0.19";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
@@ -96,22 +96,22 @@ sub getOptions {
 				    );
 
 	dbgmsg (3, "getOptions(): GetOptions results:\n");
-	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
-	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
-	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
-	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
-	dbgmsg (3, "getOptions(): --no-rotate: $noRotation\n") if (defined $noRotation);
-	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
-	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
-	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "getOptions(): --aggr: $aggr\n") if (defined $aggr);
-	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "getOptions(): --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "getOptions(): --aggr-dir: $aggrDir\n") if (defined $aggrDir);
 	dbgmsg (3, "getOptions(): --aggr-dumb: $aggrDumb\n") if (defined $aggrDumb);
-	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
+	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
+	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "getOptions(): --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
 	dbgmsg (3, "getOptions(): --file:\n\t", join("\n\t", @files), "\n") if ($#files >= 0);
+	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
+	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
+	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
+	dbgmsg (3, "getOptions(): --no-rotate: $noRotation\n") if (defined $noRotation);
+	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
+	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
 	dbgmsg (3, "getOptions(): ARGV:\n\t", join("\n\t", @ARGV), "\n") if ($#ARGV >= 0);
 
 	if ($showHelp != 0) {
@@ -447,12 +447,13 @@ sub aggregationProcess {
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
 		$file .= ".jpg";
+		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
 		if ( $AggrTemplate eq "delta" and $filecounter == 1 ) {
 			$timestampPrev = $filenameshash{$filetmp};
 			$filePrev = $filetmp;
-			$NewDir = sprintf("%s%.3d",$aggrDir,$DirCounter);
+			$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
 			$DirCounter++;
 			$newfilename = $NewDir . "/" . $file;
 			if ( $aggrDumb == 1 ) {
@@ -489,7 +490,7 @@ sub aggregationProcess {
 		}
 		else {
 			$newfilename = template2name($AggrTemplate);
-			if ( $AggrDumb == 1 ) {
+			if ($AggrDumb != 0) {
 				procmsg ( "Aggregate $file to $newfilename\n" );
 			}
 			else {
@@ -865,11 +866,6 @@ display this help and exit
 
 location of the configuration file
 
-=item B<-v>
-
-one or more I<-v> sets debug level. From 1 to 4 - internal levels,
-5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
-
 =item B<--work-directory> I<DIR>
 
 define the working directory
@@ -956,7 +952,7 @@ B<%y>	last two digits of year (00..99)
 =item B<--aggr-template> I<Aggregation TEMPLATE>
 
 template, which is used for file aggregation. Aggregation fulfils according
-date/time patterns.  You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
+date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
 B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 (the variable AggrTemplate). The default is I<%Y%m%d>. For detailed
 description, please, turn to B<--name-template> option. For practical results
@@ -966,10 +962,10 @@ look L<EXAMPLES> section.
 
 ==item B<--aggr-delta>
 
-the type of aggregation "delta". really it is aggregation time delta in seconds
+the type of aggregation "delta". Really it is aggregation time delta in seconds
 (file with DateTimeOriginal and the one of the previous file delta, greater
 than B<--aggr-delta> is placed to the B<--aggr-dir> followed by directory name
-counter)
+counter).
 
 ==item B<--aggr-dir>
 
@@ -977,12 +973,17 @@ counterless aggregation directory name
 
 ==item B<--aggr-dumb>
 
-dumb aggregation mode. no file moved or directory created. useful to look
-whether result fits expectations. default is on.
+dumb aggregation mode. No file moved or directory created. Useful to look
+whether result fits expectations (default is on).
 
 ==item B<--no-aggr-dumb>
 
-aggregation mode when files are moved to directories created.
+aggregation mode when files are moved to directories created
+
+=item B<-v>
+
+one or more I<-v> sets debug level. From 1 to 4 - internal levels,
+5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
 
 =head1 B<EXAMPLES>
 
@@ -1031,7 +1032,7 @@ will be put to the directory I<20030414> and
 
 =back
 
-will be put to the directory I<20040131>
+will be put to the directory I<20040131>.
 
 =back
 
@@ -1053,11 +1054,11 @@ set to 1 for synchronize mtime with tags, otherwise set it to 0
 
 =item B<NameTemplate>
 
-Name template, which defines the file name look (see B<--name-template>).
+name template, which defines the file name look (see B<--name-template>)
 
 =item B<AggrTemplate>
 
-Aggregation template, which defines the file aggregation (see B<--aggr-template>).
+aggregation template, which defines the file aggregation (see B<--aggr-template>)
 
 =item B<UserComment>
 
@@ -1065,11 +1066,11 @@ anything you'd wanna put as commentary
 
 =item B<CiAdrCity>
 
-City
+city tag
 
 =item B<CiAdrCtry>
 
-Country
+country tag
 
 =item B<CiAdrExtadr>
 

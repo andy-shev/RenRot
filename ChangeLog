@@ -1,4 +1,8 @@
 $Log$
+Revision 1.76  2006/05/14 19:54:06  andy
+Use counter size for aggregation directories.
+Release as 0.19.
+
 Revision 1.75  2006/05/14 10:46:23  andy
 Check if we have files to process is added.
 Synchronize TODO with last changes.
@@ -299,4 +303,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
