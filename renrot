@@ -21,6 +21,7 @@ my $rotateAngle;	# define the angle, to rotate on, 90 or 270
 my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
 my $nameTemplate;	# template for the filename taken from CLI
+my $aggr = 0;		# execute aggregation after main process
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrDelta;		# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
 my $aggrDir;		# counterless directory name for "delta" type aggregation
@@ -72,6 +73,7 @@ sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
 	my $getOptions = GetOptions (
+					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
 					"aggr-dir=s" => \$aggrDir,
 					"aggr-dumb!" => \$aggrDumb,
@@ -102,6 +104,7 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
 	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
+	dbgmsg (3, "getOptions(): --aggr: $aggr\n") if (defined $aggr);
 	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "getOptions(): --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "getOptions(): --aggr-dir: $aggrDir\n") if (defined $aggrDir);
@@ -241,6 +244,12 @@ foreach $file ( @files ) {
 		push @filenames, $file;
 		dbgmsg (4, "main(): Pushing file: $file\n");
 	}
+}
+
+# No file to process?
+if ($#filenames < 0) {
+	fatalmsg ("No files to process!\n");
+	exit 1;
 }
 
 # Prepare software string for EXIF injection
@@ -402,9 +411,8 @@ foreach $file ( @files ) {
 	}
 
 	# seting mtime for the file if been asked for
-	if ( $Mtime == 1 ) {
-		my $timestamp = getTimestamp();
-		$mTime = getUnixTime($timestamp);
+	if ($Mtime != 0) {
+		$mTime = getUnixTime(getTimestamp());
 		utime $mTime,$mTime,$newfilename;
 		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
 	}
@@ -413,20 +421,29 @@ foreach $file ( @files ) {
 	$filecounter++;
 }
 
+if ($aggr != 0) {
+	aggregationProcess();
+}
+
+exit 0;
+
 ########################################################################################
 #
-# file aggregation if requested
+# aggregationProcess() aggregate files to separate directories by request
 #
-my $filetmp;
-my $timestampPrev;
-my $filePrev;
-my $isNewDir;
-my $NewDir;
-my $DirCounter = 1;
-if ( $AggrTemplate ) {
+sub aggregationProcess {
+	my $filetmp;
+	my $timestampPrev;
+	my $filePrev;
+	my $isNewDir;
+	my $NewDir;
+	my $DirCounter = 1;
+
 	procmsg ("AGGREGATION\n=======================\n");
-	dbgmsg (1, "Aggregation template: $AggrTemplate\n");
+	dbgmsg (1, "aggregationProcess(): Aggregation template: $AggrTemplate\n");
+
 	$filecounter = 1;
+
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
 		$file .= ".jpg";
@@ -488,8 +505,6 @@ if ( $AggrTemplate ) {
 		$filecounter++;
 	}
 }
-
-exit 0;
 
 ########################################################################################
 #
@@ -696,6 +711,7 @@ Options:
   --rotate-thumb <90|270>	rotate only thumbnail by 90 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
   --name-template <TPL>		filename template (see manual for details)
+  --aggr (*)			aggregation switcher, set it if you want to aggregate files
   --aggr-template <TPL>		aggregation template (see manual for details)
   --aggr-delta			aggregation time delta (file with delta great than --aggr-delta is placed to the --aggr-dir followed by directory name counter starting from 1)
   --aggr-dir			counterless aggregation directory name
@@ -704,7 +720,7 @@ Options:
   --comment-file <FILE>		file with commentary
   --file <FILE> ...		multiple values option, contains file to be processed
   -v [-v -v ...]		amount of these options defines debug level
-  -h, --help			display this help and exit
+  -?, --help			display this help and exit
   --version			output version information and exit
 
 (*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' and '--no-mtime' (negative value will be assigned).
@@ -733,12 +749,12 @@ sub template2name {
 	my $WhiteBalance = "";
 
 	if ( defined $info->{"ExposureTime"} ) {
-		$ExposureTime = $info->{"ExposureTime"};
+		$ExposureTime = "E" . $info->{"ExposureTime"};
 		$ExposureTime =~ s/\//by/g;
 	}
 
 	if ( defined $info->{"FileNumber"} ) {
-		$FileNumber = $info->{"FileNumber"};
+		$FileNumber = "F" . $info->{"FileNumber"};
 	}
 
 	if ( defined $info->{"FNumber"} ) {
@@ -746,11 +762,11 @@ sub template2name {
 	}
 
 	if ( defined $info->{"ISO"} ) {
-		$ISO = $info->{"ISO"};
+		$ISO = "I" . $info->{"ISO"};
 	}
 
 	if ( defined $info->{"WhiteBalance"} ) {
-		$WhiteBalance = $info->{"WhiteBalance"};
+		$WhiteBalance = "W" . $info->{"WhiteBalance"};
 		$WhiteBalance =~ s/[\s()]//g;
 	}
 
@@ -760,15 +776,15 @@ sub template2name {
 				'a' => $anglesuffix,
 				'c' => sprintf($counterprefixsize, $filecounter),
 				'd' => $tm[3],
-				'E' => "E" . $ExposureTime,
-				'F' => "F" . $FNumber,
+				'E' => $ExposureTime,
+				'F' => $FNumber,
 				'H' => $tm[4],
-				'I' => "I" . $ISO,
+				'I' => $ISO,
 				'i' => $FileNumber,
 				'M' => $tm[5],
 				'm' => $tm[2],
 				'S' => $tm[6],
-				'W' => "W" . $WhiteBalance,
+				'W' => $WhiteBalance,
 				'Y' => $tm[0],
 				'y' => $tm[1],
 			   );
@@ -841,9 +857,9 @@ date/time pattern template, set with B<--aggr-template>.
 
 =over
 
-=item B<-h> or B<--help>
+=item B<-?> or B<--help>
 
-the help
+display this help and exit
 
 =item B<-c> or B<--config-file> I<Configuration FILE>
 
@@ -882,7 +898,7 @@ file with commentary
 
 =item B<--version>
 
-the version of this script
+output version information and exit
 
 =item B<--mtime>
 
@@ -912,13 +928,13 @@ B<%c>	file order number in the processed file set
 
 B<%d>	day of the month (01-31)
 
-B<%E>	ExposureTime tag value if defined, otherwise E
+B<%E>	ExposureTime tag value if defined
 
-B<%F>	FNumber tag value if defined, otherwise F
+B<%F>	FNumber tag value if defined
 
 B<%H>	hour (00-23)
 
-B<%I>	ISO tag value if defined, otherwise I
+B<%I>	ISO tag value if defined
 
 B<%i>	FileNumber tag if exists (otherwise, it'll be replaced by string
 C<NA>)
@@ -929,7 +945,7 @@ B<%m>	month (01-12)
 
 B<%S>	second (00-59)
 
-B<%W>	WhiteBalance tag value if defined, otherwise W
+B<%W>	WhiteBalance tag value if defined
 
 B<%Y>	year (1900, 1901, and so on)
 
@@ -951,9 +967,9 @@ look L<EXAMPLES> section.
 ==item B<--aggr-delta>
 
 the type of aggregation "delta". really it is aggregation time delta in seconds
-( file with DateTimeOriginal and the one of the previous file delta, greater
-than B<--aggr-delta> is placed to the B<--aggr-dir> folowed by directory name
-counter )
+(file with DateTimeOriginal and the one of the previous file delta, greater
+than B<--aggr-delta> is placed to the B<--aggr-dir> followed by directory name
+counter)
 
 ==item B<--aggr-dir>
 
@@ -970,7 +986,7 @@ aggregation mode when files are moved to directories created.
 
 =head1 B<EXAMPLES>
 
-The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> produces following names:
+The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following names:
 
 =over
 
@@ -978,7 +994,7 @@ The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> produces following names:
 
 01.0024.20040131230857.100-0078.E1by320F2.8WAutoI50.jpg
 
-01.0022.20000820222108.NA.EFWI.jpg
+01.0022.20000820222108.NA.jpg
 
 =back
 

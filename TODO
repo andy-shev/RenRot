@@ -22,17 +22,27 @@ Disk I/O
 
 +  to implement work with separate files rather than with whole directory
 
--  to implement possibility to work with several IN directories and to
-   output to the set of OUT directories
-
 -  decrease disk IO operations as possible
 
 -  to implement possibility to work with other formats, which use EXIF
    mechanism
 
+-  remove hardcoded '.jpg' extension
+
++- implement aggregation option (to aggregate large bundle of files
+   according the different time intervals, perhapse with some kind of
+   euristics for analyzing the bigest time interval between shots)
+
+q  to write intellectual aggregation on clisp
+
 -  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
    name, no % character and than renrot moves all to SOMENAME directory it'll
    be called OUTDIR
+
+-  to implement possibility to work with several IN directories and to
+   output to the set of OUT directories
+
++  to implement --no-mtime, and put it to the config
 
 
 File naming
@@ -40,10 +50,6 @@ File naming
 +  to implement possibility to add patterns for file naming ( to make it
    possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
    e.t.c.)
-
--  to implement aggregation option ( to aggregate large bundle of files
-   according the different time intervals, perhapse with some kind of
-   euristics for analyzing the bigest time interval between shots )
 
 +  to make the file name counter format of the dynamic length, according
    the files number in the directory to process, it means NN for the number
@@ -55,7 +61,7 @@ File naming
 
 Verbosity
 
-+- to complete verbose output option implementation
++  to complete verbose output option implementation
 
 q  to implement progress indicator or spinning indicator
 
@@ -64,15 +70,9 @@ Other
 
 -  UTF8fy (comments, tags, ...) since it's not implemented in ExifTool yet
 
-+  to implement --no-mtime, and put it to the config
-
 ?  to write the function 'on/off validator' NO NEED SINCE IT'S IMPLEMENTED IN
    getOptions()
 
--  temporary turn back the option syntax no-...
-
 -  to tune style look of comments, code e.t.c.
 
--  to review the code to optimize it where it's possible.
-
-q  to write intellectual aggregation on clisp
++- to review the code to optimize it where it's possible.

@@ -14,22 +14,22 @@
 
 
 #
-## Template used for file name building while renaming.
+## Template is used for file name building while renaming.
 #
 
 # Interpreted sequences are:
 #	%%  a literal %
 #	%c  file order number in the processed file set
 #	%d  day of the month (01-31)
-#	%E  ExposureTime tag value if defined, otherwise E
-#	%F  FNumber tag value if defined, otherwise F
+#	%E  ExposureTime tag value if defined
+#	%F  FNumber tag value if defined
 #	%H  hour (00-23)
-#	%I  ISO tag value if defined, otherwise I
+#	%I  ISO tag value if defined
 #	%i  FileNumber tag if exists (otherwise, it'll be replaced by string "NA")
 #	%M  minute (00-59)
 #	%m  month (01-12)
 #	%S  second (00-59)
-#	%W  WhiteBalance tag value if defined, otherwise W
+#	%W  WhiteBalance tag value if defined
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
 #$NameTemplate  = '%Y%m%d%H%M%S';
