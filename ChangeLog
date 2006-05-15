@@ -1,4 +1,8 @@
 $Log$
+Revision 1.77  2006/05/15 10:46:01  andy
+Remove --file option. It's overhead.
+Install renrot.rc to %_sysconfdir in rpm package.
+
 Revision 1.76  2006/05/14 19:54:06  andy
 Use counter size for aggregation directories.
 Release as 0.19.
@@ -303,3 +307,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

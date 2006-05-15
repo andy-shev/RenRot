@@ -81,7 +81,6 @@ sub getOptions {
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"extension|ext|e=s" => \$extensionToProcess,
-					"file=s" => \@files,
 					"help|?"   => \$showHelp,
 					"mtime!" => \$mtime,
 					"name-template=s" => \$nameTemplate,
@@ -104,7 +103,6 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "getOptions(): --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
-	dbgmsg (3, "getOptions(): --file:\n\t", join("\n\t", @files), "\n") if ($#files >= 0);
 	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
 	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
@@ -142,7 +140,7 @@ sub getOptions {
 # parse command line options
 getOptions();
 
-@files = (@files, @ARGV);	# all things after "--" in CLI will be treated as file names to process
+@files = @ARGV;		# all things in ARGV will be treated as file names to process
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -227,7 +225,7 @@ my $warningMessage;
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
-# if none --file set
+# if no file given
 if ( $#files < 0 and not @files ) {
 	opendir (DIR, $workDir) || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
@@ -237,7 +235,7 @@ if ( $#files < 0 and not @files ) {
 	closedir(DIR);
 }
 
-# independently of @files initialization (whole DIR or --file), doing this
+# independently of @files initialization doing this
 foreach $file ( @files ) {
 	next if (-d $file);		# skip directories, no recursion
 	if ($file =~ m/\.$extensionToProcess$/) {
@@ -701,7 +699,7 @@ sub rotateThumbnail {
 #
 sub usage {
 infomsg (
-"Usage:	renrot 	<--extension EXTENSION> [--help] [--version] [--quiet] [--no-rotate] [--no-rename] [--no-mtime] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--file FILE1] [--file FILE2 ...] | [-- FILE1 FILE2 ...]]
+"Usage:	renrot 	<--extension EXTENSION> [--help] [--version] [--quiet] [--no-rotate] [--no-rename] [--no-mtime] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--] FILE1 FILE2 ...]
 
 Options:
   -c, --config-file		use this configuration file
@@ -719,7 +717,6 @@ Options:
   --aggr-dumb (*)		dumb aggregation mode: no file will be moved or directory will be created
   --mtime (*)			to set file mtime according DateTimeOriginal tag value
   --comment-file <FILE>		file with commentary
-  --file <FILE> ...		multiple values option, contains file to be processed
   -v [-v -v ...]		amount of these options defines debug level
   -?, --help			display this help and exit
   --version			output version information and exit
@@ -817,15 +814,14 @@ renrot - rename and rotate images according EXIF data
 
 =head1 SYNOPSIS
 
-renrot [OPTIONS] [B<--> FILE1 FILE2 ...]
+renrot [OPTIONS] [[B<-->] FILE1 FILE2 ...]
 
 =head1 DESCRIPTION
 
 B<RenRot> is intended to work with files of B<--extension> extension, containing
 EXIF date and can do two things with them - rename and rotate. It runs in batch
 mode in current or set with B<--work-directory> directory, as well as selective
-mode for separate files, set with single or multiply B<--file>, or everything
-after B<-->.
+mode for separate files given as arguments in command line.
 
 RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current

@@ -10,8 +10,7 @@ will be used.
 RenRot is intended to work  with files of --extension extension containing
 EXIF date and can do two things with them - rename and rotate. It runs in
 batch mode in current or set with --work-directory directory as well as
-selective mode for separate files, set with single or multiply --file, or
-everything after --.
+selective mode for separate files given as arguments in command line.
 
 New template ideology was implemented. It includes flexibility in file name
 construction. In version 0.16 and later the previous behaviour still present

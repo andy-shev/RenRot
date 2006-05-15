@@ -37,6 +37,10 @@ make
 rm -rf $RPM_BUILD_ROOT
 make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
 
+# install rc-file
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+install -m644 renrot.rc $RPM_BUILD_ROOT%{_sysconfdir}/renrot.rc
+
 # Remove some unwanted files
 find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
 find $RPM_BUILD_ROOT -type f -name perllocal.pod -exec rm -f {} \;
@@ -47,10 +51,13 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS README ChangeLog
-%doc renrot.rc
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
+%config(noreplace) %{_sysconfdir}/renrot.rc
 
 %changelog
+* Mon May 15 2006 Andy Shevchenko <andriy@asplinux.com.ua>
+- install rc-file
+
 * Tue Apr 18 2006 Andy Shevchenko <andriy@asplinux.com.ua>
 - initial package
