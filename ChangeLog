@@ -1,4 +1,8 @@
 $Log$
+Revision 1.78  2006/05/15 13:23:55  andy
+Add simple russian description as README.russian.
+Fix bug with thumbnail rotating (patch by zeus).
+
 Revision 1.77  2006/05/15 10:46:01  andy
 Remove --file option. It's overhead.
 Install renrot.rc to %_sysconfdir in rpm package.
@@ -307,4 +311,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

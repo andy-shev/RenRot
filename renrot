@@ -644,6 +644,7 @@ sub rotateThumbnail {
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
 			errmsg ("$ThumbnailOriginal wasn't opened!\n");
 		}
+		binmode OLDTHUMBNAIL;
 		print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
 		unless ( close ( OLDTHUMBNAIL ) ) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
