@@ -50,7 +50,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc AUTHORS README ChangeLog
+%doc AUTHORS README ChangeLog TODO
+%lang(ru) %doc README.russian
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
 %config(noreplace) %{_sysconfdir}/renrot.rc

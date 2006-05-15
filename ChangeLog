@@ -1,4 +1,7 @@
 $Log$
+Revision 1.79  2006/05/15 17:49:06  andy
+Add TODO and README.russian to %doc section in spec file.
+
 Revision 1.78  2006/05/15 13:23:55  andy
 Add simple russian description as README.russian.
 Fix bug with thumbnail rotating (patch by zeus).
@@ -311,3 +314,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
