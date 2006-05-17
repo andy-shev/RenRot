@@ -12,7 +12,7 @@ use Image::ExifTool;
 use Getopt::Long;
 use POSIX qw(ceil log);
 
-our $VERSION = "0.19";		# the version of this script
+our $VERSION = "0.19.1"		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
@@ -23,6 +23,7 @@ my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be wit
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
 my $configFile;		# config file
+my @excludeList;	# files that will be excluded from list
 my $extensionToProcess;	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
@@ -81,6 +82,7 @@ sub getOptions {
 					"aggr-template=s" => \$aggrTemplate,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
+					"exclude=s" => \@excludeList,
 					"extension|ext|e=s" => \$extensionToProcess,
 					"help|?"   => \$showHelp,
 					"mtime!" => \$mtime,
@@ -104,6 +106,7 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "getOptions(): --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "getOptions(): --exclude:\n", join("\n", @excludeList), "\n") if ($#excludeList >= 0);
 	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
 	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
 	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
@@ -113,7 +116,7 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
-	dbgmsg (3, "getOptions(): ARGV:\n\t", join("\n\t", @ARGV), "\n") if ($#ARGV >= 0);
+	dbgmsg (3, "getOptions(): ARGV:\n", join("\n", @ARGV), "\n") if ($#ARGV >= 0);
 
 	if ($showHelp != 0) {
 		usage();
@@ -227,7 +230,7 @@ chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 if ( $#files < 0 and not @files ) {
 	opendir (DIR, $workDir) || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
-		next if (-d $file);	# skip directories, no recursion
+		next if (-d $file);			# skip directories, no recursion
 		push @files, $file;
 	}
 	closedir(DIR);
@@ -235,11 +238,10 @@ if ( $#files < 0 and not @files ) {
 
 # independently of @files initialization doing this
 foreach $file ( @files ) {
-	next if (-d $file);		# skip directories, no recursion
-	#next if (! -f $file);		# skip absent and special files
+	next if (-d $file);				# skip directories, no recursion
+	next if (grep {/^$file$/} @excludeList);	# skip excluded file
 	if ($file =~ m/\.$extensionToProcess$/) {
 		push @filenames, $file;
-		dbgmsg (4, "main(): Pushing file: $file\n");
 	}
 }
 
@@ -256,9 +258,10 @@ dbgmsg (1, "main(): Software: $softwareString\n");
 # here we're preparing the variable, which contains the format
 # of the counter output
 $counterprefixsize = "%." . ceil(log($#filenames + 1) / log(10)) . "d";
-dbgmsg (1, "main(): Processing with counter size: $counterprefixsize\n");
+dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", $#filenames + 1, ")\n");
 
 @files = sort @filenames;
+dbgmsg (4, "main(): Pushed files(", $#files + 1, "):\n", join("\n", @files), "\n");
 
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 my $orientation;	# Orientation tag value
@@ -711,6 +714,7 @@ Options:
   -c, --config-file <FILE>	use this configuration file
   --comment-file <FILE>		file with commentary
   -d, --work-directory <DIR>	specify working directory
+  --exclude <FILE> ...		define excluding files from process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
@@ -872,6 +876,11 @@ file with commentary
 =item B<-d> or B<--work-directory> I<DIR>
 
 define the working directory
+
+=item B<--exclude> I<FILE>
+
+specify files to exclude. No wildcards are available. For set of files
+option must be occured as same time as files given.
 
 =item B<-e> or B<--extension> I<EXTENSION>
 

@@ -1,4 +1,8 @@
 $Log$
+Revision 1.81  2006/05/17 17:05:09  andy
+Implement exclude list (option --exclude <FILE>).
+Release as 0.19.1.
+
 Revision 1.80  2006/05/17 12:07:14  andy
 Unify EXIF writtings to exifWritting().
 First attempt to rotation by Orientation tag (new option --only-orientation).
@@ -319,3 +323,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
