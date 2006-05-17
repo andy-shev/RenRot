@@ -12,7 +12,7 @@ use Image::ExifTool;
 use Getopt::Long;
 use POSIX qw(ceil log);
 
-our $VERSION = "0.19.1"		# the version of this script
+our $VERSION = "0.19.1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
