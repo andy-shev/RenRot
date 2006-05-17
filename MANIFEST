@@ -4,6 +4,7 @@ Makefile.PL
 MANIFEST                                 This file
 META.yml                                 Module meta-data (added by MakeMaker)
 README
+README.russian                           Small description for russians users
 README.Windows                           Installation instructions for windows users
 renrot                                   RenRot script
 renrot.rc                                Sample of configuration file
