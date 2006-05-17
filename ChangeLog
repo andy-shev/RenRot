@@ -1,4 +1,9 @@
 $Log$
+Revision 1.80  2006/05/17 12:07:14  andy
+Unify EXIF writtings to exifWritting().
+First attempt to rotation by Orientation tag (new option --only-orientation).
+Remove unused variables.
+
 Revision 1.79  2006/05/15 17:49:06  andy
 Add TODO and README.russian to %doc section in spec file.
 
@@ -314,4 +319,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

@@ -16,24 +16,25 @@ our $VERSION = "0.19";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
-my $noRotation;		# no rotation needed, default is to rotate
-my $rotateAngle;	# define the angle, to rotate on, 90 or 270
-my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
-my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-my $nameTemplate;	# template for the filename taken from CLI
 my $aggr = 0;		# execute aggregation after main process
-my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrDelta;		# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
 my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be without this flag
-my $extensionToProcess;	# the extension of files to work with
-my $configFile;		# config file
-my $mtime;		# mtime taken from CLI
+my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
-my $verbose = 0;	# verbosity of output
-my $quiet = 0;		# suppressing messages
-my $workDir = '.';	# we'll work ONLY in current directory
+my $configFile;		# config file
+my $extensionToProcess;	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
+my $mtime;		# mtime taken from CLI
+my $nameTemplate;	# template for the filename taken from CLI
+my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+my $noRotation;		# no rotation needed, default is to rotate
+my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
+my $quiet = 0;		# suppressing messages
+my $rotateAngle;	# define the angle, to rotate on, 90 or 270
+my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
+my $verbose = 0;	# verbosity of output
+my $workDir = '.';	# we'll work ONLY in current directory
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
 sub procmsg {
@@ -86,6 +87,7 @@ sub getOptions {
 					"name-template=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
 					"no-rotate" => \$noRotation,
+					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|rotate|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
@@ -107,6 +109,7 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
 	dbgmsg (3, "getOptions(): --no-rotate: $noRotation\n") if (defined $noRotation);
+	dbgmsg (3, "getOptions(): --only-orientation: $orientTag\n") if (defined $orientTag);
 	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
@@ -192,12 +195,10 @@ my @filenames;		# array of the filenames to process
 my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
-my $orientation = '';	# Orientation tag value
 my $comment;		# where to put the commentary to write
 my @commentar;		# array to put the content of the file with commentary
 my $counterprefix;	# file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
-my $rotas;		# how to rotate
 
 my @rotparms = (''
 	, '-flip horizontal'
@@ -220,9 +221,6 @@ my @angles = ( ''
 	, 'tv'
 	, '270cw' );	# the array of suffixes to add to the newfilename after rotating
 
-my $errorMessage;
-my $warningMessage;
-
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
 # if no file given
@@ -238,6 +236,7 @@ if ( $#files < 0 and not @files ) {
 # independently of @files initialization doing this
 foreach $file ( @files ) {
 	next if (-d $file);		# skip directories, no recursion
+	#next if (! -f $file);		# skip absent and special files
 	if ($file =~ m/\.$extensionToProcess$/) {
 		push @filenames, $file;
 		dbgmsg (4, "main(): Pushing file: $file\n");
@@ -262,7 +261,7 @@ dbgmsg (1, "main(): Processing with counter size: $counterprefixsize\n");
 @files = sort @filenames;
 
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
-our $mTime;		# mtime to use to set
+my $orientation;	# Orientation tag value
 
 procmsg ("RENAMING / ROTATING\n=======================\n");
 
@@ -273,35 +272,40 @@ foreach $file ( @files ) {
 	$info = $exifTool->ImageInfo($file);
 	$newfilename = "";
 	$anglesuffix = "0cw";
-	$mTime = "";
 
 	################################################################################################
 	#
 	## analyzing whether to rotate
 	#
+
+	$orientation = $exifTool->GetValue("Orientation", 'ValueConv');
+
 	if ( defined $noRotation ) { dbgmsg (2, "main(): No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotateAngle ) {
 		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
-		rotateFile($file, $rotangles{$rotateAngle});
-		rotateThumbnail($file, $rotangles{$rotateAngle});
+		if ($orientTag != 0) {
+			rotateOrient($file, $orientation);
+		} else {
+			rotateFile($file, $rotangles{$rotateAngle});
+			rotateThumbnail($file, $rotangles{$rotateAngle});
+		}
 		$anglesuffix = $rotateAngle . "cw";
 	}
 	elsif ( defined $rotateThumbnail ) {
 		rotateThumbnail($file, $rotangles{$rotateThumbnail});
 	}
 	else {
-		if ( defined( $orientation = $exifTool->GetValue("Orientation", 'ValueConv') ) ) {
+		if (defined $orientation) {
 			if ( $orientation > 1 ) {
-				$rotas = $rotparms[$orientation - 1];
-				rotateFile($file, $rotas);
-				rotateThumbnail($file, $rotas);
+				rotateFile($file, $rotparms[$orientation - 1]);
+				rotateThumbnail($file, $rotparms[$orientation - 1]);
 				$anglesuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
 				dbgmsg (2, "main(): No need to rotate, orientation is: Horisontal (normal).\n");
 			}
 			else {
-				errmsg ("Something wrong, orientation is < 1: $orientation.\n");
+				errmsg ("Something wrong, orientation low than 1: $orientation.\n");
 			}
 		}
 		else {
@@ -343,7 +347,6 @@ foreach $file ( @files ) {
 	#
 	## analyzing whether to comment
 	#
-	my $comentedfilename = $newfilename . "_comment";
 	if ( $comfile ) {
 		if ( open ( COMMENT, "<$comfile" ) ) {
 			@commentar = <COMMENT>;
@@ -390,27 +393,12 @@ foreach $file ( @files ) {
 		$exifTool->SetNewValue('Software', $softwareString, Group=>'EXIF');
 
 		# writing the changes to the EXIFs
-		my $res = $exifTool->WriteInfo($newfilename, $comentedfilename);
-		if ( $res == 1 ) {
-			dbgmsg (2, "main(): Writing to $comentedfilename ok.\n");
-			rename ( $comentedfilename, $newfilename  )
-				|| ( fatalmsg ("$comentedfilename -> $newfilename\n"), die );
-		}
-		elsif ( $res == 2 ) {
-			warnmsg ("No changes between $newfilename and $comentedfilename. No EXIF was written.\n");
-			unlink $comentedfilename;
-		}
-		else {
-			my $errorMessage   = $exifTool->GetValue('Error');
-			my $warningMessage = $exifTool->GetValue('Warning');
-			if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
-			if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
-		}
+		exifWritting($exifTool, $newfilename, $newfilename . "_comment");
 	}
 
 	# seting mtime for the file if been asked for
 	if ($Mtime != 0) {
-		$mTime = getUnixTime(getTimestamp());
+		my $mTime = getUnixTime(getTimestamp());
 		utime $mTime,$mTime,$newfilename;
 		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
 	}
@@ -427,7 +415,33 @@ exit 0;
 
 ########################################################################################
 #
-# aggregationProcess() aggregate files to separate directories by request
+# exifWritting() applies EXIF info
+#
+sub exifWritting {
+	my $exifToolObject = shift;
+	my $fileSrc = shift;
+	my $fileDst = shift;
+
+	my $result = $exifToolObject->WriteInfo($fileSrc, $fileDst);
+	if ($result == 1) {
+		dbgmsg (2, "exifWritting(): Writing to $fileDst seems to be OK.\n");
+		rename ($fileDst, $fileSrc)
+			|| ( fatalmsg ("$fileDst -> $fileSrc\n"), die );
+	} elsif ($result == 2) {
+		warnmsg ("No changes between $fileSrc and $fileDst. No EXIF was written.\n");
+		unlink $fileDst;
+	} else {
+		my $errorMessage   = $exifToolObject->GetValue('Error');
+		my $warningMessage = $exifToolObject->GetValue('Warning');
+		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
+		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
+	}
+	return $result;
+}
+
+########################################################################################
+#
+# aggregationProcess() aggregates files to separate directories by request
 #
 sub aggregationProcess {
 	my $filetmp;
@@ -585,6 +599,25 @@ sub getUnixTime {
 
 ########################################################################################
 #
+# rotateOrient() rotates image by changing Orientation tag. No real rotation will be.
+#
+sub rotateOrient {
+	my $fileOrient = shift;
+	my $orientation = shift;
+
+	# FIXME: we need to consider previos Orientation tag value
+	if ($rotateAngle == 90) {
+		$orientation = 6;
+	} elsif ($rotateAngle == 270) {
+		$orientation = 8;
+	}
+
+	$exifTool->SetNewValue("Orientation", $orientation, Type => 'ValueConv');
+	exifWritting($exifTool, $fileOrient, $fileOrient . "_orient");
+}
+
+########################################################################################
+#
 # rotating the image and it's thumbnail, rewriting Orientation tag and the commentary
 # to the result file
 #
@@ -607,25 +640,11 @@ sub rotateFile {
 	# preparing to write Orientation tag to the just rotated file
 	my $exifAfterRot = new Image::ExifTool;
 	$exifAfterRot->Options(Binary => 1);
-	my $exifedfile = $oldfile . "_exifed";	# the file name, exifed file to be put to
 
 	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
 
 	# writing the changes to the EXIFs
-	my $res = $exifAfterRot->WriteInfo($oldfile, $exifedfile);
-	if ( $res == 1 ) {
-		dbgmsg (2, "rotateFile(): Writing to $exifedfile ok.\n");
-		rename ( $exifedfile, $oldfile )
-			|| ( fatalmsg ("$exifedfile -> $oldfile\n"), die );
-	}
-	elsif ( $res == 2 ) { infomsg ("No changes for $exifedfile.\n"); }
-	else {
-		my $errorMessage   = $exifAfterRot->GetValue('Error');
-		my $warningMessage = $exifAfterRot->GetValue('Warning');
-		if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
-		if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
-	}
-	$oldfile = $origfile = $newfile = "";
+	exifWritting($exifAfterRot, $oldfile, $oldfile . "_exifed");
 }
 
 ########################################################################################
@@ -667,24 +686,10 @@ sub rotateThumbnail {
 		my $exifThumbnailed = new Image::ExifTool;
 		$exifThumbnailed->Options(Binary => 1);
 
-		my $fileThumbnailed = $fileToThumbnail . "_thumb";  # the file name, thumbnailed file to be put to
-
 		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
 
 		# writing the changes to the EXIFs
-		my $res = $exifThumbnailed->WriteInfo($fileToThumbnail, $fileThumbnailed);
-		if ( $res == 1 ) {
-			dbgmsg (2, "rotateThumbnail(): Writing to $fileThumbnailed ok.\n");
-			rename ( $fileThumbnailed, $fileToThumbnail )
-				|| ( fatalmsg ("$fileThumbnailed -> $fileToThumbnail\n"), die );
-		}
-		elsif ( $res == 2 ) { infomsg ("No changes for $fileThumbnailed.\n"); }
-		else {
-			my $errorMessage   = $exifThumbnailed->GetValue('Error');
-			my $warningMessage = $exifThumbnailed->GetValue('Warning');
-			if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
-			if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
-		}
+		exifWritting($exifThumbnailed, $fileToThumbnail, $fileToThumbnail . "_thumb");
 
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
@@ -703,21 +708,22 @@ infomsg (
 "Usage:	renrot 	<--extension EXTENSION> [--help] [--version] [--quiet] [--no-rotate] [--no-rename] [--no-mtime] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--] FILE1 FILE2 ...]
 
 Options:
-  -c, --config-file		use this configuration file
+  -c, --config-file <FILE>	use this configuration file
+  --comment-file <FILE>		file with commentary
   -d, --work-directory <DIR>	specify working directory
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
-  --no-rotate			no rotation needed, default is to rotate
+  --name-template <TPL>		filename template (see manual for details)
+  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
   -r, --rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on, 90 or 270 (it's for the files where no Orientation tag is present and set right way)
   --rotate-thumb <90|270>	rotate only thumbnail by 90 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
-  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
-  --name-template <TPL>		filename template (see manual for details)
+  --only-orientation		rotate by changing Orientation tag (no real rotation)
+  --no-rotate			no rotation needed, default is to rotate
+  --mtime (*)			to set file mtime according DateTimeOriginal tag value
   --aggr (*)			aggregation switcher, set it if you want to aggregate files
-  --aggr-template <TPL>		aggregation template (see manual for details)
   --aggr-delta			aggregation time delta (file with delta great than --aggr-delta is placed to the --aggr-dir followed by directory name counter starting from 1)
   --aggr-dir			counterless aggregation directory name
   --aggr-dumb (*)		dumb aggregation mode: no file will be moved or directory will be created
-  --mtime (*)			to set file mtime according DateTimeOriginal tag value
-  --comment-file <FILE>		file with commentary
+  --aggr-template <TPL>		aggregation template (see manual for details)
   -v [-v -v ...]		amount of these options defines debug level
   -?, --help			display this help and exit
   --version			output version information and exit
@@ -855,55 +861,21 @@ date/time pattern template, set with B<--aggr-template>.
 
 =over
 
-=item B<-?> or B<--help>
-
-display this help and exit
-
 =item B<-c> or B<--config-file> I<Configuration FILE>
 
 location of the configuration file
-
-=item B<--work-directory> I<DIR>
-
-define the working directory
-
-=item B<--extension> I<EXTENSION>
-
-extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
-
-=item B<--no-rotate>
-
-no rotation needed, default is to rotate according EXIF data
-
-=item B<--rotate-angle> I<90> or I<270>
-
-define the angle, to rotate file and the thumbnail on, 90 or 270. It's for the
-files where no Orientation tag is set right way.
-
-=item B<--rotate-thumb> I<90> or I<270>
-
-rotate only thumbnail by 90 or 270 degree. It's for the files which were
-rotated, but thumbnail wasn't.
 
 =item B<--comment-file> I<Comment FILE>
 
 file with commentary
 
-=item B<--version>
+=item B<-d> or B<--work-directory> I<DIR>
 
-output version information and exit
+define the working directory
 
-=item B<--mtime>
+=item B<-e> or B<--extension> I<EXTENSION>
 
-defines, whether to set mtime of the file, using DateTimeOriginal tag value
-
-=item B<--no-mtime>
-
-opposite to B<--mtime>. mtime of the file will be the one after processing
-
-=item B<--no-rename>
-
-no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
 =item B<--name-template> I<Name TEMPLATE>
 
@@ -946,6 +918,56 @@ B<%y>	last two digits of year (00..99)
 
 =back
 
+=item B<--no-rename>
+
+no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+
+=item B<--rotate-angle> I<90> or I<270>
+
+define the angle, to rotate file and the thumbnail on, 90 or 270. It's for the
+files where no Orientation tag is set right way.
+
+=item B<--rotate-thumb> I<90> or I<270>
+
+rotate only thumbnail by 90 or 270 degree. It's for the files which were
+rotated, but thumbnail wasn't.
+
+=item B<--only-orientation>
+
+rotate by changing Orientation tag, no real rotation
+
+=item B<--no-rotate>
+
+no rotation needed, default is to rotate according EXIF data
+
+=item B<--mtime>
+
+defines, whether to set mtime of the file, using DateTimeOriginal tag value
+
+=item B<--no-mtime>
+
+opposite to B<--mtime>. mtime of the file will be the one after processing
+
+=item B<--aggr-delta>
+
+the type of aggregation "delta". Really it is aggregation time delta in seconds
+(file with DateTimeOriginal and the one of the previous file delta, greater
+than B<--aggr-delta> is placed to the B<--aggr-dir> followed by directory name
+counter).
+
+=item B<--aggr-dir>
+
+counterless aggregation directory name
+
+=item B<--aggr-dumb>
+
+dumb aggregation mode. No file moved or directory created. Useful to look
+whether result fits expectations (default is on).
+
+=item B<--no-aggr-dumb>
+
+aggregation mode when files are moved to directories created
+
 =item B<--aggr-template> I<Aggregation TEMPLATE>
 
 template, which is used for file aggregation. Aggregation fulfils according
@@ -955,32 +977,18 @@ B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 description, please, turn to B<--name-template> option. For practical results
 look L<EXAMPLES> section.
 
-=back
-
-==item B<--aggr-delta>
-
-the type of aggregation "delta". Really it is aggregation time delta in seconds
-(file with DateTimeOriginal and the one of the previous file delta, greater
-than B<--aggr-delta> is placed to the B<--aggr-dir> followed by directory name
-counter).
-
-==item B<--aggr-dir>
-
-counterless aggregation directory name
-
-==item B<--aggr-dumb>
-
-dumb aggregation mode. No file moved or directory created. Useful to look
-whether result fits expectations (default is on).
-
-==item B<--no-aggr-dumb>
-
-aggregation mode when files are moved to directories created
-
 =item B<-v>
 
 one or more I<-v> sets debug level. From 1 to 4 - internal levels,
 5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
+
+=item B<-?> or B<--help>
+
+display quick help and exit
+
+=item B<--version>
+
+output version information and exit
 
 =head1 B<EXAMPLES>
 
