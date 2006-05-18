@@ -1,4 +1,8 @@
 $Log$
+Revision 1.83  2006/05/18 17:36:20  andy
+Deprecate --aggr-dir (use --aggr-directory instead).
+Remove hardcoded ".jpg" extension.
+
 Revision 1.82  2006/05/18 16:18:01  andy
 Optimize aggregationProcess().
 Remove deprecated --rotate and --ext options.
@@ -327,3 +331,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

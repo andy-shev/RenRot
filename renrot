@@ -17,7 +17,7 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
 my $aggr = 0;		# execute aggregation after main process
-my $aggrDelta;		# aggregation time delta n seconds ( file with delta > $aggrDelta is placed to the new DIR
+my $aggrDelta;		# aggregation time delta in seconds (file with delta > $aggrDelta is placed in new DIR)
 my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be without this flag
 my $aggrTemplate;	# template for the files aggregation taken from CLI
@@ -28,7 +28,7 @@ my $extensionToProcess;	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
-my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
@@ -77,7 +77,7 @@ sub getOptions {
 	my $getOptions = GetOptions (
 					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
-					"aggr-dir=s" => \$aggrDir,
+					"aggr-directory|aggr-dir=s" => \$aggrDir,
 					"aggr-dumb!" => \$aggrDumb,
 					"aggr-template=s" => \$aggrTemplate,
 					"comment-file=s" => \$comfile,
@@ -101,7 +101,7 @@ sub getOptions {
 	dbgmsg (3, "getOptions(): GetOptions results:\n");
 	dbgmsg (3, "getOptions(): --aggr: $aggr\n") if (defined $aggr);
 	dbgmsg (3, "getOptions(): --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
-	dbgmsg (3, "getOptions(): --aggr-dir: $aggrDir\n") if (defined $aggrDir);
+	dbgmsg (3, "getOptions(): --aggr-directory: $aggrDir\n") if (defined $aggrDir);
 	dbgmsg (3, "getOptions(): --aggr-dumb: $aggrDumb\n") if (defined $aggrDumb);
 	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
@@ -146,7 +146,8 @@ sub getOptions {
 # parse command line options
 getOptions();
 
-@files = @ARGV;		# all things in ARGV will be treated as file names to process
+my $lce = lc($extensionToProcess);	# low cased extension
+@files = @ARGV;				# all things in ARGV will be treated as file names to process
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -322,7 +323,7 @@ foreach $file ( @files ) {
 	#
 	if ( defined $noRename ) {
 		dbgmsg (2, "main(): No renaming asked, filename is left untouched.\n");
-		if ( ($newfilename) = ( $file =~ /^(.*)\.jpg/ ) ) {
+		if ($newfilename = ($file =~ /^(.+)\.$lce/)) {
 			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 		}
 	}
@@ -333,7 +334,7 @@ foreach $file ( @files ) {
 		}
 		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 
-		$newfilename = sprintf("%s.%s", $newfilename, lc($extensionToProcess));
+		$newfilename = sprintf("%s.%s", $newfilename, $lce);
 
 		if ( $file ne $newfilename ) {
 			if ( -f $newfilename ) {
@@ -460,7 +461,7 @@ sub aggregationProcess {
 
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
-		$file .= ".jpg";
+		$file .= $lce;
 		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
@@ -703,15 +704,15 @@ Options:
   --exclude <FILE> ...		define excluding files from process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
-  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
   -r, --rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on, 90 or 270 (it's for the files where no Orientation tag is present and set right way)
   --rotate-thumb <90|270>	rotate only thumbnail by 90 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
   --only-orientation		rotate by changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			to set file mtime according DateTimeOriginal tag value
   --aggr (*)			aggregation switcher, set it if you want to aggregate files
-  --aggr-delta			aggregation time delta (file with delta great than --aggr-delta is placed to the --aggr-dir followed by directory name counter starting from 1)
-  --aggr-dir			counterless aggregation directory name
+  --aggr-delta <INTERVAL>	aggregation time delta (file with delta great than INTERVAL is placed to the --aggr-directory followed by directory name counter starting from 1)
+  --aggr-directory <DIR>	counterless aggregation directory name
   --aggr-dumb (*)		dumb aggregation mode: no file will be moved or directory will be created
   --aggr-template <TPL>		aggregation template (see manual for details)
   -v [-v -v ...]		amount of these options defines debug level
@@ -822,7 +823,7 @@ mode for separate files given as arguments in command line.
 
 RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
 tags, if they exist. Otherwise, the name will be set according to the current
-time stamp and will look as YYYYmmddHHMMSS.XXXX.jpg, where XXXX is whether file
+time stamp and will look as YYYYmmddHHMMSS.XXXX.ext, where XXXX is whether file
 ID, if exists in EXIF (as for Canon) or incremental suffix to the name
 YYYYmmddHHMMSS.
 
@@ -837,7 +838,7 @@ The script, also, is placing commentary into:
 
 - Commentary tag, if commentary file provided with B<--comment-file> option
 
-- UserComment tag, if $COMMENTARY variable set in configuration file
+- UserComment tag, if COMMENTARY variable set in configuration file
 
 =back
 
@@ -915,7 +916,7 @@ B<%y>	last two digits of year (00..99)
 
 =item B<--no-rename>
 
-no rename needed, default is to rename to the YYYYmmddHHMMSS.jpg
+no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 
 =item B<--rotate-angle> I<90> or I<270>
 
@@ -943,14 +944,14 @@ defines, whether to set mtime of the file, using DateTimeOriginal tag value
 
 opposite to B<--mtime>. mtime of the file will be the one after processing
 
-=item B<--aggr-delta>
+=item B<--aggr-delta> I<Time INTERVAL>
 
 the type of aggregation "delta". Really it is aggregation time delta in seconds
 (file with DateTimeOriginal and the one of the previous file delta, greater
-than B<--aggr-delta> is placed to the B<--aggr-dir> followed by directory name
+than B<--aggr-delta> is placed to the B<--aggr-directory> followed by directory name
 counter).
 
-=item B<--aggr-dir>
+=item B<--aggr-directory> I<DIR>
 
 counterless aggregation directory name
 
@@ -963,7 +964,7 @@ whether result fits expectations (default is on).
 
 aggregation mode when files are moved to directories created
 
-=item B<--aggr-template> I<Aggregation TEMPLATE>
+=item B<--aggr-template> I<Aggregation TEMPLATE> or I<delta>
 
 template, which is used for file aggregation. Aggregation fulfils according
 date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,

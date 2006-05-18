@@ -25,7 +25,7 @@ well as it's thumbnail "by hands".
 
 Furthermore, the script put a comment to:
     - Comment tag if comment file provided with --comment-file option
-    - UserComment tag if $COMMENTARY variable set in configuration file
+    - UserComment tag if COMMENTARY variable set in configuration file
 
 Personal data could be specified via XMP tags defined in configuration file.
 

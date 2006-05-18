@@ -1,23 +1,13 @@
-##
-## This is configuration file for RenRot.
-## See commented variables for defaults.
-##
-
-
 #
-## mtime modification.
+## This is configuration file for RenRot. See commented variables for defaults.
 #
 
-# Process files with or without mtime modification. This option is
-# overriden by CLI options --mtime or --no-mtime.
-#$Mtime = 1;
+# Process files with or without mtime modification. This option is overriden
+# by CLI options --mtime or --no-mtime.
+#$Mtime		= 1;
 
-
-#
-## Template is used for file name building while renaming.
-#
-
-# Interpreted sequences are:
+# Template is used for file name building while renaming. Interpreted
+# sequences are:
 #	%%  a literal %
 #	%c  file order number in the processed file set
 #	%d  day of the month (01-31)
@@ -32,14 +22,9 @@
 #	%W  WhiteBalance tag value if defined
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
-#$NameTemplate  = '%Y%m%d%H%M%S';
+#$NameTemplate	= '%Y%m%d%H%M%S';
 
-
-#
-## Template used for file aggregation.
-#
-
-# Interpreted sequences are:
+# Template used for file aggregation. Interpreted sequences are:
 #	%d  day of the month (01-31)
 #	%H  hour (00-23)
 #	%M  minute (00-59)
@@ -47,18 +32,17 @@
 #	%S  second (00-59)
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
-#$AggrTemplate  = '%Y%m%d';
+#$AggrTemplate	= '%Y%m%d';
 
-#$AggrDelta = 900;
-#$AggrDumb = 1;
-#$AggrDir = 'DIR';
+# Delta interval in seconds for simple aggregation.
+#$AggrDelta	= 900;
+
+#$AggrDumb	= 1;
+#$AggrDir	= 'DIR';
 
 
-#
-## The commentary to put to UserComment tag.
-#
-
-#$COMMENTARY    = <<__COMMENTARY__;
+# The commentary to put to UserComment tag.
+#$COMMENTARY	= <<__COMMENTARY__;
 #This image was shot by HERE-IS-YOUR-NAME for private purposes
 #and is copyrighted by him (me). The copyright is governed by
 #copyright laws. This image cannot be copied in any form
@@ -74,10 +58,7 @@
 #__COMMENTARY__
 
 
-#
-## Personal information could be set to XMP tags.
-#
-
+# Personal information could be set to XMP tags. Default is undefined.
 #$CiAdrCity 	= 'Here Is Your City';
 #$CiAdrCtry 	= 'Here Is Your Country';
 #$CiAdrExtadr 	= 'Here Is Your Apartments';

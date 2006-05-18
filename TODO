@@ -25,9 +25,9 @@ Disk I/O
 -  decrease disk IO operations as possible
 
 -  to implement possibility to work with other formats, which use EXIF
-   mechanism
+   mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
 
--  remove hardcoded '.jpg' extension
++  remove hardcoded '.jpg' extension
 
 +- implement aggregation option (to aggregate large bundle of files
    according the different time intervals, perhapse with some kind of
