@@ -10,7 +10,6 @@ use Time::localtime;
 use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
-use POSIX qw(ceil log);
 
 our $VERSION = "0.19.1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
@@ -138,8 +137,8 @@ sub getOptions {
 		exit 1;
 	}
 
-	# change user's parameter '*.ext' to 'ext'
-	$extensionToProcess =~ s/^\*\.//;
+	# change user's parameter '*.ext' or '.ext' to 'ext'
+	$extensionToProcess =~ s/^\*?\.//;
 	dbgmsg (1, "getOptions(): Process with '$extensionToProcess' extension.\n");
 }
 
@@ -200,7 +199,6 @@ my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
 my $comment;		# where to put the commentary to write
-my @commentar;		# array to put the content of the file with commentary
 my $counterprefix;	# file number counter
 my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 
@@ -258,7 +256,7 @@ dbgmsg (1, "main(): Software: $softwareString\n");
 
 # here we're preparing the variable, which contains the format
 # of the counter output
-$counterprefixsize = "%." . ceil(log($#filenames + 1) / log(10)) . "d";
+$counterprefixsize = "%." . length ($#filenames + 1) . "d";
 dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", $#filenames + 1, ")\n");
 
 @files = sort @filenames;
@@ -323,7 +321,7 @@ foreach $file ( @files ) {
 	#
 	if ( defined $noRename ) {
 		dbgmsg (2, "main(): No renaming asked, filename is left untouched.\n");
-		if ($newfilename = ($file =~ /^(.+)\.$lce/)) {
+		if (($newfilename) = ($file =~ m/^(.+)\.$lce/)) {
 			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 		}
 	}
@@ -334,7 +332,7 @@ foreach $file ( @files ) {
 		}
 		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 
-		$newfilename = sprintf("%s.%s", $newfilename, $lce);
+		$newfilename .= "." . $lce;
 
 		if ( $file ne $newfilename ) {
 			if ( -f $newfilename ) {
@@ -353,7 +351,7 @@ foreach $file ( @files ) {
 	#
 	if ( $comfile ) {
 		if ( open ( COMMENT, "<$comfile" ) ) {
-			@commentar = <COMMENT>;
+			my @commentar = <COMMENT>;
 			unless ( close ( COMMENT ) ) { errmsg ("$comfile wasn't closed!\n"); }
 			$comment = join ( '', @commentar );
 			# preparing to write the commentary
@@ -461,11 +459,11 @@ sub aggregationProcess {
 
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
-		$file .= $lce;
+		$file .= "." . $lce;
 		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
-		if ($AggrTemplate eq "delta")
+		if ($AggrTemplate eq "delta") {
 			if ($filecounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
@@ -580,7 +578,7 @@ sub getTimestamp {
 #
 sub getUnixTime {
 	my $timestamp = shift;
-	my @tm = ($timestamp =~ /(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
+	my @tm = ($timestamp =~ m/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
 	$tm[0] -= 1900;     # convert year
 	$tm[1] -= 1;        # convert month
 	@tm = reverse @tm;  # change to order required by timelocal()

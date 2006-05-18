@@ -1,4 +1,10 @@
 $Log$
+Revision 1.84  2006/05/18 18:36:27  andy
+Recognize --extension '.ext' as well.
+Simplify counter size calculation.
+Add missed bracket at if ($AggrTemplate eq "delta").
+Fix multiple issues with low cased extension variable.
+
 Revision 1.83  2006/05/18 17:36:20  andy
 Deprecate --aggr-dir (use --aggr-directory instead).
 Remove hardcoded ".jpg" extension.
@@ -331,4 +337,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
