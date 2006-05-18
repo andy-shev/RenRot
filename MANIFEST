@@ -3,6 +3,7 @@ ChangeLog
 Makefile.PL
 MANIFEST                                 This file
 META.yml                                 Module meta-data (added by MakeMaker)
+NEWS                                     User friendly change log
 README
 README.russian                           Small description for russians users
 README.Windows                           Installation instructions for windows users

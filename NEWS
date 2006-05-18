@@ -1,0 +1,58 @@
+* 0.19.1 *
+
+Several bugs were fixed. The thumbnail image did not rotate correctly. The
+--file option is obsolete because it's useless (command line arguments without
+switchers are also interpreted as files). Directories in aggregation mode use
+counter size as well. A new option --exclude provides an exclude list of files
+that will not be processed by the script. The documentation has been expanded
+with a small description in Russian.
+
+
+* 0.19 *
+
+Aggregation was implemented (moving files to directories according date/time
+patterns). Dynamic counter size (in decimal digits) was implemented. No puts a
+single letter for %E, %F, %I, or %W when the tag is absent. Now you may
+operate with a fileset instead of the whole directory. An mtime setting was
+added to the configuration file and switched on by default (use --no-mtime to
+negate this). --rotate and --ext options are deprecated. The FileModifyDate
+tag is written when the DateTimeOriginal tag is absent. A software tag with
+versions of tools is written to the passed file.
+
+
+* 0.16.1 *
+
+When a new file name is generated and a file is present on the filesystem with
+same name, the last would be lost in previous version. This bug has been
+fixed. The spelling in the documentation was corrected.
+
+
+* 0.16 *
+
+The new template ideology was implemented for image file naming. The user may
+choose any configuration of certain parameters set for a generated file name.
+A new option was added for setting the mtime file attribute equal to the the
+DateTimeOriginal tag or the current timestamp when the last is invalid. The
+documentation was expanded and partialy rewritten according to these
+enhancements.
+
+
+* 0.15.1 *
+
+A --work-directory option was added. The output procedure has been rewritten
+and more debugging information is posted to stderr instead of stdout. Values
+in the configuration file are quoted by single quotes instead of double (due
+to special symbol issues such as "@" in email).
+
+
+* 0.15 *
+
+This release adds caching filenames for the working directory to avoid
+processing the processed files (processed files could be rescanned while
+processing a large number files in the directory). The ISO tag has been chosen
+instead of CameraISO, since not all cameras support the latter.
+
+
+* 0.14.2 *
+
+First published release.

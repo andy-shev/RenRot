@@ -50,7 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc AUTHORS README ChangeLog TODO
+%doc AUTHORS README ChangeLog NEWS TODO
 %lang(ru) %doc README.russian
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
