@@ -83,7 +83,7 @@ sub getOptions {
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"exclude=s" => \@excludeList,
-					"extension|ext|e=s" => \$extensionToProcess,
+					"extension|e=s" => \$extensionToProcess,
 					"help|?"   => \$showHelp,
 					"mtime!" => \$mtime,
 					"name-template=s" => \$nameTemplate,
@@ -91,7 +91,7 @@ sub getOptions {
 					"no-rotate" => \$noRotation,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
-					"rotate-angle|rotate|r=i" => \$rotateAngle,
+					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
 					"v+" => \$verbose,
 					"version" => \$showVersion,
@@ -266,7 +266,7 @@ dbgmsg (4, "main(): Pushed files(", $#files + 1, "):\n", join("\n", @files), "\n
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 my $orientation;	# Orientation tag value
 
-procmsg ("RENAMING / ROTATING\n=======================\n");
+procmsg ("RENAMING / ROTATING\n===================\n");
 
 foreach $file ( @files ) {
 	procmsg ("Processing file: $file ...\n");
@@ -450,11 +450,10 @@ sub aggregationProcess {
 	my $filetmp;
 	my $timestampPrev;
 	my $filePrev;
-	my $isNewDir;
 	my $NewDir;
 	my $DirCounter = 1;
 
-	procmsg ("AGGREGATION\n=======================\n");
+	procmsg ("AGGREGATION\n===========\n");
 	dbgmsg (1, "aggregationProcess(): Aggregation template: $AggrTemplate\n");
 
 	$filecounter = 1;
@@ -465,61 +464,48 @@ sub aggregationProcess {
 		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
-		if ( $AggrTemplate eq "delta" and $filecounter == 1 ) {
-			$timestampPrev = $filenameshash{$filetmp};
-			$filePrev = $filetmp;
-			$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
-			$DirCounter++;
-			$newfilename = $NewDir . "/" . $file;
-			if ( $aggrDumb == 1 ) {
-				procmsg ("Aggregate " . $filePrev . " to " . $NewDir . "\n");
-			}
-			else {
-				if ( not -d $NewDir ) {
-					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
-				}
-				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ("Aggregate " . $filePrev . " to " . $NewDir . "\n");
-			}
-		}
-		elsif ( $AggrTemplate eq "delta" ) {
-			$isNewDir = $filenameshash{$filetmp} - $timestampPrev;
-			if ( $isNewDir > $aggrDelta ) {
-				$NewDir = sprintf("%s%.3d",$aggrDir,$DirCounter);
+		if ($AggrTemplate eq "delta")
+			if ($filecounter == 1) {
+				$timestampPrev = $filenameshash{$filetmp};
+				$filePrev = $filetmp;
+				$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
 				$DirCounter++;
-			}
-			$newfilename = $NewDir . "/" . $file;
-			if ( $AggrDumb == 1 ) {
-				procmsg ("Aggregate " . $file . " to " . $NewDir . "\n");
-			}
-			else {
-				if ( not -d $NewDir ) {
-					unless ( mkdir $NewDir ) { errmsg ("$NewDir wasn't created!\n"); }
+				aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+				procmsg ("Aggregate: $filePrev -> $NewDir\n");
+			} else {
+				# Check for new direcroty creation
+				if (($filenameshash{$filetmp} - $timestampPrev) > $aggrDelta) {
+					$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
+					$DirCounter++;
 				}
-				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ("Aggregate " . $file . " to " . $NewDir . "\n");
+				aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+				procmsg ("Aggregate: $file -> $NewDir\n");
+				$timestampPrev = $filenameshash{$filetmp};
 			}
-
-			$timestampPrev = $filenameshash{$filetmp};
-
 		}
 		else {
-			$newfilename = template2name($AggrTemplate);
-			if ($AggrDumb != 0) {
-				procmsg ( "Aggregate $file to $newfilename\n" );
-			}
-			else {
-				if ( not -d $newfilename ) {
-					unless ( mkdir $newfilename ) { errmsg ("$newfilename wasn't created!\n"); }
-				}
-				$newfilename .= "/" . $file;
-				rename ( $file, $newfilename  ) || ( fatalmsg ("$file -> $newfilename\n"), die );
-				procmsg ( "Aggregate $file to $newfilename\n" );
-			}
+			$NewDir = template2name($AggrTemplate);
+			aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+			procmsg ("Aggregate: $file -> $NewDir\n");
 		}
 		procmsg ("\n");
 		$filecounter++;
 	}
+}
+
+########################################################################################
+#
+# aggregateFile() moves file to new directory
+#
+sub aggregateFile {
+	my $file = shift;
+	my $NewDir = shift;
+
+	if (not -d $NewDir) {
+		unless (mkdir $NewDir) { errmsg ("$NewDir wasn't created!\n"); }
+	}
+	my $newfilename = $NewDir . "/" . $file;
+	rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
 }
 
 ########################################################################################
