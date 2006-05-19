@@ -1,10 +1,10 @@
 Name:		renrot
-Version:	0.19.1
+Version:	0.19.2
 Release:	1%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
-URL:		ftp://ftp.dn.farlep.net/pub/misc/renrot/
+URL:		http://freshmeat.net/projects/renrot/
 Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch

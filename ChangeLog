@@ -1,4 +1,8 @@
 $Log$
+Revision 1.86  2006/05/19 11:50:16  andy
+Change URL tag in spec file.
+Release as 0.19.2.
+
 Revision 1.85  2006/05/18 18:57:38  andy
 NEWS - user friendly change log is added.
 
@@ -340,4 +344,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

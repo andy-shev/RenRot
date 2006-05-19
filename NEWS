@@ -1,3 +1,14 @@
+* 0.19.2 *
+
+From this release the --rotate and --ext option aliases are removed and
+-aggr-dir is moved to deprecated (use --aggr-directory instead). Small
+optimization in aggregation process function is implemented. Simplified
+counter size calculation is added. Hardcoded 'jpg' extension changed to low
+cased value of --extension command line option. Since this version the '.ext'
+form of extension is recognized as well. Documentation is expanded with NEWS -
+user friendly change log.
+
+
 * 0.19.1 *
 
 Several bugs were fixed. The thumbnail image did not rotate correctly. The

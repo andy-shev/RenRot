@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.19.1";	# the version of this script
+our $VERSION = "0.19.2";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 # Command line options
@@ -1111,9 +1111,9 @@ configuration file placement (with high priority first)
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Copyright 2005-2006, Zeus Panchenko
+Copyright 2005-2006, Zeus Panchenko, Andy Shevchenko.
 
 This library is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.

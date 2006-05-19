@@ -17,6 +17,8 @@ q  to write to some tag the options passed to renrot
 
 q  to implement %t in name template, where the array of desired tags will be inited
 
+-  smart rotation of Orientation tag (where used --only-orientation)
+
 
 Disk I/O
 
