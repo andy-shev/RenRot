@@ -69,6 +69,16 @@ sub dbgmsg {
 	}
 }
 
+# boolean value to string conversion
+sub boolConv {
+	my $var = shift;
+	if ($var == 0) {
+		return "No/Off";
+	} else {
+		return "Yes/On";
+	}
+}
+
 # parse command line arguments
 sub getOptions {
 	my $showVersion = 0;	# need version
@@ -98,24 +108,24 @@ sub getOptions {
 				    );
 
 	dbgmsg (3, "getOptions(): GetOptions results:\n");
-	dbgmsg (3, "getOptions(): --aggr: $aggr\n") if (defined $aggr);
-	dbgmsg (3, "getOptions(): --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
-	dbgmsg (3, "getOptions(): --aggr-directory: $aggrDir\n") if (defined $aggrDir);
-	dbgmsg (3, "getOptions(): --aggr-dumb: $aggrDumb\n") if (defined $aggrDumb);
-	dbgmsg (3, "getOptions(): --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
-	dbgmsg (3, "getOptions(): --comment-file: $comfile\n") if (defined $comfile);
-	dbgmsg (3, "getOptions(): --config-file: $configFile\n") if (defined $configFile);
-	dbgmsg (3, "getOptions(): --exclude:\n", join("\n", @excludeList), "\n") if ($#excludeList >= 0);
-	dbgmsg (3, "getOptions(): --extension: $extensionToProcess\n") if (defined $extensionToProcess);
-	dbgmsg (3, "getOptions(): --mtime: $mtime\n") if (defined $mtime);
-	dbgmsg (3, "getOptions(): --name-template: $nameTemplate\n") if (defined $nameTemplate);
-	dbgmsg (3, "getOptions(): --no-rename: $noRename\n") if (defined $noRename);
-	dbgmsg (3, "getOptions(): --no-rotate: $noRotation\n") if (defined $noRotation);
-	dbgmsg (3, "getOptions(): --only-orientation: $orientTag\n") if (defined $orientTag);
-	dbgmsg (3, "getOptions(): --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
-	dbgmsg (3, "getOptions(): --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
-	dbgmsg (3, "getOptions(): --work-directory: $workDir\n") if (defined $workDir);
-	dbgmsg (3, "getOptions(): ARGV:\n", join("\n", @ARGV), "\n") if ($#ARGV >= 0);
+	dbgmsg (3, "   --aggr: ", boolConv($aggr), "\n") if (defined $aggr);
+	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
+	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
+	dbgmsg (3, "   --aggr-dumb: ", boolConv($aggrDumb), "\n") if (defined $aggrDumb);
+	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
+	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
+	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
+	dbgmsg (3, "   --extension: $extensionToProcess\n") if (defined $extensionToProcess);
+	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
+	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
+	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
+	dbgmsg (3, "   --no-rotate: ", boolConv($noRotation), "\n") if (defined $noRotation);
+	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n") if (defined $orientTag);
+	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
+	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "   --work-directory: $workDir\n") if (defined $workDir);
+	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if (scalar(@ARGV) > 0);
 
 	if ($showHelp != 0) {
 		usage();
@@ -127,7 +137,7 @@ sub getOptions {
 		exit 0;
 	}
 
-	if (not defined $extensionToProcess) {
+	if (not defined $extensionToProcess or ($extensionToProcess eq "")) {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
 	}
@@ -223,13 +233,22 @@ my @angles = ( ''
 	, 'tv'
 	, '270cw' );	# the array of suffixes to add to the newfilename after rotating
 
+my %rotorient = (
+	1 => 0,
+	6 => 90,
+	3 => 180,
+	8 => 270
+);
+
+my %rotorientrev = reverse %rotorient;
+
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
-# if no file given
-if ( $#files < 0 and not @files ) {
+# if no file is given
+if (scalar(@files) == 0) {
 	opendir (DIR, $workDir) || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
-		next if (-d $file);			# skip directories, no recursion
+		next if (! -f $file);			# skip absent file or not a file
 		push @files, $file;
 	}
 	closedir(DIR);
@@ -237,7 +256,7 @@ if ( $#files < 0 and not @files ) {
 
 # independently of @files initialization doing this
 foreach $file ( @files ) {
-	next if (-d $file);				# skip directories, no recursion
+	next if (! -f $file);				# skip absent file or not a file
 	next if (grep {/^$file$/} @excludeList);	# skip excluded file
 	if ($file =~ m/\.$extensionToProcess$/) {
 		push @filenames, $file;
@@ -245,7 +264,7 @@ foreach $file ( @files ) {
 }
 
 # No file to process?
-if ($#filenames < 0) {
+if (scalar(@filenames) == 0) {
 	fatalmsg ("No files to process!\n");
 	exit 1;
 }
@@ -257,10 +276,10 @@ dbgmsg (1, "main(): Software: $softwareString\n");
 # here we're preparing the variable, which contains the format
 # of the counter output
 $counterprefixsize = "%." . length ($#filenames + 1) . "d";
-dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", $#filenames + 1, ")\n");
+dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", scalar(@filenames), ")\n");
 
 @files = sort @filenames;
-dbgmsg (4, "main(): Pushed files(", $#files + 1, "):\n", join("\n", @files), "\n");
+dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
 my $orientation;	# Orientation tag value
@@ -587,18 +606,25 @@ sub getUnixTime {
 
 ########################################################################################
 #
-# rotateOrient() rotates image by changing Orientation tag. No real rotation will be.
+# rotateOrient() rotates image by changing Orientation tag. No real rotation
+# will be made.
 #
 sub rotateOrient {
 	my $fileOrient = shift;
 	my $orientation = shift;
 
-	# FIXME: we need to consider previos Orientation tag value
-	if ($rotateAngle == 90) {
-		$orientation = 6;
-	} elsif ($rotateAngle == 270) {
-		$orientation = 8;
+	dbgmsg (4, "rotateOrient(): Original Orientation: $orientation\n");
+	my $angleTmp = $rotorient{$orientation};
+	if (not defined $angleTmp) {
+		errmsg ("Operation not permited for mirror orientation\n");
+		return;
 	}
+
+	$angleTmp += $rotateAngle;
+	$angleTmp -= 360 if ($angleTmp >= 360);
+
+	$orientation = $rotorientrev{$angleTmp};
+	dbgmsg (4, "rotateOrient(): New Orientation: $orientation\n");
 
 	$exifTool->SetNewValue("Orientation", $orientation, Type => 'ValueConv');
 	exifWritting($exifTool, $fileOrient, $fileOrient . "_orient");
@@ -616,9 +642,10 @@ sub rotateFile {
 	my $oldfile =  $_[0];			# original name
 	my $origfile = $_[0] . "_orig";	# backup original name
 	my $newfile =  $_[0] . "_rotated";	# temporay name to store rotated file
+	my $addon =    $_[1];
 
 	# jpegtran the image
-	my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $newfile . " " . $oldfile;
+	my $cmd = "jpegtran -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
 	dbgmsg (3, "rotateFile(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
@@ -645,6 +672,7 @@ sub rotateThumbnail {
 
 	if ( defined ${$$info{ThumbnailImage}} ) {
 		my $fileToThumbnail =  $_[0];			# original name
+		my $addon =            $_[1];
 
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $fileToThumbnail . "_thumborig";
@@ -657,7 +685,7 @@ sub rotateThumbnail {
 
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
-		my $cmd = "jpegtran -copy all " . $_[1] . " -outfile " . $ThumbnailOriginalRotated . " " . $ThumbnailOriginal;
+		my $cmd = "jpegtran -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
@@ -787,10 +815,10 @@ sub template2name {
 	my $substroffset = 0;
 	my $substrchar;
 
-	dbgmsg (4, "template2name(): '$template' (length: " . ($#templatearea + 1) .")\n");
-	while ( $substroffset <= $#templatearea ) {
+	dbgmsg (4, "template2name(): '$template' (length: " . scalar(@templatearea) .")\n");
+	while ($substroffset < scalar(@templatearea)) {
 		$substrchar = $templatearea[$substroffset++];
-		if ( $substrchar eq "%" and $substroffset <= $#templatearea ) {
+		if ($substrchar eq "%" and $substroffset < scalar(@templatearea)) {
 			$substrchar = $templatearea[$substroffset++];
 			if ( defined $templatehash{$substrchar} ) {
 				$thename .= $templatehash{$substrchar};

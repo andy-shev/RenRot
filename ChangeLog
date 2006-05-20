@@ -1,4 +1,11 @@
 $Log$
+Revision 1.87  2006/05/20 18:52:27  andy
+No empty --extension argument.
+Fix bug when rotating file name contains special symbols.
+Change ($#var + 1) to scalar(@var) for optimization.
+No attempt to process absent files.
+Smart Orientation tag rotation is implemented for rotation process.
+
 Revision 1.86  2006/05/19 11:50:16  andy
 Change URL tag in spec file.
 Release as 0.19.2.
@@ -344,3 +351,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
