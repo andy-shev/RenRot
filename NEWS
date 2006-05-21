@@ -1,3 +1,11 @@
+* 0.19.3 *
+
+The bug when rotating file name contains special symbols was fixed. Now the
+empty --extension argument is no available. A small optimization has been
+implemented. No attempt to process the absent files. The smart Orientation tag
+rotation is implemented for rotation process.
+
+
 * 0.19.2 *
 
 The --rotate and --ext option aliases have been removed, and -aggr-dir has
