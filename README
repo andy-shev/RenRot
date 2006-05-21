@@ -44,6 +44,7 @@ namely RenRot? Because:
       libjpeg6 (the best open tool to operate JPEG format files, to correctly
       rotate both, the very file and the thumbnail inside it);
     - it has very much flex file naming and aggregation template engines;
+    - it uses original algorithm of smart Orientation tag rotation;
     - it works in batch mode.
 
 
@@ -71,7 +72,7 @@ the script:
     rotate each file and their thumbnail by 90CW in specified directory
 	renrot --rotate-angle 90 --work-directory="/tmp/images" --extension jpg
 
-    rotate thumbnails, included to EXIF, for each file by 90CCW
+    rotate thumbnails, included to EXIF, for each file by 270CW (same as 90CCW)
 	renrot --rotate-thumb 270 --extension jpg
 
     fix file mtime according to its EXIF tags or current time stamp, when tags
@@ -88,10 +89,11 @@ the script:
 RESTRICTIONS
 
 RenRot has some restrictions at runtime. First off, script handles a whole
-directory without recursion and only with one extension of files.
-Second, algorithm treat each file with given extension as the image.
-Otherwise, file will be renamed to the current time stamp when --no-rename
-option is omitted.
+directory without recursion and only with one extension of files. Second,
+algorithm treat each file with given extension as the image. Otherwise, file
+will be renamed to the current time stamp when --no-rename option is omitted.
+Third, rename operation is not permited between different partitions due to
+hard link technology used (this will be avoided in future).
 
 
 DEBUGGING

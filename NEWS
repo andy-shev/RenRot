@@ -1,9 +1,9 @@
 * 0.19.3 *
 
-The bug when rotating file name contains special symbols was fixed. Now the
-empty --extension argument is no available. A small optimization has been
-implemented. No attempt to process the absent files. The smart Orientation tag
-rotation is implemented for rotation process.
+The bug which occurred when rotating filenames containing special symbols has
+been fixed. The empty --extension argument is no longer available. A small
+optimization has been implemented. No attempt is made to process absent files.
+Smart Orientation tag rotation has been implemented for the rotation process.
 
 
 * 0.19.2 *

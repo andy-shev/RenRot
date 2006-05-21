@@ -31,8 +31,8 @@ my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ex
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
-my $rotateAngle;	# define the angle, to rotate on, 90 or 270
-my $rotateThumbnail; 	# define the angle, to rotate on, 90 or 270
+my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
+my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $verbose = 0;	# verbosity of output
 my $workDir = '.';	# we'll work ONLY in current directory
 
@@ -86,7 +86,7 @@ sub getOptions {
 	my $getOptions = GetOptions (
 					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
-					"aggr-directory|aggr-dir=s" => \$aggrDir,
+					"aggr-directory=s" => \$aggrDir,
 					"aggr-dumb!" => \$aggrDumb,
 					"aggr-template=s" => \$aggrTemplate,
 					"comment-file=s" => \$comfile,
@@ -221,7 +221,8 @@ my @rotparms = (''
         , '-transverse'
         , '-rotate 270');	# array of options to jpegtran to rotate the file
 
-my %rotangles = ( '90' => '-rotate 90',
+my %rotangles = ('90' => '-rotate 90',
+		 '180' => '-rotate 180',
 		 '270' => '-rotate 270');	# array of options to rotate file "by hands"
 
 my @angles = ( ''
@@ -281,7 +282,7 @@ dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", 
 @files = sort @filenames;
 dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
-our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw or 270cw
+our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw, 180cw or 270cw
 my $orientation;	# Orientation tag value
 
 procmsg ("RENAMING / ROTATING\n===================\n");
@@ -532,7 +533,7 @@ sub aggregateFile {
 #
 sub timeNow {
 	my $date = localtime();
-	my $timeNow = sprintf("%04d%02d%02d%02d%02d%02d",
+	my $timeNow = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
 		$$date[5] + 1900, $$date[4] + 1, $$date[3],
 		$$date[2], $$date[1], $$date[0]);
 	return $timeNow;
@@ -731,8 +732,8 @@ Options:
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
-  -r, --rotate-angle <90|270>	define the angle, to rotate file and the thumbnail on, 90 or 270 (it's for the files where no Orientation tag is present and set right way)
-  --rotate-thumb <90|270>	rotate only thumbnail by 90 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
+  -r, --rotate-angle <ANGLE>	define the angle to rotate file and the thumbnail on 90, 180 or 270 (it's for the files where no Orientation tag is present and set right way)
+  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
   --only-orientation		rotate by changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			to set file mtime according DateTimeOriginal tag value
@@ -944,19 +945,25 @@ B<%y>	last two digits of year (00..99)
 
 no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 
-=item B<--rotate-angle> I<90> or I<270>
+=item B<--rotate-angle> I<ANGLE>
 
-define the angle, to rotate file and the thumbnail on, 90 or 270. It's for the
+define the angle to rotate file and the thumbnail on 90, 180 or 270. It's for the
 files where no Orientation tag is set right way.
 
-=item B<--rotate-thumb> I<90> or I<270>
+=item B<--rotate-thumb> I<ANGLE>
 
-rotate only thumbnail by 90 or 270 degree. It's for the files which were
+rotate only thumbnail by 90, 180 or 270 degree. It's for the files which were
 rotated, but thumbnail wasn't.
 
 =item B<--only-orientation>
 
-rotate by changing Orientation tag, no real rotation
+rotate by changing Orientation tag, no real rotation will be made. The
+sequence of values when rotating image from normal (0 degrees) by 90cw is: 0
+-> 90 -> 180 -> 270 -> 0. It means set Orientation tag to 90cw after first
+usage of rotation by 90cw and so on. For 270cw rotation algorithm uses
+reversed sequence. Rotation by 180cw triggers values in two pairs: 0 <-> 180
+and 90 <-> 270. This option can't be applied to mirror values of Orientation
+tag.
 
 =item B<--no-rotate>
 
