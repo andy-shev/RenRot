@@ -1,4 +1,7 @@
 $Log$
+Revision 1.90  2006/05/22 18:22:27  andy
+Implement the configuration file parser.
+
 Revision 1.89  2006/05/21 19:01:46  andy
 Write more explanation of Orientation tag rotation in README and manual.
 Add new restriction to related section of README. Also fix TODO according last changes.
@@ -360,4 +363,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

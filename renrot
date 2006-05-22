@@ -14,7 +14,10 @@ use Getopt::Long;
 our $VERSION = "0.19.3";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
+########################################################################################
+#
 # Command line options
+#
 my $aggr = 0;		# execute aggregation after main process
 my $aggrDelta;		# aggregation time delta in seconds (file with delta > $aggrDelta is placed in new DIR)
 my $aggrDir;		# counterless directory name for "delta" type aggregation
@@ -69,7 +72,10 @@ sub dbgmsg {
 	}
 }
 
-# boolean value to string conversion
+########################################################################################
+#
+# boolConv() converts boolean value to human readable string
+#
 sub boolConv {
 	my $var = shift;
 	if ($var == 0) {
@@ -79,7 +85,24 @@ sub boolConv {
 	}
 }
 
-# parse command line arguments
+########################################################################################
+#
+# boolConverter() converts given string to a boolean value
+#
+sub boolConverter {
+	my $value = shift;
+	if ($value =~ m/^(0|No|False|Off)$/i) {
+		return 0;
+	} elsif ($value =~ m/^(1|Yes|True|On)$/i) {
+		return 1;
+	}
+	return $value;
+}
+
+########################################################################################
+#
+# getOptions() parses command line arguments
+#
 sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
@@ -152,11 +175,66 @@ sub getOptions {
 	dbgmsg (1, "getOptions(): Process with '$extensionToProcess' extension.\n");
 }
 
+########################################################################################
+#
+# trimValue() removes heading and trailing spaces
+#
+sub trimValue {
+	my $value = shift;
+	$value =~ s/\s*([^\s]+.*[^\s]+)\s*/$1/;
+	return $value;
+}
+
+########################################################################################
+#
+# getConfig() parses configuration file
+#
+sub getConfig {
+	my $file = shift;
+
+	my %hConfig;
+
+	if (open (CFGFILE, "<$file")) {
+		my @cfgfile = <CFGFILE>;
+		unless (close (CFGFILE)) { errmsg ("$file wasn't closed!\n"); }
+		my $i = 0;
+		while ($i < scalar(@cfgfile)) {
+			my $line = $cfgfile[$i++];
+
+			# skip empty and comment lines
+			next if (($line =~ m/^\s*$/) or ($line =~ m/^\s*#/));
+
+			$line =~ s/#(.*)$//;				# remove trailing comments
+
+			# Format is: multiword key = "value" # comment
+			if ($line =~ m/^([^=]+)=(.+)/) {
+				my ($key, $value) = (lc(trimValue($1)), trimValue($2));
+				$value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
+				$hConfig{$key} = boolConverter($value);
+				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
+			} else {
+				warnmsg ("Unparsed line $i in configuration file.\n");
+			}
+		}
+	} else {
+		errmsg ("Can't open configuration file: $file\n");
+	}
+
+	return %hConfig;
+}
+
+########################################################################################
+#
+# MAIN() renames and rotates given files
+#
+
 # parse command line options
 getOptions();
 
 my $lce = lc($extensionToProcess);	# low cased extension
 @files = @ARGV;				# all things in ARGV will be treated as file names to process
+
+my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
 # the default, expected to be defined in the config file
 our $COMMENTARY;
@@ -174,8 +252,6 @@ our $AggrTemplate = '%Y%m%d';		# aggregation template
 our $AggrDelta = 900;
 our $AggrDir = 'DIR';
 our $AggrDumb = 1;
-
-my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
 my $etc_rc = "/etc/renrot.rc";
 my $usr_local_etc_rc = "/usr/local/etc/renrot.rc";
