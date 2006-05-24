@@ -1,4 +1,10 @@
 $Log$
+Revision 1.91  2006/05/24 03:43:04  andy
+New configuration file style is imlemented.
+Switch to new style by --no-old-config (default 'Yes').
+Use --user-comment="comment" or "Tag UserComment = 'comment'" to add UserComment tag (formerly COMMENTARY).
+Now "comment file = '/patch/to/commentary'" in configuration sets commentary filename.
+
 Revision 1.90  2006/05/22 18:22:27  andy
 Implement the configuration file parser.
 
@@ -363,3 +369,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

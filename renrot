@@ -16,6 +16,29 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
 #
+# Parsed configuration file in hash
+#
+my %configOptions = (
+			'aggregation delta' => 900,
+			'aggregation directory' => 'DIR',
+			'aggregation dumb' => 1,
+			'aggregation template' => '%Y%m%d',
+			'comment file' => undef,
+			'mtime' => 1,
+			'name template' => '%Y%m%d%H%M%S',
+			'tag ciadrcity'  => undef,
+			'tag ciadrctry' => undef,
+			'tag ciadrextadr' => undef,
+			'tag ciadrpcode' => undef,
+			'tag ciadrregion' => undef,
+			'tag ciemailwork' => undef,
+			'tag citelwork' => undef,
+			'tag ciurlwork' => undef,
+			'tag usercomment' => undef,
+		    );
+
+########################################################################################
+#
 # Command line options
 #
 my $aggr = 0;		# execute aggregation after main process
@@ -33,9 +56,11 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
+my $oldCfg = 1;		# use old style of configuration file
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
+my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = '.';	# we'll work ONLY in current directory
 
@@ -79,9 +104,9 @@ sub dbgmsg {
 sub boolConv {
 	my $var = shift;
 	if ($var == 0) {
-		return "No/Off";
+		return "No";
 	} else {
-		return "Yes/On";
+		return "Yes";
 	}
 }
 
@@ -121,16 +146,17 @@ sub getOptions {
 					"name-template=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
 					"no-rotate" => \$noRotation,
+					"old-config!" => \$oldCfg,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
+					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
 					"version" => \$showVersion,
 					"work-directory|d=s" => \$workDir,
 				    );
 
-	dbgmsg (3, "getOptions(): GetOptions results:\n");
 	dbgmsg (3, "   --aggr: ", boolConv($aggr), "\n") if (defined $aggr);
 	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
@@ -144,6 +170,7 @@ sub getOptions {
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
 	dbgmsg (3, "   --no-rotate: ", boolConv($noRotation), "\n") if (defined $noRotation);
+	dbgmsg (3, "   --old-config: ", boolConv($oldCfg), "\n") if (defined $oldCfg);
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n") if (defined $orientTag);
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
@@ -225,6 +252,71 @@ sub getConfig {
 
 ########################################################################################
 #
+# parseConfig() parses user's or standart configuration files to hash
+#
+sub parseConfig {
+	my $file = shift;
+	my @rcFiles = (
+			"/etc/renrot.rc",
+			"/usr/local/etc/renrot.rc",
+			$ENV{"HOME"} . "/" . ".renrotrc",
+		      );
+
+	@rcFiles = ($file) if (defined $file);
+	my $rcfile;
+	if ($oldCfg == 0) {
+		foreach $rcfile (@rcFiles) {
+			#if (-f $rcfile) {
+				my %tmpConfig = getConfig($rcfile);
+				foreach my $key (keys %tmpConfig) {
+					$configOptions{$key} = $tmpConfig{$key};
+				}
+			#}
+		}
+		return;
+	}
+
+	our $COMMENTARY;
+	our $CiAdrCity;
+	our $CiAdrCtry;
+	our $CiAdrExtadr;
+	our $CiAdrPcode;
+	our $CiAdrRegion;
+	our $CiEmailWork;
+	our $CiTelWork;
+	our $CiUrlWork;
+	our $Mtime = 1;
+	our $NameTemplate = '%Y%m%d%H%M%S';
+	our $AggrTemplate = '%Y%m%d';
+	our $AggrDelta = 900;
+	our $AggrDir = 'DIR';
+	our $AggrDumb = 1;
+
+	foreach $rcfile (@rcFiles) {
+		do $rcfile if (-f $rcfile);
+	}
+
+	%configOptions = (
+				'aggregation delta' => $AggrDelta,
+				'aggregation directory' => $AggrDir,
+				'aggregation dumb' => $AggrDumb,
+				'aggregation template' => $AggrTemplate,
+				'mtime' => $Mtime,
+				'name template' => $NameTemplate,
+				'tag ciadrcity' => $CiAdrCity,
+				'tag ciadrctry' => $CiAdrCtry,
+				'tag ciadrextadr' => $CiAdrExtadr,
+				'tag ciadrpcode' => $CiAdrPcode,
+				'tag ciadrregion' => $CiAdrRegion,
+				'tag ciemailwork' => $CiEmailWork,
+				'tag citelwork' => $CiTelWork,
+				'tag ciurlwork' => $CiUrlWork,
+				'tag usercomment' => $COMMENTARY,
+			 );
+}
+
+########################################################################################
+#
 # MAIN() renames and rotates given files
 #
 
@@ -236,41 +328,17 @@ my $lce = lc($extensionToProcess);	# low cased extension
 
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
-# the default, expected to be defined in the config file
-our $COMMENTARY;
-our $CiAdrCity;
-our $CiAdrCtry;
-our $CiAdrExtadr;
-our $CiAdrPcode;
-our $CiAdrRegion;
-our $CiEmailWork;
-our $CiTelWork;
-our $CiUrlWork;
-our $Mtime = 1;
-our $NameTemplate = '%Y%m%d%H%M%S';	# name template
-our $AggrTemplate = '%Y%m%d';		# aggregation template
-our $AggrDelta = 900;
-our $AggrDir = 'DIR';
-our $AggrDumb = 1;
-
-my $etc_rc = "/etc/renrot.rc";
-my $usr_local_etc_rc = "/usr/local/etc/renrot.rc";
-my $home_rc = $ENV{"HOME"} . "/.renrotrc";;
-
-if ( defined ( $configFile ) and -f $configFile ) { do $configFile; }
-else {
-	if ( -f $etc_rc ) { do $etc_rc; }
-	if ( -f $usr_local_etc_rc ) { do $usr_local_etc_rc; }
-	if ( -f $home_rc ) { do $home_rc; }
-}
+parseConfig($configFile);
 
 # redefining options set in config with set via CLI ones
-$Mtime		= $mtime if (defined $mtime);
-$NameTemplate	= $nameTemplate if (defined $nameTemplate);
-$AggrTemplate	= $aggrTemplate if (defined $aggrTemplate);
-$AggrDelta	= $aggrDelta if (defined $aggrDelta);
-$AggrDumb	= $aggrDumb if (defined $aggrDumb);
-$AggrDir	= $aggrDir if (defined $aggrDir);
+$configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
+$configOptions{'aggregation dumb'}	= $aggrDumb if (defined $aggrDumb);
+$configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
+$configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
+$configOptions{'comment file'}		= $comfile if (defined $comfile);
+$configOptions{'mtime'}			= $mtime if (defined $mtime);
+$configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
+$configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 
 # ExifTool object configuration
 our $exifTool = new Image::ExifTool;
@@ -422,7 +490,7 @@ foreach $file ( @files ) {
 		}
 	}
 	else {
-		$newfilename = template2name($NameTemplate);
+		$newfilename = template2name($configOptions{'name template'});
 		if ( $filenameshash{$newfilename} ) {
 			$newfilename .= "." . sprintf($counterprefixsize,$filecounter);
 		}
@@ -445,10 +513,10 @@ foreach $file ( @files ) {
 	#
 	## analyzing whether to comment
 	#
-	if ( $comfile ) {
-		if ( open ( COMMENT, "<$comfile" ) ) {
+	if ($configOptions{'comment file'}) {
+		if (open(COMMENT, "<$configOptions{'comment file'}")) {
 			my @commentar = <COMMENT>;
-			unless ( close ( COMMENT ) ) { errmsg ("$comfile wasn't closed!\n"); }
+			unless (close(COMMENT)) { errmsg ("$configOptions{'comment file'} wasn't closed!\n"); }
 			$comment = join ( '', @commentar );
 			# preparing to write the commentary
 			$exifTool->SetNewValue(Comment => $comment);
@@ -461,41 +529,43 @@ foreach $file ( @files ) {
 	## preparing to write the UserComment and some additional tags
 	#
 	if ( not defined $noRename ) {
-		if ( defined ( $COMMENTARY ) ) { $exifTool->SetNewValue(UserComment => $COMMENTARY); }
-
-		if ( defined ( $CiAdrCity ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $CiAdrCity, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrCtry ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $CiAdrCtry, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrExtadr ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $CiAdrExtadr, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrPcode ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $CiAdrPcode, Group=>'XMP');
-		}
-		if ( defined ( $CiAdrRegion ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $CiAdrRegion, Group=>'XMP');
-		}
-		if ( defined ( $CiEmailWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $CiEmailWork, Group=>'XMP');
-		}
-		if ( defined ( $CiTelWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $CiTelWork, Group=>'XMP');
-		}
-		if ( defined ( $CiUrlWork ) ) {
-			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $CiUrlWork, Group=>'XMP');
+		if (defined $configOptions{'tag usercomment'}) {
+			$exifTool->SetNewValue(UserComment => $configOptions{'tag usercomment'});
 		}
 
-		$exifTool->SetNewValue('Software', $softwareString, Group=>'EXIF');
+		if (defined $configOptions{'tag ciadrcity'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $configOptions{'tag ciadrcity'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciadrctry'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $configOptions{'tag ciadrctry'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciadrextadr'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $configOptions{'tag ciadrextadr'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciadrpcode'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $configOptions{'tag ciadrpcode'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciadrregion'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $configOptions{'tag ciadrregion'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciemailwork'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $configOptions{'tag ciemailwork'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag citelwork'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $configOptions{'tag citelwork'}, Group => 'XMP');
+		}
+		if (defined $configOptions{'tag ciurlwork'}) {
+			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $configOptions{'tag ciurlwork'}, Group => 'XMP');
+		}
+
+		$exifTool->SetNewValue('Software', $softwareString, Group => 'EXIF');
 
 		# writing the changes to the EXIFs
 		exifWritting($exifTool, $newfilename, $newfilename . "_comment");
 	}
 
 	# seting mtime for the file if been asked for
-	if ($Mtime != 0) {
+	if ($configOptions{'mtime'} != 0) {
 		my $mTime = getUnixTime(getTimestamp());
 		utime $mTime,$mTime,$newfilename;
 		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
@@ -549,7 +619,7 @@ sub aggregationProcess {
 	my $DirCounter = 1;
 
 	procmsg ("AGGREGATION\n===========\n");
-	dbgmsg (1, "aggregationProcess(): Aggregation template: $AggrTemplate\n");
+	dbgmsg (1, "aggregationProcess(): Aggregation template: $configOptions{'aggregation template'}\n");
 
 	$filecounter = 1;
 
@@ -559,13 +629,13 @@ sub aggregationProcess {
 		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
-		if ($AggrTemplate eq "delta") {
+		if ($configOptions{'aggregation template'} eq "delta") {
 			if ($filecounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
 				$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
 				$DirCounter++;
-				aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+				aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
 				procmsg ("Aggregate: $filePrev -> $NewDir\n");
 			} else {
 				# Check for new direcroty creation
@@ -573,14 +643,14 @@ sub aggregationProcess {
 					$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
 					$DirCounter++;
 				}
-				aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+				aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
 				procmsg ("Aggregate: $file -> $NewDir\n");
 				$timestampPrev = $filenameshash{$filetmp};
 			}
 		}
 		else {
-			$NewDir = template2name($AggrTemplate);
-			aggregateFile($file, $NewDir) if ($AggrDumb == 0);
+			$NewDir = template2name($configOptions{'aggregation template'});
+			aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
 			procmsg ("Aggregate: $file -> $NewDir\n");
 		}
 		procmsg ("\n");
@@ -661,7 +731,7 @@ sub getTimestamp {
 	}
 	else {
 		$timestamp = timeNow();
-		$exifTool->SetNewValue('FileModifyDate', $timestamp, Group=>'File');
+		$exifTool->SetNewValue('FileModifyDate', $timestamp, Group => 'File');
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
 
