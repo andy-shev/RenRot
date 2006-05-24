@@ -1,4 +1,10 @@
 $Log$
+Revision 1.92  2006/05/24 21:12:37  andy
+Don't require and set available empty extension for file set.
+Validate angle value for --rotate-angle and --rotate-thumbnail.
+Don't use re with extension - it cause problem with special symbols in file name.
+Should be fixed --work-directory parameter handling (BR by Jan Vereecke).
+
 Revision 1.91  2006/05/24 03:43:04  andy
 New configuration file style is imlemented.
 Switch to new style by --no-old-config (default 'Yes').
@@ -369,4 +375,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

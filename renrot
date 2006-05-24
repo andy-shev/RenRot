@@ -49,7 +49,7 @@ my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
 my $configFile;		# config file
 my @excludeList;	# files that will be excluded from list
-my $extensionToProcess;	# the extension of files to work with
+my $extToProcess = "";	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
@@ -63,6 +63,16 @@ my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = '.';	# we'll work ONLY in current directory
+
+########################################################################################
+#
+# Global variables (internal)
+#
+my %rotangles = (
+			'90' => '-rotate 90',
+			'180' => '-rotate 180',
+			'270' => '-rotate 270'
+		);	# array of options to rotate file "by hands"
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
 sub procmsg {
@@ -140,7 +150,7 @@ sub getOptions {
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"exclude=s" => \@excludeList,
-					"extension|e=s" => \$extensionToProcess,
+					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
 					"mtime!" => \$mtime,
 					"name-template=s" => \$nameTemplate,
@@ -157,6 +167,8 @@ sub getOptions {
 					"work-directory|d=s" => \$workDir,
 				    );
 
+	my $fileCount = scalar(@ARGV);
+
 	dbgmsg (3, "   --aggr: ", boolConv($aggr), "\n") if (defined $aggr);
 	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
@@ -165,7 +177,7 @@ sub getOptions {
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
-	dbgmsg (3, "   --extension: $extensionToProcess\n") if (defined $extensionToProcess);
+	dbgmsg (3, "   --extension: $extToProcess\n") if (defined $extToProcess);
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
@@ -175,7 +187,7 @@ sub getOptions {
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "   --work-directory: $workDir\n") if (defined $workDir);
-	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if (scalar(@ARGV) > 0);
+	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
 	if ($showHelp != 0) {
 		usage();
@@ -187,7 +199,7 @@ sub getOptions {
 		exit 0;
 	}
 
-	if (not defined $extensionToProcess or ($extensionToProcess eq "")) {
+	if ($extToProcess eq "" and ($fileCount == 0)) {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
 	}
@@ -197,9 +209,16 @@ sub getOptions {
 		exit 1;
 	}
 
-	# change user's parameter '*.ext' or '.ext' to 'ext'
-	$extensionToProcess =~ s/^\*?\.//;
-	dbgmsg (1, "getOptions(): Process with '$extensionToProcess' extension.\n");
+	# Validate angle value
+	if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
+	    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
+		fatalmsg ("Angle should be 90, 180 or 270!\n");
+		exit 1;
+	}
+
+	# Change user's parameter '*.ext' or 'ext' to '.ext'
+	$extToProcess =~ s/^\*?\.?/\./ if ($fileCount == 0);
+	dbgmsg (1, "getOptions(): Process with '$extToProcess' extension.\n");
 }
 
 ########################################################################################
@@ -323,7 +342,8 @@ sub parseConfig {
 # parse command line options
 getOptions();
 
-my $lce = lc($extensionToProcess);	# low cased extension
+my $lce = lc($extToProcess);		# low cased extension
+my $etpLen = length($extToProcess);	# length of given extension
 @files = @ARGV;				# all things in ARGV will be treated as file names to process
 
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
@@ -365,10 +385,6 @@ my @rotparms = (''
         , '-transverse'
         , '-rotate 270');	# array of options to jpegtran to rotate the file
 
-my %rotangles = ('90' => '-rotate 90',
-		 '180' => '-rotate 180',
-		 '270' => '-rotate 270');	# array of options to rotate file "by hands"
-
 my @angles = ( ''
 	, 'fh'
 	, '180cw'
@@ -391,7 +407,7 @@ chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
 # if no file is given
 if (scalar(@files) == 0) {
-	opendir (DIR, $workDir) || ( fatalmsg ("Can't open $workDir!\n"), die );
+	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
 		next if (! -f $file);			# skip absent file or not a file
 		push @files, $file;
@@ -403,7 +419,7 @@ if (scalar(@files) == 0) {
 foreach $file ( @files ) {
 	next if (! -f $file);				# skip absent file or not a file
 	next if (grep {/^$file$/} @excludeList);	# skip excluded file
-	if ($file =~ m/\.$extensionToProcess$/) {
+	if (substr($file, length($file) - $etpLen) eq $extToProcess) {
 		push @filenames, $file;
 	}
 }
@@ -468,7 +484,7 @@ foreach $file ( @files ) {
 				$anglesuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
-				dbgmsg (2, "main(): No need to rotate, orientation is: Horisontal (normal).\n");
+				dbgmsg (2, "main(): No need to rotate, orientation is: Horizontal (normal).\n");
 			}
 			else {
 				errmsg ("Something wrong, orientation low than 1: $orientation.\n");
@@ -485,7 +501,9 @@ foreach $file ( @files ) {
 	#
 	if ( defined $noRename ) {
 		dbgmsg (2, "main(): No renaming asked, filename is left untouched.\n");
-		if (($newfilename) = ($file =~ m/^(.+)\.$lce/)) {
+		my $fweLen = length($file) - $etpLen;		# length of filename w/o extension
+		if ((substr($file, $fweLen) eq $lce) and
+		    ($newfilename = substr($file, 0, $fweLen)) ne "") {
 			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 		}
 	}
@@ -496,7 +514,7 @@ foreach $file ( @files ) {
 		}
 		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
 
-		$newfilename .= "." . $lce;
+		$newfilename .= $lce;
 
 		if ( $file ne $newfilename ) {
 			if ( -f $newfilename ) {
@@ -625,7 +643,7 @@ sub aggregationProcess {
 
 	foreach $file ( sort ( keys %filenameshash ) ) {
 		$filetmp = $file;
-		$file .= "." . $lce;
+		$file .= $lce;
 		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 		$info = $exifTool->ImageInfo($file);
 
