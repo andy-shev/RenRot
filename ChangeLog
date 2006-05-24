@@ -1,4 +1,8 @@
 $Log$
+Revision 1.93  2006/05/24 21:30:13  andy
+Release as 0.20rc1.
+Public testing version.
+
 Revision 1.92  2006/05/24 21:12:37  andy
 Don't require and set available empty extension for file set.
 Validate angle value for --rotate-angle and --rotate-thumbnail.
@@ -375,3 +379,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
