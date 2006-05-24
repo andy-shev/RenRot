@@ -27,7 +27,7 @@ Personal details can be specified via XMP tags defined in a
 configuration file.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}rc1
 
 %build
 %{__perl} Makefile.PL PREFIX=%{_prefix}
