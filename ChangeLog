@@ -1,4 +1,11 @@
 $Log$
+Revision 1.94  2006/05/25 07:02:51  andy
+Fix NEWS spelling according to FreshMeat announce.
+New configuration file style is described in README.
+Use new configuration file style by default.
+Add some needed comments to renrot.rc.
+Revert check for configuration file presence in parseConfig().
+
 Revision 1.93  2006/05/24 21:30:13  andy
 Release as 0.20rc1.
 Public testing version.
@@ -379,4 +386,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

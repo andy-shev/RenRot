@@ -1,13 +1,12 @@
 * 0.20rc1 *
 
-Release candidat to version 0.20 presents new style of the configuration file.
-New option --user-comment provides set UserComment tag from command line. The
---aggr-dir option alias has been removed. The 180 degree is approved to be
-used with --rotate-angle or --rotate-thumb option and their parameter is
-checked for correctness. Special symbols in filenames causes problem that
-should be fixed. Don't require and set available empty extension for file set.
---work-directory must work properly now. Documentation was expanded by
-explanation of Orientation tag rotation.
+This release presents a new style of the configuration file. The new option,
+--user-comment, allows the UserComment tag to be set from the command line.
+The --aggr-dir option alias has been removed. The 180 degree may now be used
+with the --rotate-angle or --rotate-thumb options, and their parameters are
+checked for correctness. Special symbols in filenames should no longer cause
+problems. The --work-directory options should work properly now. The
+documentation was expanded with an explanation of Orientation tag rotation.
 
 
 * 0.19.3 *

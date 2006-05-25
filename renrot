@@ -56,7 +56,7 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
-my $oldCfg = 1;		# use old style of configuration file
+my $oldCfg = 0;		# use old style of configuration file
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
@@ -285,12 +285,12 @@ sub parseConfig {
 	my $rcfile;
 	if ($oldCfg == 0) {
 		foreach $rcfile (@rcFiles) {
-			#if (-f $rcfile) {
+			if (-f $rcfile) {
 				my %tmpConfig = getConfig($rcfile);
 				foreach my $key (keys %tmpConfig) {
 					$configOptions{$key} = $tmpConfig{$key};
 				}
-			#}
+			}
 		}
 		return;
 	}
@@ -1027,9 +1027,9 @@ The script, also, is placing commentary into:
 
 =over
 
-- Commentary tag, if commentary file provided with B<--comment-file> option
+- Commentary tag from file (see B<--comment-file> option)
 
-- UserComment tag, if COMMENTARY variable set in configuration file
+- UserComment tag from configuration variable (see L<CONFIG> section)
 
 =back
 
@@ -1047,18 +1047,14 @@ date/time pattern template, set with B<--aggr-template>.
 
 location of the configuration file
 
-=item B<--comment-file> I<Comment FILE>
-
-file with commentary
-
 =item B<-d> or B<--work-directory> I<DIR>
 
 define the working directory
 
 =item B<--exclude> I<FILE>
 
-specify files to exclude. No wildcards are available. For set of files
-option must be occured as same time as files given.
+specify files to exclude. No wildcards are available. For set of files option
+must be occured same times as files given.
 
 =item B<-e> or B<--extension> I<EXTENSION>
 
@@ -1170,6 +1166,14 @@ B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 description, please, turn to B<--name-template> option. For practical results
 look L<EXAMPLES> section.
 
+=item B<--comment-file> I<Comment FILE>
+
+file with commentary
+
+=item B<--user-comment> I<User's commentary>
+
+text to put into UserComment tag
+
 =item B<-v>
 
 one or more I<-v> sets debug level. From 1 to 4 - internal levels,
@@ -1236,61 +1240,64 @@ will be put to the directory I<20040131>.
 
 =head1 CONFIG
 
-Config file could be used to set some variables. Config file is just perl
-code. B<RenRot> looks for B<--config-file> option firstly, than it looks for
-file named renrot.rc in system directories such as /etc and /usr/local/etc.
-And finally it looks for file named .renrotrc in home directory of the user.
-User defined configuration file can be given via B<--config-file> option.
+Config file could be used to set some variables. Config file is just set of
+case-insensivity keys and its values separated by equal sign. Boolean
+variables can be defined via following keywords: 0, No, False, Off for false,
+and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file> option
+firstly, than it looks for file named renrot.rc in system directories such as
+/etc and /usr/local/etc. And finally it looks for file named .renrotrc in home
+directory of the user. User defined configuration file can be given via
+B<--config-file> option.
 
-These tags could be set via configuration file:
+These variables could be set via configuration file:
 
 =over
 
-=item B<Mtime>
+=item B<mtime>
 
-set to 1 for synchronize mtime with tags, otherwise set it to 0
+set to Yes for synchronize mtime with tags, otherwise set it to No
 
-=item B<NameTemplate>
+=item B<name template>
 
 name template, which defines the file name look (see B<--name-template>)
 
-=item B<AggrTemplate>
+=item B<aggregation template>
 
 aggregation template, which defines the file aggregation (see B<--aggr-template>)
 
-=item B<UserComment>
+=item B<Tag UserComment>
 
 anything you'd wanna put as commentary
 
-=item B<CiAdrCity>
+=item B<Tag CiAdrCity>
 
 city tag
 
-=item B<CiAdrCtry>
+=item B<Tag CiAdrCtry>
 
 country tag
 
-=item B<CiAdrExtadr>
+=item B<Tag CiAdrExtadr>
 
 extended address (usually street and apartments)
 
-=item B<CiAdrPcode>
+=item B<Tag CiAdrPcode>
 
 zip code
 
-=item B<CiAdrRegion>
+=item B<Tag CiAdrRegion>
 
 region
 
-=item B<CiEmailWork>
+=item B<Tag CiEmailWork>
 
 email
 
-=item B<CiTelWork>
+=item B<Tag CiTelWork>
 
 phone
 
-=item B<CiUrlWork>
+=item B<Tag CiUrlWork>
 
 URL
 
@@ -1298,7 +1305,7 @@ URL
 
 =head1 FILES
 
-configuration file placement (with high priority first)
+Configuration file placement (with high priority first):
 
 =over
 
@@ -1319,6 +1326,6 @@ the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Image::ExifTool(3pm)|Image::ExifTool>,L<jpegtran(1)>
+L<Image::ExifTool(3pm)|Image::ExifTool>,L<exiftool(1)>,L<jpegtran(1)>
 
 =cut

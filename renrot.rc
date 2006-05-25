@@ -4,7 +4,7 @@
 # Note: all options except 'tag' prefixed is overriden by CLI.
 
 # Process files with or without mtime modification.
-#mtime			= yes
+#mtime			= Yes
 
 # Template is used for file name building while renaming. Interpreted
 # sequences are:
@@ -38,16 +38,17 @@
 #aggregation delta	= 900
 
 # Dumb aggregation mode.
-# (if true, no file will be moved or directory will be created)
-#aggregation dumb	= yes
+# (If true, no file will be moved or directory will be created)
+#aggregation dumb	= Yes
 
 # Counterless aggregation directory name.
 #aggregation directory	= 'DIR'
 
-# The commentary filename to put to Comment tag.
+# The commentary filename to put to Comment tag. Default is undefined.
 #comment file		= '/etc/renrot.comment'
 
-# The commentary to put to UserComment tag.
+# The commentary to put to UserComment tag. Default is undefined.
+# (This option could be overriden by --user-comment parameter)
 #Tag UserComment	= 'User commentary here'
 
 # Personal information could be set to XMP tags. Default is undefined.

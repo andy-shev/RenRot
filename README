@@ -24,8 +24,8 @@ the tag is absent or miss set, than the script allows to rotate the file as
 well as it's thumbnail "by hands".
 
 Furthermore, the script put a comment to:
-    - Comment tag if comment file provided with --comment-file option
-    - UserComment tag if COMMENTARY variable set in configuration file
+    - Comment tag from comment file;
+    - UserComment tag from configuration variable or command line option.
 
 Personal data could be specified via XMP tags defined in configuration file.
 
