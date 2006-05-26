@@ -9,8 +9,6 @@ q	optional feature
 
 EXIF tags
 
-+  to write to some tag sometning like "Processed with RenRot"
-
 q  to write to some tag the options passed to renrot
 
 +- to review XMP tags related code
@@ -22,14 +20,10 @@ q  to implement %t in name template, where the array of desired tags will be ini
 
 Disk I/O
 
-+  to implement work with separate files rather than with whole directory
-
 -  decrease disk IO operations as possible
 
 -  to implement possibility to work with other formats, which use EXIF
    mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
-
-+  remove hardcoded '.jpg' extension
 
 +- implement aggregation option (to aggregate large bundle of files
    according the different time intervals, perhapse with some kind of
@@ -44,20 +38,10 @@ q  to write intellectual aggregation on clisp
 -  to implement possibility to work with several IN directories and to
    output to the set of OUT directories
 
-+  to implement --no-mtime, and put it to the config
-
 -  avoid hard link making where in and out files on different partitions
 
 
 File naming
-
-+  to implement possibility to add patterns for file naming ( to make it
-   possible to name files in a different ways, YYYYMMDDHHmmSS, YYMMDDHHmmSS
-   e.t.c.)
-
-+  to make the file name counter format of the dynamic length, according
-   the files number in the directory to process, it means NN for the number
-   less than 100, e.t.c.
 
 -  to add --counter-from option to let counting start from any desired number
    and add --counter-step
@@ -65,17 +49,12 @@ File naming
 
 Verbosity
 
-+  to complete verbose output option implementation
-
 q  to implement progress indicator or spinning indicator
 
 
 Other
 
 -  UTF8fy (comments, tags, ...) since it's not implemented in ExifTool yet
-
-?  to write the function 'on/off validator' NO NEED SINCE IT'S IMPLEMENTED IN
-   getOptions()
 
 -  to tune style look of comments, code e.t.c.
 

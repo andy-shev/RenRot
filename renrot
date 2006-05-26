@@ -49,7 +49,7 @@ my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
 my $configFile;		# config file
 my @excludeList;	# files that will be excluded from list
-my $extToProcess = "";	# the extension of files to work with
+my $extToProcess = '';	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
@@ -60,9 +60,10 @@ my $oldCfg = 0;		# use old style of configuration file
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
+my %tags;		# define tags for filling
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
-my $workDir = '.';	# we'll work ONLY in current directory
+my $workDir = './';	# we'll work ONLY in current directory
 
 ########################################################################################
 #
@@ -141,6 +142,7 @@ sub boolConverter {
 sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
+	my @tmpTags;
 	my $getOptions = GetOptions (
 					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
@@ -161,6 +163,7 @@ sub getOptions {
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
+					"tag=s" => \@tmpTags,
 					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
 					"version" => \$showVersion,
@@ -186,6 +189,7 @@ sub getOptions {
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n") if (defined $orientTag);
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
 	dbgmsg (3, "   --work-directory: $workDir\n") if (defined $workDir);
 	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
@@ -219,6 +223,17 @@ sub getOptions {
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
 	$extToProcess =~ s/^\*?\.?/\./ if ($fileCount == 0);
 	dbgmsg (1, "getOptions(): Process with '$extToProcess' extension.\n");
+
+	# Convert multiple tag parameters to tags hash
+	foreach my $tag (@tmpTags) {
+		my ($key, $value) = parsePair($tag);
+		if (defined $key) {
+			$value = "" if (not defined $value);
+			$tags{$key} = $value;
+		} else {
+			warnmsg ("Invalid tag format: $tag\n");
+		}
+	}
 }
 
 ########################################################################################
@@ -229,6 +244,24 @@ sub trimValue {
 	my $value = shift;
 	$value =~ s/\s*([^\s]+.*[^\s]+)\s*/$1/;
 	return $value;
+}
+
+########################################################################################
+#
+# parsePair() gets (key, value) pair from the string like [multiword] key = "value"
+#
+sub parsePair {
+	my $value = shift;
+	my ($key, $val) = (undef, undef);
+	if ($value =~ m/^([^=]+)=(.+)/) {
+		($key, $val) = (trimValue($1), trimValue($2));
+		$val =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
+		dbgmsg (4, "parsePair(): Parsed: '$key' <- '$val'\n");
+	} elsif ($value =~ m/^([^=]+)=$/) {
+		$key = trimValue($1);
+		dbgmsg (4, "parsePair(): Parsed empty '$key'\n");
+	}
+	return ($key, $val);
 }
 
 ########################################################################################
@@ -252,10 +285,9 @@ sub getConfig {
 
 			$line =~ s/#(.*)$//;				# remove trailing comments
 
-			# Format is: multiword key = "value" # comment
-			if ($line =~ m/^([^=]+)=(.+)/) {
-				my ($key, $value) = (lc(trimValue($1)), trimValue($2));
-				$value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
+			my ($key, $value) = parsePair($line);
+			if (defined $value) {
+				$key = lc($key);
 				$hConfig{$key} = boolConverter($value);
 				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
 			} else {
@@ -542,45 +574,8 @@ foreach $file ( @files ) {
 	}
 	else { dbgmsg (2, "main(): No commenting, file commentary is left untouched.\n"); }
 
-	######################################
-	#
-	## preparing to write the UserComment and some additional tags
-	#
-	if ( not defined $noRename ) {
-		if (defined $configOptions{'tag usercomment'}) {
-			$exifTool->SetNewValue(UserComment => $configOptions{'tag usercomment'});
-		}
-
-		if (defined $configOptions{'tag ciadrcity'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCity', $configOptions{'tag ciadrcity'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciadrctry'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrCtry', $configOptions{'tag ciadrctry'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciadrextadr'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrExtadr', $configOptions{'tag ciadrextadr'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciadrpcode'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrPcode', $configOptions{'tag ciadrpcode'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciadrregion'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiAdrRegion', $configOptions{'tag ciadrregion'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciemailwork'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiEmailWork', $configOptions{'tag ciemailwork'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag citelwork'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiTelWork', $configOptions{'tag citelwork'}, Group => 'XMP');
-		}
-		if (defined $configOptions{'tag ciurlwork'}) {
-			$exifTool->SetNewValue('CreatorContactInfoCiUrlWork', $configOptions{'tag ciurlwork'}, Group => 'XMP');
-		}
-
-		$exifTool->SetNewValue('Software', $softwareString, Group => 'EXIF');
-
-		# writing the changes to the EXIFs
-		exifWritting($exifTool, $newfilename, $newfilename . "_comment");
-	}
+	# Writting tags.
+	tagWriter($exifTool, $newfilename) if (not defined $noRename);
 
 	# seting mtime for the file if been asked for
 	if ($configOptions{'mtime'} != 0) {
@@ -598,6 +593,49 @@ if ($aggr != 0) {
 }
 
 exit 0;
+
+########################################################################################
+#
+# tagWriter() writes couple of tags defined via configuration file and command line
+#
+sub tagWriter {
+	my $exifToolObj = shift;
+	my $file = shift;
+
+	if (defined $configOptions{'tag usercomment'}) {
+		$exifToolObj->SetNewValue(UserComment => $configOptions{'tag usercomment'});
+	}
+
+	if (defined $configOptions{'tag ciadrcity'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrCity', $configOptions{'tag ciadrcity'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciadrctry'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrCtry', $configOptions{'tag ciadrctry'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciadrextadr'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrExtadr', $configOptions{'tag ciadrextadr'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciadrpcode'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrPcode', $configOptions{'tag ciadrpcode'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciadrregion'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrRegion', $configOptions{'tag ciadrregion'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciemailwork'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiEmailWork', $configOptions{'tag ciemailwork'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag citelwork'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiTelWork', $configOptions{'tag citelwork'}, Group => 'XMP');
+	}
+	if (defined $configOptions{'tag ciurlwork'}) {
+		$exifToolObj->SetNewValue('CreatorContactInfoCiUrlWork', $configOptions{'tag ciurlwork'}, Group => 'XMP');
+	}
+
+	$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
+
+	# writing the changes to the EXIFs
+	exifWritting($exifToolObj, $file, $file . "_comment");
+}
 
 ########################################################################################
 #
@@ -886,11 +924,10 @@ sub rotateThumbnail {
 #
 sub usage {
 infomsg (
-"Usage:	renrot 	<--extension EXTENSION> [--help] [--version] [--quiet] [--no-rotate] [--no-rename] [--no-mtime] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--] FILE1 FILE2 ...]
+"Usage:	renrot 	<--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--] FILE1 FILE2 ...]
 
 Options:
   -c, --config-file <FILE>	use this configuration file
-  --comment-file <FILE>		file with commentary
   -d, --work-directory <DIR>	specify working directory
   --exclude <FILE> ...		define excluding files from process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
@@ -906,6 +943,8 @@ Options:
   --aggr-directory <DIR>	counterless aggregation directory name
   --aggr-dumb (*)		dumb aggregation mode: no file will be moved or directory will be created
   --aggr-template <TPL>		aggregation template (see manual for details)
+  --comment-file <FILE>		file with commentary
+  --user-comment <COMMENTARY>	text to put into UserComment tag
   -v [-v -v ...]		amount of these options defines debug level
   -?, --help			display this help and exit
   --version			output version information and exit
@@ -1170,7 +1209,7 @@ look L<EXAMPLES> section.
 
 file with commentary
 
-=item B<--user-comment> I<User's commentary>
+=item B<--user-comment> I<User's COMMENTARY>
 
 text to put into UserComment tag
 
