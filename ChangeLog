@@ -1,4 +1,7 @@
 $Log$
+Revision 1.96  2006/05/27 07:11:14  andy
+Release as 0.20rc2 (documentation fix).
+
 Revision 1.95  2006/05/26 20:22:38  andy
 TODO cleanup.
 Start tag writer as separate task (new option --tag, but still unworked).
@@ -390,4 +393,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

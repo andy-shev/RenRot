@@ -79,8 +79,8 @@ the script:
     are invalid
 	renrot --no-rotate --no-rename --mtime --extension jpeg
 
-    leave mtime untouched
-	renrot --no-mtime --extension JPG
+    leave mtime untouched for couple of files
+	renrot --no-mtime *.jpg
 
     aggregate files by yymmddHHMM
 	renrot --aggr-template="%y%m%d%H%M" --extension jpg

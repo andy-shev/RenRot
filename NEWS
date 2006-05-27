@@ -1,3 +1,11 @@
+* 0.20rc2 *
+
+A new style of configuration file has been described in README. This style is
+used by default. The some usefull comments has been added to the sample of
+configuration file. Also TODO has been cleaned. In addition, the check for
+configuration file presence has been restored.
+
+
 * 0.20rc1 *
 
 This release presents a new style of the configuration file. The new option,
