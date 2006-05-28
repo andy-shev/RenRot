@@ -1,4 +1,10 @@
 $Log$
+Revision 1.98  2006/05/28 21:37:34  andy
+Implement start and step counter values (options --counter-start and --counter-step).
+Use fixed field or not when counter is printed (--counter-fixed-field, is 'on' by default).
+Inject aggregation mode option to configuration file and command line.
+Deprecate --aggr switcher and 'delta' keyword in --aggr-template, use --aggr-mode='none', 'delta' or 'template' instead.
+
 Revision 1.97  2006/05/28 20:36:18  zeus
 bugfix. leading "F" have to be in case of %F but not %i in template2name()
 
@@ -396,4 +402,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

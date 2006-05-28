@@ -22,6 +22,7 @@ my %configOptions = (
 			'aggregation delta' => 900,
 			'aggregation directory' => 'DIR',
 			'aggregation dumb' => 1,
+			'aggregation mode' => 'none',
 			'aggregation template' => '%Y%m%d',
 			'comment file' => undef,
 			'mtime' => 1,
@@ -41,13 +42,16 @@ my %configOptions = (
 #
 # Command line options
 #
-my $aggr = 0;		# execute aggregation after main process
 my $aggrDelta;		# aggregation time delta in seconds (file with delta > $aggrDelta is placed in new DIR)
 my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be without this flag
+my $aggrMode;		# define aggregation mode, possible values are: none, delta or template
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
 my $configFile;		# config file
+my $countFF = 1;	# use fixed field for counter
+my $countStart = 1;	# Start value for counter
+my $countStep = 1;	# Step for counter
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
@@ -143,14 +147,19 @@ sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
 	my @tmpTags;
+	my $aggr = 0;		# execute aggregation after main process
 	my $getOptions = GetOptions (
 					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
 					"aggr-directory=s" => \$aggrDir,
 					"aggr-dumb!" => \$aggrDumb,
+					"aggr-mode=s" => \$aggrMode,
 					"aggr-template=s" => \$aggrTemplate,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
+					"counter-fixed-field!" => \$countFF,
+					"counter-start=i" => \$countStart,
+					"counter-step=i" => \$countStep,
 					"exclude=s" => \@excludeList,
 					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
@@ -172,25 +181,26 @@ sub getOptions {
 
 	my $fileCount = scalar(@ARGV);
 
-	dbgmsg (3, "   --aggr: ", boolConv($aggr), "\n") if (defined $aggr);
 	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
 	dbgmsg (3, "   --aggr-dumb: ", boolConv($aggrDumb), "\n") if (defined $aggrDumb);
+	dbgmsg (3, "   --aggr-mode: $aggrMode   --aggr: ", boolConv($aggr),"\n") if (defined $aggrMode);
 	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "   --counter-start: $countStart   --counter-step: $countStep   --counter-fixed-field: ", boolConv($countFF), "\n");
 	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
-	dbgmsg (3, "   --extension: $extToProcess\n") if (defined $extToProcess);
+	dbgmsg (3, "   --extension: $extToProcess\n");
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
 	dbgmsg (3, "   --no-rotate: ", boolConv($noRotation), "\n") if (defined $noRotation);
-	dbgmsg (3, "   --old-config: ", boolConv($oldCfg), "\n") if (defined $oldCfg);
-	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n") if (defined $orientTag);
+	dbgmsg (3, "   --old-config: ", boolConv($oldCfg), "\n");
+	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
-	dbgmsg (3, "   --work-directory: $workDir\n") if (defined $workDir);
+	dbgmsg (3, "   --work-directory: $workDir\n");
 	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
 	if ($showHelp != 0) {
@@ -218,6 +228,22 @@ sub getOptions {
 	    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
 		fatalmsg ("Angle should be 90, 180 or 270!\n");
 		exit 1;
+	}
+
+	# Convert:
+	#   --no-aggr => --aggr-mode='none'
+	#   --aggr and --aggr-template='delta' => --aggr-mode='delta'
+	#   --aggr and --aggr-template='%Y%m%d' => --aggr-mode='template'
+	if (not defined $aggrMode) {
+		if ($aggr == 0) {
+			$aggrMode = 'none';
+		} else {
+			if ($aggrTemplate eq "delta") {
+				$aggrMode = 'delta';
+			} else {
+				$aggrMode = 'template';
+			}
+		}
 	}
 
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
@@ -386,18 +412,23 @@ parseConfig($configFile);
 $configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
 $configOptions{'aggregation dumb'}	= $aggrDumb if (defined $aggrDumb);
 $configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
+$configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
 $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $configOptions{'comment file'}		= $comfile if (defined $comfile);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 
+# Validate aggregation mode possible values
+if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
+	warnmsg ("Aggregation mode isn't correct! Resetting to 'none'.\n");
+	$configOptions{'aggregation mode'} = 'none';
+}
+
 # ExifTool object configuration
 our $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
-our $info;		# ImageInfo object
-our $filecounter = 1;	# counter to cat and increment when DateTimeOriginal is absent
 our $counterprefixsize;	# number of digits in $counterprefix
 my $file;		# file in the directory
 my @filenames;		# array of the filenames to process
@@ -406,7 +437,6 @@ my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
 my $comment;		# where to put the commentary to write
 my $counterprefix;	# file number counter
-my $now;		# now timestamp to use to name the files without DateTimeOriginal tag
 
 my @rotparms = (''
 	, '-flip horizontal'
@@ -466,16 +496,22 @@ if (scalar(@filenames) == 0) {
 my $softwareString = sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION);
 dbgmsg (1, "main(): Software: $softwareString\n");
 
-# here we're preparing the variable, which contains the format
-# of the counter output
-$counterprefixsize = "%." . length ($#filenames + 1) . "d";
-dbgmsg (1, "main(): Counter size: $counterprefixsize (amount files in cache: ", scalar(@filenames), ")\n");
+# Preparing the variable, which contains the format of the counter output
+if ($countFF != 0) {
+	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
+	$counterprefixsize = "%." . $size . "d";
+	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
+} else {
+	$counterprefixsize = "%d";
+}
 
 @files = sort @filenames;
 dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
 our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw, 180cw or 270cw
 my $orientation;	# Orientation tag value
+my $info;		# ImageInfo object
+my $fileCounter = $countStart;
 
 procmsg ("RENAMING / ROTATING\n===================\n");
 
@@ -536,15 +572,18 @@ foreach $file ( @files ) {
 		my $fweLen = length($file) - $etpLen;		# length of filename w/o extension
 		if ((substr($file, $fweLen) eq $lce) and
 		    ($newfilename = substr($file, 0, $fweLen)) ne "") {
-			$filenameshash{$newfilename} = getUnixTime(getTimestamp());
+			$filenameshash{$newfilename} = getUnixTime(getTimestamp($exifTool, $info));
 		}
 	}
 	else {
-		$newfilename = template2name($configOptions{'name template'});
+		$newfilename = template2name($exifTool,
+					     $info,
+					     $configOptions{'name template'},
+					     $fileCounter);
 		if ( $filenameshash{$newfilename} ) {
-			$newfilename .= "." . sprintf($counterprefixsize,$filecounter);
+			$newfilename .= "." . sprintf($counterprefixsize, $fileCounter);
 		}
-		$filenameshash{$newfilename} = getUnixTime(getTimestamp());
+		$filenameshash{$newfilename} = getUnixTime(getTimestamp($exifTool, $info));
 
 		$newfilename .= $lce;
 
@@ -578,21 +617,30 @@ foreach $file ( @files ) {
 	tagWriter($exifTool, $newfilename) if (not defined $noRename);
 
 	# seting mtime for the file if been asked for
-	if ($configOptions{'mtime'} != 0) {
-		my $mTime = getUnixTime(getTimestamp());
-		utime $mTime,$mTime,$newfilename;
-		dbgmsg (2, "main(): Changing mtime for $newfilename ok.\n");
-	}
+	mtimeSet($exifTool, $info, $newfilename);
 
 	procmsg ("\n");
-	$filecounter++;
+	$fileCounter += $countStep;
 }
 
-if ($aggr != 0) {
-	aggregationProcess();
-}
+aggregationProcess();
 
 exit 0;
+
+########################################################################################
+#
+# mtimeSet() sets mtime for the given file
+#
+sub mtimeSet {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+	my $file = shift;
+	if ($configOptions{'mtime'} != 0) {
+		my $mTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+		utime $mTime, $mTime, $file;
+		dbgmsg (2, "mimeSet(): Changing mtime for $file OK.\n");
+	}
+}
 
 ########################################################################################
 #
@@ -668,49 +716,61 @@ sub exifWritting {
 # aggregationProcess() aggregates files to separate directories by request
 #
 sub aggregationProcess {
-	my $filetmp;
-	my $timestampPrev;
-	my $filePrev;
+	return if ($configOptions{'aggregation mode'} eq "none");
+
+	my $file;
+	my $info;
 	my $NewDir;
-	my $DirCounter = 1;
 
 	procmsg ("AGGREGATION\n===========\n");
-	dbgmsg (1, "aggregationProcess(): Aggregation template: $configOptions{'aggregation template'}\n");
 
-	$filecounter = 1;
+	if ($configOptions{'aggregation mode'} eq "template") {
+		dbgmsg (1, "aggregationProcess(): Template: $configOptions{'aggregation template'}\n");
+		my $fileCounter = $countStart;
 
-	foreach $file ( sort ( keys %filenameshash ) ) {
-		$filetmp = $file;
-		$file .= $lce;
-		dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
-		$info = $exifTool->ImageInfo($file);
+		foreach $file (sort (keys %filenameshash)) {
+			$file .= $lce;
+			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
+			$info = $exifTool->ImageInfo($file);
+			$NewDir = template2name($exifTool,
+						$info,
+						$configOptions{'aggregation template'},
+						$fileCounter);
+			aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
+			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
+			$fileCounter += $countStep;
+		}
+	} elsif ($configOptions{'aggregation template'} eq "delta") {
+		my $DirCounter = 1;
+		my $timestampPrev;
+		my $filePrev;
+		my $filetmp;
 
-		if ($configOptions{'aggregation template'} eq "delta") {
-			if ($filecounter == 1) {
+		foreach $file (sort (keys %filenameshash)) {
+			$filetmp = $file;
+			$file .= $lce;
+			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
+			$info = $exifTool->ImageInfo($file);
+
+			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
-				$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
+				$NewDir = $configOptions{'aggregation directory'} . sprintf($counterprefixsize, $DirCounter);
 				$DirCounter++;
 				aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
-				procmsg ("Aggregate: $filePrev -> $NewDir\n");
 			} else {
 				# Check for new direcroty creation
-				if (($filenameshash{$filetmp} - $timestampPrev) > $aggrDelta) {
-					$NewDir = $aggrDir . sprintf($counterprefixsize,$DirCounter);
+				if (($filenameshash{$filetmp} - $timestampPrev) > $configOptions{'aggregation delta'}) {
+					$NewDir = $configOptions{'aggregation directory'} . sprintf($counterprefixsize, $DirCounter);
 					$DirCounter++;
 				}
 				aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
-				procmsg ("Aggregate: $file -> $NewDir\n");
 				$timestampPrev = $filenameshash{$filetmp};
 			}
+			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 		}
-		else {
-			$NewDir = template2name($configOptions{'aggregation template'});
-			aggregateFile($file, $NewDir) if ($configOptions{'aggregation dumb'} == 0);
-			procmsg ("Aggregate: $file -> $NewDir\n");
-		}
-		procmsg ("\n");
-		$filecounter++;
+	} else {
+		errmsg ("Aggregation mode $configOptions{'aggregation mode'} isn't implemented!");
 	}
 }
 
@@ -777,17 +837,20 @@ sub timeValidator {
 # it returns timeNow()
 #
 sub getTimestamp {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+
 	my $timestamp;
 
-	if ( defined $info->{"DateTimeOriginal"} and not timeValidator($info->{"DateTimeOriginal"}) ) {
-		$timestamp = $info->{"DateTimeOriginal"};
+	if (defined $infoObj->{"DateTimeOriginal"} and not timeValidator($infoObj->{"DateTimeOriginal"})) {
+		$timestamp = $infoObj->{"DateTimeOriginal"};
 	}
-	elsif ( defined $info->{"FileModifyDate"} and not timeValidator($info->{"FileModifyDate"}) ) {
-		$timestamp = $info->{"FileModifyDate"};
+	elsif (defined $infoObj->{"FileModifyDate"} and not timeValidator($infoObj->{"FileModifyDate"})) {
+		$timestamp = $infoObj->{"FileModifyDate"};
 	}
 	else {
 		$timestamp = timeNow();
-		$exifTool->SetNewValue('FileModifyDate', $timestamp, Group => 'File');
+		$exifToolObj->SetNewValue('FileModifyDate', $timestamp, Group => 'File');
 		warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
 	}
 
@@ -958,13 +1021,16 @@ Options:
 # template2name() - file name builder, according the template
 #
 sub template2name {
-	if ( not defined $_[0] ) {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+	my $template = shift;	# the template to be used
+	my $fileNo = shift;	# counter for %c
+
+	if (not defined $template) {
 		fatalmsg ("Template isn't given!\n"), die;
 	}
 
-	my $template = $_[0];	# $_[0] the template to be used
-
-	my $timestamp = getTimestamp();
+	my $timestamp = getTimestamp($exifToolObj, $infoObj);
 	my @tm = ($timestamp =~ m/(\d\d(\d\d))(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
 	dbgmsg (4, "template2name(): tm: @tm\n");
 
@@ -974,25 +1040,25 @@ sub template2name {
 	my $ISO = "";
 	my $WhiteBalance = "";
 
-	if ( defined $info->{"FileNumber"} ) {
-		$FileNumber = $info->{"FileNumber"};
+	if (defined $infoObj->{"FileNumber"}) {
+		$FileNumber = $infoObj->{"FileNumber"};
 	}
 
-	if ( defined $info->{"ExposureTime"} ) {
-		$ExposureTime = "E" . $info->{"ExposureTime"};
+	if (defined $infoObj->{"ExposureTime"}) {
+		$ExposureTime = "E" . $infoObj->{"ExposureTime"};
 		$ExposureTime =~ s/\//by/g;
 	}
 
-	if ( defined $info->{"FNumber"} ) {
-		$FNumber = "F" . $info->{"FNumber"};
+	if (defined $infoObj->{"FNumber"}) {
+		$FNumber = "F" . $infoObj->{"FNumber"};
 	}
 
-	if ( defined $info->{"ISO"} ) {
-		$ISO = "I" . $info->{"ISO"};
+	if (defined $infoObj->{"ISO"}) {
+		$ISO = "I" . $infoObj->{"ISO"};
 	}
 
-	if ( defined $info->{"WhiteBalance"} ) {
-		$WhiteBalance = "W" . $info->{"WhiteBalance"};
+	if (defined $infoObj->{"WhiteBalance"}) {
+		$WhiteBalance = "W" . $infoObj->{"WhiteBalance"};
 		$WhiteBalance =~ s/[\s()]//g;
 	}
 
@@ -1000,7 +1066,7 @@ sub template2name {
 	my %templatehash = (
 				'%' => "%",
 				'a' => $anglesuffix,
-				'c' => sprintf($counterprefixsize, $filecounter),
+				'c' => sprintf($counterprefixsize, $fileNo),
 				'd' => $tm[3],
 				'E' => $ExposureTime,
 				'F' => $FNumber,

@@ -1,7 +1,7 @@
 #
 ## This is configuration file for RenRot. See commented variables for defaults.
 #
-# Note: all options except 'tag' prefixed is overriden by CLI.
+# Note: options except 'tag' prefixed can be overriden by CLI.
 
 # Process files with or without mtime modification.
 #mtime			= Yes
@@ -23,6 +23,9 @@
 #	%Y  year (1900, 1901, and so on)
 #	%y  last two digits of year (00..99)
 #name template		= '%Y%m%d%H%M%S'
+
+# Aggregation mode. Possible values are: none, delta or template
+#aggregation mode	= 'none'
 
 # Template used for file aggregation. Interpreted sequences are:
 #	%d  day of the month (01-31)
