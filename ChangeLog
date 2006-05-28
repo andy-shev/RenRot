@@ -1,4 +1,7 @@
 $Log$
+Revision 1.97  2006/05/28 20:36:18  zeus
+bugfix. leading "F" have to be in case of %F but not %i in template2name()
+
 Revision 1.96  2006/05/27 07:11:14  andy
 Release as 0.20rc2 (documentation fix).
 
@@ -393,3 +396,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

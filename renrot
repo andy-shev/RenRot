@@ -974,17 +974,17 @@ sub template2name {
 	my $ISO = "";
 	my $WhiteBalance = "";
 
+	if ( defined $info->{"FileNumber"} ) {
+		$FileNumber = $info->{"FileNumber"};
+	}
+
 	if ( defined $info->{"ExposureTime"} ) {
 		$ExposureTime = "E" . $info->{"ExposureTime"};
 		$ExposureTime =~ s/\//by/g;
 	}
 
-	if ( defined $info->{"FileNumber"} ) {
-		$FileNumber = "F" . $info->{"FileNumber"};
-	}
-
 	if ( defined $info->{"FNumber"} ) {
-		$FNumber = $info->{"FNumber"};
+		$FNumber = "F" . $info->{"FNumber"};
 	}
 
 	if ( defined $info->{"ISO"} ) {
