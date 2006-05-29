@@ -1,4 +1,7 @@
 $Log$
+Revision 1.100  2006/05/29 14:44:35  zeus
+bugfix in aggregation mode delta section.
+
 Revision 1.99  2006/05/29 06:52:19  andy
 Deprecate --aggr-dumb and related configuration variable, use --dry-run instead.
 
@@ -405,4 +408,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

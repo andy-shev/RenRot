@@ -758,7 +758,7 @@ sub aggregationProcess {
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 			$fileCounter += $countStep;
 		}
-	} elsif ($configOptions{'aggregation template'} eq "delta") {
+	} elsif ($configOptions{'aggregation mode'} eq "delta") {
 		my $DirCounter = 1;
 		my $timestampPrev;
 		my $filePrev;
