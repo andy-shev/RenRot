@@ -435,7 +435,7 @@ if (not defined $dryRun) {
 		$dryRun = 0;		# make actions by default
 	}
 }
-dbgmsg (1, "Show what would have been happened (no real actions).\n") if ($dryRun != 0);
+dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
 # Validate aggregation mode possible values
 if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
