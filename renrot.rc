@@ -40,10 +40,6 @@
 # Delta interval in seconds for simple aggregation.
 #aggregation delta	= 900
 
-# Dumb aggregation mode.
-# (If true, no file will be moved or directory will be created)
-#aggregation dumb	= Yes
-
 # Counterless aggregation directory name.
 #aggregation directory	= 'DIR'
 
