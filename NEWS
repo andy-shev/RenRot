@@ -1,3 +1,15 @@
+* 0.20rc3 *
+
+From this release the --aggr-dumb option and related configuration variable
+are deprecated (use --dry-run instead of their). The --aggr switcher and
+'delta' keyword in the --aggr-template option are deprecated as well (use
+--aggr-mode='none', 'delta' or 'template'). The aggregation mode can be
+defined via configuration file. The start and step counter values can be
+derived by the --counter-start and --counter-step command line options. New
+option --counter-fixed-field provides fixed field when counter is used in
+template.
+
+
 * 0.20rc2 *
 
 A new style of configuration file was described in README. This style is used

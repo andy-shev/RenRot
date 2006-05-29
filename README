@@ -65,15 +65,22 @@ the script:
     rename each file according to the given template
 	renrot --name-template="01.%c.%Y%m%d%H%M%S.%E%F%W%I" --extension JPG
 
-    rename each file according to the given template and files aggregation
-    according the date
-	renrot --name-template="%y%m%d%H%M%S.%i" --aggr-template="%Y%m%d" --extension JPG
+    rename each file according to the given template and aggregate according
+    the date
+	renrot --name-template="%y%m%d%H%M%S.%i" --aggr-mode="template" --aggr-template="%Y%m%d" *.JPG
+
+    aggregate files by yymmddHHMM
+	renrot --aggr-mode="template" --aggr-template="%y%m%d%H%M" --extension jpg
 
     rotate each file and their thumbnail by 90CW in specified directory
 	renrot --rotate-angle 90 --work-directory="/tmp/images" --extension jpg
 
-    rotate thumbnails, included to EXIF, for each file by 270CW (same as 90CCW)
+    rotate thumbnails, included to EXIF, for each file by 270CW (same as
+    90CCW)
 	renrot --rotate-thumb 270 --extension jpg
+
+    rotate given files by Orientation tag (no real rotation will be done)
+	renrot --no-rename --mtime --rotate-angle=90 --only-orientation *.JPEG
 
     fix file mtime according to its EXIF tags or current time stamp, when tags
     are invalid
@@ -81,9 +88,6 @@ the script:
 
     leave mtime untouched for couple of files
 	renrot --no-mtime *.jpg
-
-    aggregate files by yymmddHHMM
-	renrot --aggr-template="%y%m%d%H%M" --extension jpg
 
 
 RESTRICTIONS
@@ -93,7 +97,8 @@ directory without recursion and only with one extension of files. Second,
 algorithm treat each file with given extension as the image. Otherwise, file
 will be renamed to the current time stamp when --no-rename option is omitted.
 Third, rename operation is not permited between different partitions due to
-hard link technology used (this will be avoided in future).
+hard link technology used (this will be avoided in future). Rotation process
+is available only on JPEG files.
 
 
 DEBUGGING

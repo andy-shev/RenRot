@@ -13,9 +13,10 @@ q  to write to some tag the options passed to renrot
 
 +- to review XMP tags related code
 
-q  to implement %t in name template, where the array of desired tags will be inited
+-  to implement %t in name template, where the array of desired tags will be
+   inited
 
-+- smart rotation of Orientation tag (where used --only-orientation)
++  smart rotation of Orientation tag (where used --only-orientation)
 
 
 Disk I/O
@@ -25,25 +26,23 @@ Disk I/O
 -  to implement possibility to work with other formats, which use EXIF
    mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
 
-+- implement aggregation option (to aggregate large bundle of files
-   according the different time intervals, perhapse with some kind of
-   euristics for analyzing the bigest time interval between shots)
-
-q  to write intellectual aggregation on clisp
++- implement aggregation option (to aggregate large bundle of files according
+   the different time intervals, perhapse with some kind of euristics for
+   analyzing the bigest time interval between shots)
 
 -  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
    name, no % character and than renrot moves all to SOMENAME directory it'll
    be called OUTDIR
 
--  to implement possibility to work with several IN directories and to
-   output to the set of OUT directories
+-  to implement possibility to work with several IN directories and to output
+   to the set of OUT directories
 
 -  avoid hard link making where in and out files on different partitions
 
 
 File naming
 
--  to add --counter-from option to let counting start from any desired number
++  to add --counter-from option to let counting start from any desired number
    and add --counter-step
 
 

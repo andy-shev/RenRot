@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.20rc2";	# the version of this script
+our $VERSION = "0.20rc3";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -453,7 +453,6 @@ my @filenames;		# array of the filenames to process
 my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
-my $comment;		# where to put the commentary to write
 my $counterprefix;	# file number counter
 
 my @rotparms = (''
@@ -616,20 +615,8 @@ foreach $file ( @files ) {
 		else { warnmsg ("No renaming needed for $newfilename, it looks as needed!\n"); }
 	}
 
-	###############################
-	#
-	## analyzing whether to comment
-	#
-	if ($configOptions{'comment file'}) {
-		if (open(COMMENT, "<$configOptions{'comment file'}")) {
-			my @commentar = <COMMENT>;
-			unless (close(COMMENT)) { errmsg ("$configOptions{'comment file'} wasn't closed!\n"); }
-			$comment = join ( '', @commentar );
-			# preparing to write the commentary
-			$exifTool->SetNewValue(Comment => $comment);
-		}
-	}
-	else { dbgmsg (2, "main(): No commenting, file commentary is left untouched.\n"); }
+	# analyzing whether to comment
+	commentWriter($exifTool);
 
 	# Writting tags.
 	tagWriter($exifTool, $newfilename) if (not defined $noRename);
@@ -644,6 +631,24 @@ foreach $file ( @files ) {
 aggregationProcess();
 
 exit 0;
+
+########################################################################################
+#
+# commentWriter() applies comment from given file
+#
+sub commentWriter {
+	my $exifToolObj = shift;
+	if ($configOptions{'comment file'}) {
+		if (open(COMMENT, "<$configOptions{'comment file'}")) {
+			my @commentar = <COMMENT>;
+			unless (close(COMMENT)) { errmsg ("$configOptions{'comment file'} wasn't closed!\n"); }
+			my $comment = join ('', @commentar);
+			# preparing to write the commentary
+			$exifToolObj->SetNewValue(Comment => $comment);
+		}
+	}
+	else { dbgmsg (2, "commentWriter(): No commenting, file commentary is left untouched.\n"); }
+}
 
 ########################################################################################
 #
@@ -700,21 +705,21 @@ sub tagWriter {
 	$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
 
 	# writing the changes to the EXIFs
-	exifWritting($exifToolObj, $file, $file . "_comment");
+	exifWriter($exifToolObj, $file, $file . "_comment");
 }
 
 ########################################################################################
 #
-# exifWritting() applies EXIF info
+# exifWriter() applies EXIF info
 #
-sub exifWritting {
+sub exifWriter {
 	my $exifToolObject = shift;
 	my $fileSrc = shift;
 	my $fileDst = shift;
 
 	my $result = $exifToolObject->WriteInfo($fileSrc, $fileDst);
 	if ($result == 1) {
-		dbgmsg (2, "exifWritting(): Writing to $fileDst seems to be OK.\n");
+		dbgmsg (2, "exifWriter(): Writing to $fileDst seems to be OK.\n");
 		rename ($fileDst, $fileSrc)
 			|| ( fatalmsg ("$fileDst -> $fileSrc\n"), die );
 	} elsif ($result == 2) {
@@ -911,7 +916,7 @@ sub rotateOrient {
 	dbgmsg (4, "rotateOrient(): New Orientation: $orientation\n");
 
 	$exifTool->SetNewValue("Orientation", $orientation, Type => 'ValueConv');
-	exifWritting($exifTool, $fileOrient, $fileOrient . "_orient");
+	exifWriter($exifTool, $fileOrient, $fileOrient . "_orient");
 }
 
 ########################################################################################
@@ -943,7 +948,7 @@ sub rotateFile {
 	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
 
 	# writing the changes to the EXIFs
-	exifWritting($exifAfterRot, $oldfile, $oldfile . "_exifed");
+	exifWriter($exifAfterRot, $oldfile, $oldfile . "_exifed");
 }
 
 ########################################################################################
@@ -989,7 +994,7 @@ sub rotateThumbnail {
 		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
 
 		# writing the changes to the EXIFs
-		exifWritting($exifThumbnailed, $fileToThumbnail, $fileToThumbnail . "_thumb");
+		exifWriter($exifThumbnailed, $fileToThumbnail, $fileToThumbnail . "_thumb");
 
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
