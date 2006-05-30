@@ -56,7 +56,7 @@ my $extToProcess = '';	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
-my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
+my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
@@ -190,7 +190,7 @@ sub getOptions {
 	dbgmsg (3, "   --extension: $extToProcess\n");
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
-	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
+	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n");
 	dbgmsg (3, "   --no-rotate: ", boolConv($noRotation), "\n") if (defined $noRotation);
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
@@ -212,6 +212,10 @@ sub getOptions {
 	if ($extToProcess eq "" and ($fileCount == 0)) {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
+	}
+
+	if ($extToProcess ne "" and ($fileCount != 0)) {
+		warnmsg ("Extension of files will be ignored!\n");
 	}
 
 	if ($getOptions == 0) {
@@ -339,10 +343,10 @@ sub parseConfig {
 # parse command line options
 getOptions();
 
-my $lce = lc($extToProcess);		# low cased extension
-my $etpLen = length($extToProcess);	# length of given extension
-@files = @ARGV;				# all things in ARGV will be treated as file names to process
+# All things in ARGV will be treated as file names to process
+@files = @ARGV;
 
+# Calculate ExifTool's verbosity
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
 parseConfig($configFile);
@@ -372,10 +376,8 @@ $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verb
 our $counterprefixsize;	# number of digits in $counterprefix
 my $file;		# file in the directory
 my @filenames;		# array of the filenames to process
-my $newfilename;	# the name file to be renamed to
 my %filenameshash;	# hash for old file names
 my $filenameshashkey;	# keys %filenameshash
-my $counterprefix;	# file number counter
 
 my @rotparms = (''
 	, '-flip horizontal'
@@ -411,7 +413,7 @@ if (scalar(@files) == 0) {
 	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
 	while ( defined ( $file = readdir DIR )) {
 		next if (! -f $file);			# skip absent file or not a file
-		push @files, $file;
+		push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
 	}
 	closedir(DIR);
 }
@@ -420,9 +422,7 @@ if (scalar(@files) == 0) {
 foreach $file ( @files ) {
 	next if (! -f $file);				# skip absent file or not a file
 	next if (grep {/^$file$/} @excludeList);	# skip excluded file
-	if (substr($file, length($file) - $etpLen) eq $extToProcess) {
-		push @filenames, $file;
-	}
+	push (@filenames, $file);
 }
 
 # No file to process?
@@ -451,6 +451,7 @@ our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw, 180c
 my $orientation;	# Orientation tag value
 my $info;		# ImageInfo object
 my $fileCounter = $countStart;
+my $newfilename;	# the name file to be renamed to
 
 procmsg ("RENAMING / ROTATING\n===================\n");
 
@@ -459,7 +460,6 @@ foreach $file ( @files ) {
 
 	# Setup defaults
 	$info = $exifTool->ImageInfo($file);
-	$newfilename = "";
 	$anglesuffix = "0cw";
 
 	################################################################################################
@@ -502,46 +502,14 @@ foreach $file ( @files ) {
 		}
 	}
 
-	#################################################################################
-	#
-	## analyzing whether and how to rename file
-	#
-	if ( defined $noRename ) {
-		dbgmsg (2, "main(): No renaming asked, filename is left untouched.\n");
-		my $fweLen = length($file) - $etpLen;		# length of filename w/o extension
-		if ((substr($file, $fweLen) eq $lce) and
-		    ($newfilename = substr($file, 0, $fweLen)) ne "") {
-			$filenameshash{$newfilename} = getUnixTime(getTimestamp($exifTool, $info));
-		}
-	}
-	else {
-		$newfilename = template2name($exifTool,
-					     $info,
-					     $configOptions{'name template'},
-					     $fileCounter);
-		if ( $filenameshash{$newfilename} ) {
-			$newfilename .= "." . sprintf($counterprefixsize, $fileCounter);
-		}
-		$filenameshash{$newfilename} = getUnixTime(getTimestamp($exifTool, $info));
-
-		$newfilename .= $lce;
-
-		if ( $file ne $newfilename ) {
-			if ( -f $newfilename ) {
-				fatalmsg ("File $newfilename already exists!\n"), die;
-			}
-			rename ( $file, $newfilename )
-				|| ( fatalmsg ("Unable to rename $file -> $newfilename.\n"), die );
-			procmsg ("Renamed: $file -> $newfilename\n");
-		}
-		else { warnmsg ("No renaming needed for $newfilename, it looks as needed!\n"); }
-	}
+	# analyzing whether and how to rename file
+	$newfilename = renameFile($exifTool, $info, $file);
 
 	# analyzing whether to comment
 	commentWriter($exifTool);
 
 	# Writting tags.
-	tagWriter($exifTool, $newfilename) if (not defined $noRename);
+	tagWriter($exifTool, $newfilename) if ($noRename == 0);
 
 	# seting mtime for the file if been asked for
 	mtimeSet($exifTool, $info, $newfilename);
@@ -553,6 +521,49 @@ foreach $file ( @files ) {
 aggregationProcess();
 
 exit 0;
+
+########################################################################################
+#
+# renameFile() renames file according to user request and EXIF data
+#
+sub renameFile {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+	my $file = shift;
+
+	my $newFileName;
+
+	if ($noRename != 0) {
+		dbgmsg (2, "renameFile(): No renaming asked, filename is left untouched.\n");
+		$newFileName = $file;
+		$filenameshash{$newFileName} = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+	} else {
+		my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
+		my $extLen = length($ext);
+
+		$newFileName = template2name($exifToolObj,
+					     $infoObj,
+					     $configOptions{'name template'},
+					     $fileCounter);
+		$newFileName .= $ext;
+
+		if ($filenameshash{$newFileName}) {
+			$newFileName .= "." . sprintf($counterprefixsize, $fileCounter);
+		}
+		$filenameshash{$newFileName} = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+
+		if ($file ne $newFileName) {
+			if (-f $newFileName) {
+				fatalmsg ("File $newFileName already exists!\n"), die;
+			}
+			rename ($file, $newFileName)
+				|| ( fatalmsg ("Unable to rename $file -> $newFileName.\n"), die );
+			procmsg ("Renamed: $file -> $newFileName\n");
+		} else { warnmsg ("No renaming needed for $newFileName, it looks as needed!\n"); }
+	}
+
+	return $newFileName;
+}
 
 ########################################################################################
 #
@@ -674,7 +685,6 @@ sub aggregationProcess {
 		my $fileCounter = $countStart;
 
 		foreach $file (sort (keys %filenameshash)) {
-			$file .= $lce;
 			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 			$info = $exifTool->ImageInfo($file);
 			$NewDir = template2name($exifTool,
@@ -693,7 +703,6 @@ sub aggregationProcess {
 
 		foreach $file (sort (keys %filenameshash)) {
 			$filetmp = $file;
-			$file .= $lce;
 			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
 			$info = $exifTool->ImageInfo($file);
 
