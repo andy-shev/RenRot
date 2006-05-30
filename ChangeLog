@@ -1,4 +1,7 @@
 $Log$
+Revision 1.102  2006/05/30 06:27:31  andy
+Remove deprecated code.
+
 Revision 1.101  2006/05/29 19:00:01  andy
 Release as 0.20rc3.
 
@@ -411,4 +414,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

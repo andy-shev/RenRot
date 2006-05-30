@@ -50,7 +50,7 @@ my $configFile;		# config file
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
-my $dryRun;		# show what would have been happened
+my $dryRun = 0;		# show what would have been happened
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my @files;		# array of the sorted filenames to process
@@ -59,7 +59,6 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $noRename;		# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation;		# no rotation needed, default is to rotate
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
-my $oldCfg = 0;		# use old style of configuration file
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
@@ -146,13 +145,9 @@ sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
 	my @tmpTags;
-	my $aggr = 0;		# execute aggregation after main process
-	my $aggrDumb;		# no real moving to catalogues done, only to sho how it'll be without this flag
 	my $getOptions = GetOptions (
-					"aggr!" => \$aggr,
 					"aggr-delta=i" => \$aggrDelta,
 					"aggr-directory=s" => \$aggrDir,
-					"aggr-dumb!" => \$aggrDumb,
 					"aggr-mode=s" => \$aggrMode,
 					"aggr-template=s" => \$aggrTemplate,
 					"comment-file=s" => \$comfile,
@@ -168,7 +163,6 @@ sub getOptions {
 					"name-template=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
 					"no-rotate" => \$noRotation,
-					"old-config!" => \$oldCfg,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
@@ -184,10 +178,7 @@ sub getOptions {
 
 	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
 	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
-	dbgmsg (3, "   --aggr-mode: $aggrMode",
-		   "   --aggr: ", boolConv($aggr),
-		   "   --aggr-dumb: ", defined $aggrDumb ? boolConv($aggrDumb) : "undef",
-		   "\n") if (defined $aggrMode);
+	dbgmsg (3, "   --aggr-mode: $aggrMode\n") if (defined $aggrMode);
 	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
@@ -201,7 +192,6 @@ sub getOptions {
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n") if (defined $noRename);
 	dbgmsg (3, "   --no-rotate: ", boolConv($noRotation), "\n") if (defined $noRotation);
-	dbgmsg (3, "   --old-config: ", boolConv($oldCfg), "\n");
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
@@ -235,25 +225,6 @@ sub getOptions {
 		fatalmsg ("Angle should be 90, 180 or 270!\n");
 		exit 1;
 	}
-
-	# Convert:
-	#   --no-aggr => --aggr-mode='none'
-	#   --aggr and --aggr-template='delta' => --aggr-mode='delta'
-	#   --aggr and --aggr-template='%Y%m%d' => --aggr-mode='template'
-	if (not defined $aggrMode) {
-		if ($aggr == 0) {
-			$aggrMode = 'none';
-		} else {
-			if ($aggrTemplate eq "delta") {
-				$aggrMode = 'delta';
-			} else {
-				$aggrMode = 'template';
-			}
-		}
-	}
-
-	# Convert --aggr-dumb to --dry-run
-	$dryRun = $aggrDumb if (not defined $dryRun and defined $aggrDumb);
 
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
 	$extToProcess =~ s/^\*?\.?/\./ if ($fileCount == 0);
@@ -349,56 +320,15 @@ sub parseConfig {
 		      );
 
 	@rcFiles = ($file) if (defined $file);
-	my $rcfile;
-	if ($oldCfg == 0) {
-		foreach $rcfile (@rcFiles) {
-			if (-f $rcfile) {
-				my %tmpConfig = getConfig($rcfile);
-				foreach my $key (keys %tmpConfig) {
-					$configOptions{$key} = $tmpConfig{$key};
-				}
+
+	foreach my $rcfile (@rcFiles) {
+		if (-f $rcfile) {
+			my %tmpConfig = getConfig($rcfile);
+			foreach my $key (keys %tmpConfig) {
+				$configOptions{$key} = $tmpConfig{$key};
 			}
 		}
-		return;
 	}
-
-	our $COMMENTARY;
-	our $CiAdrCity;
-	our $CiAdrCtry;
-	our $CiAdrExtadr;
-	our $CiAdrPcode;
-	our $CiAdrRegion;
-	our $CiEmailWork;
-	our $CiTelWork;
-	our $CiUrlWork;
-	our $Mtime = 1;
-	our $NameTemplate = '%Y%m%d%H%M%S';
-	our $AggrTemplate = '%Y%m%d';
-	our $AggrDelta = 900;
-	our $AggrDir = 'DIR';
-	our $AggrDumb = 1;
-
-	foreach $rcfile (@rcFiles) {
-		do $rcfile if (-f $rcfile);
-	}
-
-	%configOptions = (
-				'aggregation delta' => $AggrDelta,
-				'aggregation directory' => $AggrDir,
-				'aggregation dumb' => $AggrDumb,
-				'aggregation template' => $AggrTemplate,
-				'mtime' => $Mtime,
-				'name template' => $NameTemplate,
-				'tag ciadrcity' => $CiAdrCity,
-				'tag ciadrctry' => $CiAdrCtry,
-				'tag ciadrextadr' => $CiAdrExtadr,
-				'tag ciadrpcode' => $CiAdrPcode,
-				'tag ciadrregion' => $CiAdrRegion,
-				'tag ciemailwork' => $CiEmailWork,
-				'tag citelwork' => $CiTelWork,
-				'tag ciurlwork' => $CiUrlWork,
-				'tag usercomment' => $COMMENTARY,
-			 );
 }
 
 ########################################################################################
@@ -427,14 +357,6 @@ $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 
-# converting aggregation dumb value to --dry-run option
-if (not defined $dryRun) {
-	if (defined $configOptions{'aggregation dumb'}) {
-		$dryRun = $configOptions{'aggregation dumb'};
-	} else {
-		$dryRun = 0;		# make actions by default
-	}
-}
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
 # Validate aggregation mode possible values
@@ -1200,7 +1122,8 @@ Interpreted sequences are:
 
 B<%%>	a literal %
 
-B<%c>	file order number in the processed file set
+B<%c>	file order number in the processed file set (also see
+B<--counter-fixed-field> option)
 
 B<%d>	day of the month (01-31)
 
