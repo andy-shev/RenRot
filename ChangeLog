@@ -1,4 +1,7 @@
 $Log$
+Revision 1.104  2006/05/30 21:16:23  zeus
+the option --trim added
+
 Revision 1.103  2006/05/30 18:37:11  andy
 Remove extension usage when file set is given.
 
@@ -417,4 +420,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

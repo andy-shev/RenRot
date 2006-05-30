@@ -35,6 +35,7 @@ my %configOptions = (
 			'tag citelwork' => undef,
 			'tag ciurlwork' => undef,
 			'tag usercomment' => undef,
+			'trim' => 1,
 		    );
 
 ########################################################################################
@@ -63,6 +64,7 @@ my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my %tags;		# define tags for filling
+my $trim;		# jpegtran -trim 
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
@@ -168,6 +170,7 @@ sub getOptions {
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
 					"tag=s" => \@tmpTags,
+					"trim!" => \$trim,
 					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
 					"version" => \$showVersion,
@@ -196,6 +199,7 @@ sub getOptions {
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
 	dbgmsg (3, "   --work-directory: $workDir\n");
 	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
@@ -360,6 +364,7 @@ $configOptions{'comment file'}		= $comfile if (defined $comfile);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
+$configOptions{'trim'}			= $trim if (defined $trim);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
@@ -475,19 +480,19 @@ foreach $file ( @files ) {
 		if ($orientTag != 0) {
 			rotateOrient($file, $orientation);
 		} else {
-			rotateFile($file, $rotangles{$rotateAngle});
-			rotateThumbnail($file, $rotangles{$rotateAngle});
+			rotateFile($file, $rotangles{$rotateAngle}, $trim);
+			rotateThumbnail($file, $rotangles{$rotateAngle}, $trim);
 		}
 		$anglesuffix = $rotateAngle . "cw";
 	}
 	elsif ( defined $rotateThumbnail ) {
-		rotateThumbnail($file, $rotangles{$rotateThumbnail});
+		rotateThumbnail($file, $rotangles{$rotateThumbnail}, $trim);
 	}
 	else {
 		if (defined $orientation) {
 			if ( $orientation > 1 ) {
-				rotateFile($file, $rotparms[$orientation - 1]);
-				rotateThumbnail($file, $rotparms[$orientation - 1]);
+				rotateFile($file, $rotparms[$orientation - 1], $trim);
+				rotateThumbnail($file, $rotparms[$orientation - 1], $trim);
 				$anglesuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
@@ -860,12 +865,18 @@ sub rotateFile {
 	# $_[1] - the switches for jpegtran to transform the image
 
 	my $oldfile =  $_[0];			# original name
-	my $origfile = $_[0] . "_orig";	# backup original name
+	my $origfile = $_[0] . "_orig";		# backup original name
 	my $newfile =  $_[0] . "_rotated";	# temporay name to store rotated file
 	my $addon =    $_[1];
-
+	my $cmd;
+	
 	# jpegtran the image
-	my $cmd = "jpegtran -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
+	if ( $configOptions{'trim'} != 0 ) {
+		$cmd = "jpegtran -trim -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
+	}
+	else {
+		$cmd = "jpegtran -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
+	}
 	dbgmsg (3, "rotateFile(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
@@ -891,9 +902,10 @@ sub rotateThumbnail {
 	# $_[1] - the switch for jpegtran to rotate the thumbnail
 
 	if ( defined ${$$info{ThumbnailImage}} ) {
-		my $fileToThumbnail =  $_[0];			# original name
-		my $addon =            $_[1];
-
+		my $fileToThumbnail 	= $_[0]; # original name
+		my $addon 		= $_[1];
+		my $cmd;
+		
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $fileToThumbnail . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
@@ -905,7 +917,12 @@ sub rotateThumbnail {
 
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
-		my $cmd = "jpegtran -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
+		if ( $configOptions{'trim'} != 0 ) {
+			$cmd = "jpegtran -trim -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
+		}
+		else {
+			$cmd = "jpegtran -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
+		}
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
@@ -950,6 +967,7 @@ Options:
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
+  --trim (*)			pass -trim to jpegtran
   -r, --rotate-angle <ANGLE>	define the angle to rotate file and the thumbnail on 90, 180 or 270 (it's for the files where no Orientation tag is present and set right way)
   --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
   --only-orientation		rotate by changing Orientation tag (no real rotation)
@@ -1164,6 +1182,14 @@ B<%y>	last two digits of year (00..99)
 =item B<--no-rename>
 
 no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
+
+=item B<--trim>
+
+pass option I<-trim> to I<jpegtran> to trim if needed
+
+=item B<--no-trim>
+
+opposite to B<--trim>. not pass option I<-trim> to I<jpegtran>
 
 =item B<--rotate-angle> I<ANGLE>
 
