@@ -1,9 +1,9 @@
 WHAT IS IT?
 
-RenRot is a program to rename and lossless rotate for JPEG format files,
-according to their EXIF tags.
+RenRot is a program to rename and lossless rotate ( for now only JPEG format )
+files, according to their EXIF tags values.
 
-For prevent incorrect associations some explanations are needed here. The name
+To prevent incorrect associations, some explanation is needed here. The name
 of project is short form of 'REName and ROTate' and no other interpretation
 will be used.
 

@@ -16,6 +16,35 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
 #
+# The global definition for a new XMP namespace.
+# The %Image::ExifTool::UserDefined::RenRot
+# defines XMP-RenRot tags which could be added
+# to mark the file as  processed with RenRot
+#
+%Image::ExifTool::UserDefined::RenRot = (
+        GROUPS => { 0 => 'XMP', 1 => 'XMP-RenRot', 2 => 'Image' },
+        NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
+        WRITABLE => 'string',
+	RenRot_ProcessingTimestamp => { },
+        RenRot_Version => { },
+        RenRot_URL => { },
+);
+
+# The %Image::ExifTool::UserDefined hash defines
+# new tags to be added to existing tables.
+%Image::ExifTool::UserDefined = (
+       # new XMP namespaces must be added to the Main XMP table
+       'Image::ExifTool::XMP::Main' => {
+               RenRot => {
+                       SubDirectory => {
+                       TagTable => 'Image::ExifTool::UserDefined::RenRot',
+                        },
+                },
+        },
+);
+
+########################################################################################
+#
 # Parsed configuration file in hash
 #
 my %configOptions = (
@@ -665,6 +694,10 @@ sub tagWriter {
 
 	$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
 
+	$exifToolObj->SetNewValue('RenRot_ProcessingTimestamp', timeNow(), Group => 'XMP-RenRot');
+	$exifToolObj->SetNewValue('RenRot_Version', $VERSION, Group => 'XMP-RenRot');
+	$exifToolObj->SetNewValue('RenRot_URL', 'http://freshmeat.net/projects/renrot/', Group => 'XMP-RenRot');
+
 	# writing the changes to the EXIFs
 	exifWriter($exifToolObj, $file, $file . "_comment");
 }
@@ -1093,12 +1126,12 @@ renrot [OPTIONS] [[B<-->] FILE1 FILE2 ...]
 =head1 DESCRIPTION
 
 B<RenRot> is intended to work with files of B<--extension> extension,
-containing EXIF date and can do two things with them - rename and rotate. It
+containing EXIF data and can do two things with them - rename and rotate. It
 runs in batch mode in current or set with B<--work-directory> directory, as
 well as selective mode for separate files given as arguments in command line.
 
 RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
-tags, if they exist. Otherwise, the name will be set according to the current
+tags, if they exists. Otherwise, the name will be set according to the current
 time stamp and will look as YYYYmmddHHMMSS.XXXX.ext, where XXXX is whether
 file ID, if exists in EXIF (as for Canon) or incremental suffix to the name
 YYYYmmddHHMMSS.
@@ -1106,9 +1139,9 @@ YYYYmmddHHMMSS.
 Additionally, it rotates files and their thumbnails, accordingly Orientation
 EXIF tag. When the tag is absent or miss set, the program allows to rotate the
 file as well as it's thumbnail via B<--rotate-angle> and B<--rotate-thumb>
-options.
+options. Now implemented only for JPEG format.
 
-The script, also, is placing commentary into:
+The script, also, can place the commentary into:
 
 =over
 
@@ -1118,7 +1151,7 @@ The script, also, is placing commentary into:
 
 =back
 
-Personal details can be specified via XMP tags defined in a configuration
+Personal details could be specified via XMP tags defined in a configuration
 file, look L<CONFIG> section.
 
 In addition, RenRot can aggregate all files in directories according the given
