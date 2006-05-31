@@ -1,4 +1,7 @@
 $Log$
+Revision 1.106  2006/05/31 10:52:23  zeus
+Description of --counter-fixed-field, --counter-start and --counter-step added to the usage() and POD.
+
 Revision 1.105  2006/05/31 06:45:03  andy
 Refactoring (counterprefixsize -> counterSize,
              anglesuffix -> angleSuffix,
@@ -431,4 +434,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

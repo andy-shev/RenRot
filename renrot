@@ -545,7 +545,7 @@ sub rotateFile {
 			warnmsg ("Orientation tag is absent!\n");
 		}
 	}
-	
+
 	return $angleSuffix;
 }
 
@@ -971,13 +971,16 @@ Options:
   --exclude <FILE> ...		define excluding files from process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
+  --counter-fixed-field		set fixed length for \%c, where it is used in templates
+  --counter-start		the number to start count the files, to be renamed, from
+  --counter-step		the step for the counter of the files to be renamed
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
   -r, --rotate-angle <ANGLE>	define the angle to rotate file and the thumbnail on 90, 180 or 270 (it's for the files where no Orientation tag is present and set right way)
   --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
   --trim (*)			pass -trim to jpegtran
   --only-orientation		rotate by changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
-  --mtime (*)			to set file mtime according DateTimeOriginal tag value
+  --mtime (*)			set file mtime according DateTimeOriginal tag value
   --aggr-mode <MODE>		run aggregation in MODE (possible values are: none, delta or template)
   --aggr-delta <INTERVAL>	aggregation time delta (file with delta great than INTERVAL is placed to the --aggr-directory followed by directory name counter starting from 1)
   --aggr-directory <DIR>	counterless aggregation directory name
@@ -1183,6 +1186,18 @@ B<%Y>	year (1900, 1901, and so on)
 B<%y>	last two digits of year (00..99)
 
 =back
+
+=item B<--counter-fixed-field>
+
+set fixed length for B<%c>, where it is used in templates
+
+=item B<--counter-start>
+
+the nuber to start count the files, to be renamed, from
+
+=item B<--counter-step>
+
+the step for the counter of the files to be renamed
 
 =item B<--no-rename>
 
