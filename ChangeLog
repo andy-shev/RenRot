@@ -1,4 +1,15 @@
 $Log$
+Revision 1.105  2006/05/31 06:45:03  andy
+Refactoring (counterprefixsize -> counterSize,
+             anglesuffix -> angleSuffix,
+             renameFile() -> renameImg()).
+Split MAIN() to main part, renRotProcess() and renameFile().
+No reset incorrect aggregation template, only ignore it with warning and error.
+Change default aggregation directory value to 'Images'.
+Add trim variable to the configuration file.
+Group --mtime/--no-mtime and --trim/--no-trim in manual.
+Expand CONFIG section by trim and aggregation mode descriptions.
+
 Revision 1.104  2006/05/30 21:16:23  zeus
 the option --trim added
 
@@ -420,3 +431,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

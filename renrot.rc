@@ -24,6 +24,9 @@
 #	%y  last two digits of year (00..99)
 #name template		= '%Y%m%d%H%M%S'
 
+# Trimming rotated images when using jpegtran
+#trim			= Yes
+
 # Aggregation mode. Possible values are: none, delta or template
 #aggregation mode	= 'none'
 
@@ -41,7 +44,7 @@
 #aggregation delta	= 900
 
 # Counterless aggregation directory name.
-#aggregation directory	= 'DIR'
+#aggregation directory	= 'Images'
 
 # The commentary filename to put to Comment tag. Default is undefined.
 #comment file		= '/etc/renrot.comment'

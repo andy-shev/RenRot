@@ -20,7 +20,7 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 #
 my %configOptions = (
 			'aggregation delta' => 900,
-			'aggregation directory' => 'DIR',
+			'aggregation directory' => 'Images',
 			'aggregation mode' => 'none',
 			'aggregation template' => '%Y%m%d',
 			'comment file' => undef,
@@ -64,7 +64,7 @@ my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my %tags;		# define tags for filling
-my $trim;		# jpegtran -trim 
+my $trim;		# jpegtran -trim
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
@@ -73,11 +73,42 @@ my $workDir = './';	# we'll work ONLY in current directory
 #
 # Global variables (internal)
 #
+my @rotparms = (
+		'',
+		'-flip horizontal',
+		'-rotate 180',
+		'-flip vertical',
+		'-transpose',
+		'-rotate 90',
+		'-transverse',
+		'-rotate 270',
+	       );	# array of options to jpegtran to rotate the file
+
+my @angles = (
+		'',
+		'fh',
+		'180cw',
+		'fv',
+		'tp',
+		'90cw',
+		'tv',
+		'270cw',
+	     );		# the array of suffixes to add to the newfilename after rotating
+
 my %rotangles = (
 			'90' => '-rotate 90',
 			'180' => '-rotate 180',
 			'270' => '-rotate 270'
 		);	# array of options to rotate file "by hands"
+
+my %rotorient = (
+		        1 => 0,
+			6 => 90,
+		        3 => 180,
+			8 => 270,
+		);
+
+my %rotorientrev = reverse %rotorient;
 
 # processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
 sub procmsg {
@@ -370,46 +401,18 @@ dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if
 
 # Validate aggregation mode possible values
 if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
-	warnmsg ("Aggregation mode isn't correct! Resetting to 'none'.\n");
-	$configOptions{'aggregation mode'} = 'none';
+	warnmsg ("Aggregation mode isn't correct!\n");
 }
 
 # ExifTool object configuration
-our $exifTool = new Image::ExifTool;
+my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
-our $counterprefixsize;	# number of digits in $counterprefix
 my $file;		# file in the directory
 my @filenames;		# array of the filenames to process
+my $angleSuffix;	# suffix to add to the end of the rotated files
+my $counterSize;
 my %filenameshash;	# hash for old file names
-my $filenameshashkey;	# keys %filenameshash
-
-my @rotparms = (''
-	, '-flip horizontal'
-        , '-rotate 180'
-        , '-flip vertical'
-        , '-transpose'
-        , '-rotate 90'
-        , '-transverse'
-        , '-rotate 270');	# array of options to jpegtran to rotate the file
-
-my @angles = ( ''
-	, 'fh'
-	, '180cw'
-	, 'fv'
-	, 'tp'
-	, '90cw'
-	, 'tv'
-	, '270cw' );	# the array of suffixes to add to the newfilename after rotating
-
-my %rotorient = (
-	1 => 0,
-	6 => 90,
-	3 => 180,
-	8 => 270
-);
-
-my %rotorientrev = reverse %rotorient;
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
@@ -443,60 +446,96 @@ dbgmsg (1, "main(): Software: $softwareString\n");
 # Preparing the variable, which contains the format of the counter output
 if ($countFF != 0) {
 	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
-	$counterprefixsize = "%." . $size . "d";
+	$counterSize = "%." . $size . "d";
 	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
 } else {
-	$counterprefixsize = "%d";
+	$counterSize = "%d";
 }
 
 @files = sort @filenames;
 dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
-our $anglesuffix;	# the suffix to add to the end of the rotated files 90cw, 180cw or 270cw
-my $orientation;	# Orientation tag value
-my $info;		# ImageInfo object
-my $fileCounter = $countStart;
-my $newfilename;	# the name file to be renamed to
+renRotProcess();
+aggregationProcess();
 
-procmsg ("RENAMING / ROTATING\n===================\n");
+########################################################################################
+#
+# renRotProcess() renames and rotates given file set
+#
+sub renRotProcess {
+	my $fileCounter = $countStart;	# file counter
+	my $newFileName;		# the name file to be renamed to
+	my $info;			# ImageInfo object
 
-foreach $file ( @files ) {
-	procmsg ("Processing file: $file ...\n");
+	# Convert trim boolean value to string
+	my $trimStr = (not defined $configOptions{'trim'} or $configOptions{'trim'}) ? '-trim' : '';
+	dbgmsg (1, "renRotProcess(): Trim string: '$trimStr'\n");
 
-	# Setup defaults
-	$info = $exifTool->ImageInfo($file);
-	$anglesuffix = "0cw";
+	procmsg ("RENAMING / ROTATING\n===================\n");
 
-	################################################################################################
-	#
-	## analyzing whether to rotate
-	#
+	foreach my $file (@files) {
+		procmsg ("Processing file: $file ...\n");
 
-	$orientation = $exifTool->GetValue("Orientation", 'ValueConv');
+		# Setup defaults
+		$info = $exifTool->ImageInfo($file);
 
-	if ( defined $noRotation ) { dbgmsg (2, "main(): No rotation asked, file orientation is left untouched.\n"); }
+		# analyzing whether to rotate
+		$angleSuffix = rotateFile($exifTool, $info, $file, $trimStr);
+
+		# analyzing whether and how to rename file
+		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
+
+		# analyzing whether to comment
+		commentWriter($exifTool);
+
+		# Writting tags.
+		tagWriter($exifTool, $newFileName) if ($noRename == 0);
+
+		# seting mtime for the file if been asked for
+		mtimeSet($exifTool, $info, $newFileName);
+
+		procmsg ("\n");
+
+		$fileCounter += $countStep;
+	}
+}
+
+########################################################################################
+#
+# rotateFile() rotates file and it's thumbnail if needed, changes Orientation tag
+#
+sub rotateFile {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+	my $file = shift;
+	my $trimStr = shift;
+	my $orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
+
+	my $angleSuffix = "0cw";
+
+	if (defined $noRotation) { dbgmsg (2, "rotateFile(): No rotation asked, file orientation is left untouched.\n"); }
 	elsif ( defined $rotateAngle ) {
-		dbgmsg (2, "main(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
+		dbgmsg (2, "rotateFile(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
 		if ($orientTag != 0) {
 			rotateOrient($file, $orientation);
 		} else {
-			rotateFile($file, $rotangles{$rotateAngle}, $trim);
-			rotateThumbnail($file, $rotangles{$rotateAngle}, $trim);
+			rotateImg($file, $rotangles{$rotateAngle}, $trimStr);
+			rotateThumbnail($infoObj, $file, $rotangles{$rotateAngle}, $trimStr);
 		}
-		$anglesuffix = $rotateAngle . "cw";
+		$angleSuffix = $rotateAngle . "cw";
 	}
 	elsif ( defined $rotateThumbnail ) {
-		rotateThumbnail($file, $rotangles{$rotateThumbnail}, $trim);
+		rotateThumbnail($infoObj, $file, $rotangles{$rotateThumbnail}, $trimStr);
 	}
 	else {
 		if (defined $orientation) {
 			if ( $orientation > 1 ) {
-				rotateFile($file, $rotparms[$orientation - 1], $trim);
-				rotateThumbnail($file, $rotparms[$orientation - 1], $trim);
-				$anglesuffix = $angles[$orientation - 1];
+				rotateImg($file, $rotparms[$orientation - 1], $trimStr);
+				rotateThumbnail($infoObj, $file, $rotparms[$orientation - 1], $trimStr);
+				$angleSuffix = $angles[$orientation - 1];
 			}
 			elsif ( $orientation == 1 ) {
-				dbgmsg (2, "main(): No need to rotate, orientation is: Horizontal (normal).\n");
+				dbgmsg (2, "rotateFile(): No need to rotate, orientation is: Horizontal (normal).\n");
 			}
 			else {
 				errmsg ("Something wrong, orientation low than 1: $orientation.\n");
@@ -506,26 +545,9 @@ foreach $file ( @files ) {
 			warnmsg ("Orientation tag is absent!\n");
 		}
 	}
-
-	# analyzing whether and how to rename file
-	$newfilename = renameFile($exifTool, $info, $file);
-
-	# analyzing whether to comment
-	commentWriter($exifTool);
-
-	# Writting tags.
-	tagWriter($exifTool, $newfilename) if ($noRename == 0);
-
-	# seting mtime for the file if been asked for
-	mtimeSet($exifTool, $info, $newfilename);
-
-	procmsg ("\n");
-	$fileCounter += $countStep;
+	
+	return $angleSuffix;
 }
-
-aggregationProcess();
-
-exit 0;
 
 ########################################################################################
 #
@@ -535,6 +557,7 @@ sub renameFile {
 	my $exifToolObj = shift;
 	my $infoObj = shift;
 	my $file = shift;
+	my $fileCounter = shift;
 
 	my $newFileName;
 
@@ -553,7 +576,7 @@ sub renameFile {
 		$newFileName .= $ext;
 
 		if ($filenameshash{$newFileName}) {
-			$newFileName .= "." . sprintf($counterprefixsize, $fileCounter);
+			$newFileName .= "." . sprintf($counterSize, $fileCounter);
 		}
 		$filenameshash{$newFileName} = getUnixTime(getTimestamp($exifToolObj, $infoObj));
 
@@ -714,13 +737,13 @@ sub aggregationProcess {
 			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
-				$NewDir = $configOptions{'aggregation directory'} . sprintf($counterprefixsize, $DirCounter);
+				$NewDir = $configOptions{'aggregation directory'} . sprintf($counterSize, $DirCounter);
 				$DirCounter++;
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
 			} else {
 				# Check for new direcroty creation
 				if (($filenameshash{$filetmp} - $timestampPrev) > $configOptions{'aggregation delta'}) {
-					$NewDir = $configOptions{'aggregation directory'} . sprintf($counterprefixsize, $DirCounter);
+					$NewDir = $configOptions{'aggregation directory'} . sprintf($counterSize, $DirCounter);
 					$DirCounter++;
 				}
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
@@ -729,7 +752,7 @@ sub aggregationProcess {
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 		}
 	} else {
-		errmsg ("Aggregation mode $configOptions{'aggregation mode'} isn't implemented!");
+		errmsg ("Aggregation mode $configOptions{'aggregation mode'} isn't implemented!\n");
 	}
 }
 
@@ -857,27 +880,17 @@ sub rotateOrient {
 
 ########################################################################################
 #
-# rotating the image and it's thumbnail, rewriting Orientation tag and the commentary
-# to the result file
+# rotateImg() rotates the image file by given angle
 #
-sub rotateFile {
-	# $_[0] - file name to transform with jpegtran
-	# $_[1] - the switches for jpegtran to transform the image
+sub rotateImg {
+	my $oldfile = shift;			# original name to transform with jpegtran
+	my $origfile = $oldfile . "_orig";	# backup original name
+	my $newfile = $oldfile . "_rotated";	# temporay name to store rotated file
+	my @addon = @_;				# the switches for jpegtran to transform the image
 
-	my $oldfile =  $_[0];			# original name
-	my $origfile = $_[0] . "_orig";		# backup original name
-	my $newfile =  $_[0] . "_rotated";	# temporay name to store rotated file
-	my $addon =    $_[1];
-	my $cmd;
-	
 	# jpegtran the image
-	if ( $configOptions{'trim'} != 0 ) {
-		$cmd = "jpegtran -trim -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
-	}
-	else {
-		$cmd = "jpegtran -copy all $addon -outfile \"$newfile\" \"$oldfile\"";
-	}
-	dbgmsg (3, "rotateFile(): $cmd\n");
+	my $cmd = "jpegtran -copy all @addon -outfile \"$newfile\" \"$oldfile\"";
+	dbgmsg (3, "rotateImg(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
@@ -898,31 +911,23 @@ sub rotateFile {
 # rotate thubnail only, where the file was rotated but thumbnail was left untouched
 #
 sub rotateThumbnail {
-	# $_[0] - file, which thumbnale to transform with jpegtran
-	# $_[1] - the switch for jpegtran to rotate the thumbnail
+	my $infoObj = shift;
+	my $file = shift;	# file, which thumbnale to transform with jpegtran
+	my @addon = @_;		# the switches for jpegtran to rotate the thumbnail
 
-	if ( defined ${$$info{ThumbnailImage}} ) {
-		my $fileToThumbnail 	= $_[0]; # original name
-		my $addon 		= $_[1];
-		my $cmd;
-		
+	if (defined ${$$infoObj{ThumbnailImage}}) {
 		# extracting the thumbnail image
-		my $ThumbnailOriginal = $fileToThumbnail . "_thumborig";
+		my $ThumbnailOriginal = $file . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
 			errmsg ("$ThumbnailOriginal wasn't opened!\n");
 		}
 		binmode OLDTHUMBNAIL;
-		print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+		print OLDTHUMBNAIL ${$$infoObj{ThumbnailImage}};
 		unless ( close ( OLDTHUMBNAIL ) ) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
-		if ( $configOptions{'trim'} != 0 ) {
-			$cmd = "jpegtran -trim -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
-		}
-		else {
-			$cmd = "jpegtran -copy all $addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
-		}
+		my $cmd = "jpegtran -copy all @addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
@@ -932,7 +937,7 @@ sub rotateThumbnail {
 		}
 		binmode THUMBNAILROTATED;
 		my ( @rthumb ) = <THUMBNAILROTATED>;
-		my $thethumb = join ('',@rthumb);
+		my $thethumb = join ('', @rthumb);
 		unless ( close ( THUMBNAILROTATED ) ) { errmsg ("$ThumbnailOriginalRotated wasn't closed!\n"); }
 
  	 	# preparing to write thumbnale to the just rotated file
@@ -942,7 +947,7 @@ sub rotateThumbnail {
 		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
 
 		# writing the changes to the EXIFs
-		exifWriter($exifThumbnailed, $fileToThumbnail, $fileToThumbnail . "_thumb");
+		exifWriter($exifThumbnailed, $file, $file . "_thumb");
 
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
@@ -967,9 +972,9 @@ Options:
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
   --name-template <TPL>		filename template (see manual for details)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
-  --trim (*)			pass -trim to jpegtran
   -r, --rotate-angle <ANGLE>	define the angle to rotate file and the thumbnail on 90, 180 or 270 (it's for the files where no Orientation tag is present and set right way)
   --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
+  --trim (*)			pass -trim to jpegtran
   --only-orientation		rotate by changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			to set file mtime according DateTimeOriginal tag value
@@ -1037,8 +1042,8 @@ sub template2name {
 	my @templatearea = split (//, $template);
 	my %templatehash = (
 				'%' => "%",
-				'a' => $anglesuffix,
-				'c' => sprintf($counterprefixsize, $fileNo),
+				'a' => $angleSuffix,
+				'c' => sprintf($counterSize, $fileNo),
 				'd' => $tm[3],
 				'E' => $ExposureTime,
 				'F' => $FNumber,
@@ -1183,14 +1188,6 @@ B<%y>	last two digits of year (00..99)
 
 no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 
-=item B<--trim>
-
-pass option I<-trim> to I<jpegtran> to trim if needed
-
-=item B<--no-trim>
-
-opposite to B<--trim>. not pass option I<-trim> to I<jpegtran>
-
 =item B<--rotate-angle> I<ANGLE>
 
 define the angle to rotate file and the thumbnail on 90, 180 or 270. It's for
@@ -1200,6 +1197,11 @@ the files where no Orientation tag is set right way.
 
 rotate only thumbnail by 90, 180 or 270 degree. It's for the files which were
 rotated, but thumbnail wasn't.
+
+=item B<--trim>, B<--no-trim>
+
+pass option C<-trim> to L<jpegtran(1)> to trim if needed. By default trimming
+is on. Use B<--no-trim> to negate described behaviour.
 
 =item B<--only-orientation>
 
@@ -1215,13 +1217,10 @@ tag.
 
 no rotation needed, default is to rotate according EXIF data
 
-=item B<--mtime>
+=item B<--mtime>, B<--no-mtime>
 
-defines, whether to set mtime of the file, using DateTimeOriginal tag value
-
-=item B<--no-mtime>
-
-opposite to B<--mtime>. mtime of the file will be the one after processing
+defines, whether to set mtime of the file, using DateTimeOriginal tag value.
+Use B<--no-mtime> to set it to current time stamp after processing.
 
 =item B<--aggr-mode> I<MODE>
 
@@ -1230,14 +1229,13 @@ template.
 
 =item B<--aggr-delta> I<Time INTERVAL>
 
-the type of aggregation "delta". Really it is aggregation time delta in
-seconds (file with DateTimeOriginal and the one of the previous file delta,
-greater than B<--aggr-delta> is placed to the B<--aggr-directory> followed by
-directory name counter).
+aggregation time delta in seconds (file with DateTimeOriginal and the one of
+the previous file delta, greater than B<--aggr-delta> is placed to the
+B<--aggr-directory> followed by directory name counter).
 
 =item B<--aggr-directory> I<DIR>
 
-counterless aggregation directory name
+counterless aggregation directory name (default is I<Images>)
 
 =item B<--aggr-template> I<Aggregation TEMPLATE>
 
@@ -1262,7 +1260,7 @@ show what would have been happened (no real actions)
 
 =item B<-v>
 
-one or more I<-v> sets debug level. From 1 to 4 - internal levels, 5 till 9 -
+one or more C<-v> sets debug level. From 1 to 4 - internal levels, 5 till 9 -
 equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
 
 =item B<-?> or B<--help>
@@ -1347,6 +1345,14 @@ set to Yes for synchronize mtime with tags, otherwise set it to No
 =item B<name template>
 
 name template, which defines the file name look (see B<--name-template>)
+
+=item B<trim>
+
+set to Yes to trim rotated images when using L<jpegtran(1)>
+
+=item B<aggregation mode>
+
+aggregation mode, possible values are: none, delta or template
 
 =item B<aggregation template>
 
