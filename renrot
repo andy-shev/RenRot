@@ -769,13 +769,13 @@ sub aggregationProcess {
 			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
-				$NewDir = $configOptions{'aggregation directory'} . sprintf($counterSize, $DirCounter);
+				$NewDir = $configOptions{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
 				$DirCounter++;
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
 			} else {
 				# Check for new direcroty creation
 				if (($filenameshash{$filetmp} - $timestampPrev) > $configOptions{'aggregation delta'}) {
-					$NewDir = $configOptions{'aggregation directory'} . sprintf($counterSize, $DirCounter);
+					$NewDir = $configOptions{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
 					$DirCounter++;
 				}
 				aggregateFile($file, $NewDir) if ($dryRun == 0);

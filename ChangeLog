@@ -1,4 +1,7 @@
 $Log$
+Revision 1.109  2006/06/01 08:21:39  zeus
+in delta aggregation mode, dir counter now delimited with dot from dir name.
+
 Revision 1.108  2006/06/01 07:12:08  andy
 TODO is cleaned up.
 Remove underscore symbol from RenRot unique tags.
@@ -443,3 +446,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
