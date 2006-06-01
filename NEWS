@@ -1,14 +1,13 @@
 * 0.20 *
 
-The deprecated options (--aggr, --aggr-dumb, 'delta' keyword in the
---aggr-template) and their configuration variables was removed. The old
-style of the configuration file is not supported. A extension is no more
-used for the file set. A new trim variable has been added to the
-configuration file (--trim represents it in the command line). Script
-writes its own XMP tags to the RenRot called group. The default
-aggregation directory value has been changed, and the dot delimeter is
-added to the directory name before a counter. The documentation has been
-expanded according to the last changes.
+The deprecated options (--aggr, --aggr-dumb, and the "delta" keyword in the
+--aggr-template) and their configuration variables were removed. The old style
+of the configuration file is not supported. An extension is no longer used for
+the file set. A new "trim" variable has been added to the configuration file
+(represented by --trim in the command line). The script writes its own XMP
+tags to the RenRot called group. The default aggregation directory value has
+been changed, and the dot delimeter is added to the directory name before a
+counter. The documentation has been expanded according to the last changes.
 
 
 * 0.20rc3 *
