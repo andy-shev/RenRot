@@ -1,4 +1,9 @@
 $Log$
+Revision 1.108  2006/06/01 07:12:08  andy
+TODO is cleaned up.
+Remove underscore symbol from RenRot unique tags.
+XMP-RenRot -> RenRot.
+
 Revision 1.107  2006/05/31 21:08:23  zeus
 XMP-RenRot namespace was added (tags RenRot_ProcessingTimestamp, RenRot_Version and RenRot_URL).
 README and POD a bit polished.
@@ -438,4 +443,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

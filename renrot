@@ -16,31 +16,30 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
 #
-# The global definition for a new XMP namespace.
-# The %Image::ExifTool::UserDefined::RenRot
-# defines XMP-RenRot tags which could be added
-# to mark the file as  processed with RenRot
+# The global definition for a new XMP namespace. The
+# %Image::ExifTool::UserDefined::RenRot defines XMP-RenRot tags which could be
+# added to mark the file as processed with RenRot.
 #
 %Image::ExifTool::UserDefined::RenRot = (
-        GROUPS => { 0 => 'XMP', 1 => 'XMP-RenRot', 2 => 'Image' },
-        NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
-        WRITABLE => 'string',
-	RenRot_ProcessingTimestamp => { },
-        RenRot_Version => { },
-        RenRot_URL => { },
+	GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
+	NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
+	WRITABLE => 'string',
+	RenRotProcessingTimestamp => { },
+	RenRotVersion => { },
+	RenRotURL => { },
 );
 
-# The %Image::ExifTool::UserDefined hash defines
-# new tags to be added to existing tables.
+# The %Image::ExifTool::UserDefined hash defines new tags to be added to
+# existing tables.
 %Image::ExifTool::UserDefined = (
-       # new XMP namespaces must be added to the Main XMP table
-       'Image::ExifTool::XMP::Main' => {
-               RenRot => {
-                       SubDirectory => {
-                       TagTable => 'Image::ExifTool::UserDefined::RenRot',
-                        },
-                },
-        },
+	# new XMP namespaces must be added to the Main XMP table
+	'Image::ExifTool::XMP::Main' => {
+		RenRot => {
+			SubDirectory => {
+				TagTable => 'Image::ExifTool::UserDefined::RenRot',
+			},
+		},
+	},
 );
 
 ########################################################################################
@@ -694,9 +693,9 @@ sub tagWriter {
 
 	$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
 
-	$exifToolObj->SetNewValue('RenRot_ProcessingTimestamp', timeNow(), Group => 'XMP-RenRot');
-	$exifToolObj->SetNewValue('RenRot_Version', $VERSION, Group => 'XMP-RenRot');
-	$exifToolObj->SetNewValue('RenRot_URL', 'http://freshmeat.net/projects/renrot/', Group => 'XMP-RenRot');
+	$exifToolObj->SetNewValue('RenRotProcessingTimestamp', timeNow(), Group => 'RenRot');
+	$exifToolObj->SetNewValue('RenRotVersion', $VERSION, Group => 'RenRot');
+	$exifToolObj->SetNewValue('RenRotURL', 'http://freshmeat.net/projects/renrot/', Group => 'RenRot');
 
 	# writing the changes to the EXIFs
 	exifWriter($exifToolObj, $file, $file . "_comment");
