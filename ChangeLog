@@ -1,4 +1,8 @@
 $Log$
+Revision 1.110  2006/06/01 13:12:03  zeus
+EXIF data copying code rewritten. Now $exiftool->SetNewValuesFromFile()
+is used rather than jpegtran -copy all
+
 Revision 1.109  2006/06/01 08:21:39  zeus
 in delta aggregation mode, dir counter now delimited with dot from dir name.
 
@@ -446,4 +450,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

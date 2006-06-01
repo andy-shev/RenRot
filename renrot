@@ -20,6 +20,10 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 # %Image::ExifTool::UserDefined::RenRot defines XMP-RenRot tags which could be
 # added to mark the file as processed with RenRot.
 #
+if (defined %Image::ExifTool::UserDefined::RenRot) {
+	fatalmsg ("Won't redefine Image::ExifTool::UserDefined::RenRot\n"), die;
+}
+
 %Image::ExifTool::UserDefined::RenRot = (
 	GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
 	NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
@@ -921,9 +925,11 @@ sub rotateImg {
 	my @addon = @_;				# the switches for jpegtran to transform the image
 
 	# jpegtran the image
-	my $cmd = "jpegtran -copy all @addon -outfile \"$newfile\" \"$oldfile\"";
+	my $cmd = "jpegtran -copy none @addon -outfile \"$newfile\" \"$oldfile\"";
 	dbgmsg (3, "rotateImg(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
+
+	$exifTool->SetNewValuesFromFile($oldfile,'*:*');
 
 	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
 	rename ( $newfile, $oldfile )  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
@@ -959,7 +965,7 @@ sub rotateThumbnail {
 
 		# rotating the thumbnail
 		my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
-		my $cmd = "jpegtran -copy all @addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
+		my $cmd = "jpegtran -copy none @addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
