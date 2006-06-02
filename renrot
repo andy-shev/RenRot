@@ -707,10 +707,8 @@ sub tagWriter {
 
 ########################################################################################
 #
-# exifWriter()	applies EXIF info, set by SetNewValue, to the image taken from the file,
-# 		set by 2-nd argument and writes the result to the same file, set by the
-# 		2-nd argument. In other words, rewrites it with the image from itself 
-# 		but the meta data from the one set by the previously called SetNewValue 
+# exifWriter() applies EXIF info, set by SetNewValue, to the image taken from
+# the file, and writes the result to the same file. 
 #
 sub exifWriter {
 	my $exifToolObject = shift;
