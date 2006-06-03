@@ -105,7 +105,7 @@ my %tags = (
 			group => 'RenRot',
 		},
 		'RenrotVersion' => {
-			value => $VERSION, 
+			value => $VERSION,
 			group => 'RenRot',
 		},
 		'RenRotURL' => {
@@ -739,7 +739,7 @@ sub tagWriter {
 ########################################################################################
 #
 # exifWriter() applies EXIF info, set by SetNewValue, to the image taken from
-# the file, and writes the result to the same file. 
+# the file, and writes the result to the same file.
 #
 sub exifWriter {
 	my $exifToolObject = shift;

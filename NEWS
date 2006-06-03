@@ -19,7 +19,7 @@ The --aggr-dumb option and related configuration variable are deprecated (use
 configuration file. The start and step counter values can be derived by the
 --counter-start and --counter-step command line options. A new option
 --counter-fixed-field provides a fixed field when a counter is used in a
-template. 
+template.
 
 
 * 0.20rc2 *
