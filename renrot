@@ -58,15 +58,6 @@ my %configOptions = (
 			'comment file' => undef,
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
-			'tag ciadrcity'  => undef,
-			'tag ciadrctry' => undef,
-			'tag ciadrextadr' => undef,
-			'tag ciadrpcode' => undef,
-			'tag ciadrregion' => undef,
-			'tag ciemailwork' => undef,
-			'tag citelwork' => undef,
-			'tag ciurlwork' => undef,
-			'tag usercomment' => undef,
 			'trim' => 1,
 		    );
 
@@ -86,7 +77,6 @@ my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
-my @files;		# array of the sorted filenames to process
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
@@ -95,11 +85,34 @@ my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
-my %tags;		# define tags for filling
+my %tagsFromCli;	# tags are got from CLI
 my $trim;		# jpegtran -trim
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
+
+########################################################################################
+#
+# Tags hash for injecting to EXIF when renaming
+#
+my %tags = (
+		'Software' => {
+			value => sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION),
+			group => 'EXIF',
+		},
+		'RenRotProcessingTimestamp' => {
+			value => timeNow(),
+			group => 'RenRot',
+		},
+		'RenrotVersion' => {
+			value => $VERSION, 
+			group => 'RenRot',
+		},
+		'RenRotURL' => {
+			value => 'http://freshmeat.net/projects/renrot/',
+			group => 'RenRot',
+		},
+	   );		# define tags for filling
 
 ########################################################################################
 #
@@ -302,13 +315,10 @@ sub getOptions {
 	dbgmsg (1, "getOptions(): Process with '$extToProcess' extension.\n");
 
 	# Convert multiple tag parameters to tags hash
-	foreach my $tag (@tmpTags) {
-		my ($key, $value) = parsePair($tag);
-		if (defined $key) {
-			$value = "" if (not defined $value);
-			$tags{$key} = $value;
-		} else {
-			warnmsg ("Invalid tag format: $tag\n");
+	foreach my $tagStr (@tmpTags) {
+		my %tag = tagParser($tagStr);
+		foreach my $key (keys %tag) {
+			$tagsFromCli{$key} = $tag{$key};
 		}
 	}
 }
@@ -343,6 +353,27 @@ sub parsePair {
 
 ########################################################################################
 #
+# tagParser() parses given string to a tag hash
+#
+sub tagParser {
+	my $tagStr = shift;
+	my %tag = {};
+	$tagStr =~ s/:/=/;		# change first ':' to '='
+	my ($key, $value) = parsePair($tagStr);
+	if (defined $key) {
+		$value = "" if (not defined $value);
+		$key =~ s/[\(\[]([^\(\)\[\]]+)[\)\]]$//;
+		my $group = (defined $1) ? $1 : undef;
+		$tag{$key} = {value => $value, group => $group};
+		dbgmsg (4, "tagParser(): Parsed: $key [$group] = '$value'\n");
+	} else {
+		warnmsg ("Invalid tag format: $tagStr\n");
+	}
+	return %tag;
+}
+
+########################################################################################
+#
 # getConfig() parses configuration file
 #
 sub getConfig {
@@ -365,6 +396,7 @@ sub getConfig {
 			my ($key, $value) = parsePair($line);
 			if (defined $value) {
 				$key = lc($key);
+				$key .= sprintf("%d", $i) if ($key eq "tag");
 				$hConfig{$key} = boolConverter($value);
 				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
 			} else {
@@ -410,12 +442,6 @@ sub parseConfig {
 # parse command line options
 getOptions();
 
-# All things in ARGV will be treated as file names to process
-@files = @ARGV;
-
-# Calculate ExifTool's verbosity
-my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
-
 parseConfig($configFile);
 
 # redefining options set in config with set via CLI ones
@@ -426,7 +452,6 @@ $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate
 $configOptions{'comment file'}		= $comfile if (defined $comfile);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
-$configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 $configOptions{'trim'}			= $trim if (defined $trim);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
@@ -436,17 +461,24 @@ if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'templat
 	warnmsg ("Aggregation mode isn't correct!\n");
 }
 
+# Calculate ExifTool's verbosity
+my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
+
 # ExifTool object configuration
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
 my $file;		# file in the directory
+my @files;		# array of the sorted filenames to process
 my @filenames;		# array of the filenames to process
 my $angleSuffix;	# suffix to add to the end of the rotated files
 my $counterSize;
 my %filenameshash;	# hash for old file names
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
+
+# All things in ARGV will be treated as file names to process
+@files = @ARGV;
 
 # if no file is given
 if (scalar(@files) == 0) {
@@ -471,9 +503,8 @@ if (scalar(@filenames) == 0) {
 	exit 1;
 }
 
-# Prepare software string for EXIF injection
-my $softwareString = sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION);
-dbgmsg (1, "main(): Software: $softwareString\n");
+# Convert old style of tags to new one
+$configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 
 # Preparing the variable, which contains the format of the counter output
 if ($countFF != 0) {
@@ -695,7 +726,7 @@ sub tagWriter {
 		$exifToolObj->SetNewValue('CreatorContactInfoCiUrlWork', $configOptions{'tag ciurlwork'}, Group => 'XMP');
 	}
 
-	$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
+	#$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
 
 	$exifToolObj->SetNewValue('RenRotProcessingTimestamp', timeNow(), Group => 'RenRot');
 	$exifToolObj->SetNewValue('RenRotVersion', $VERSION, Group => 'RenRot');

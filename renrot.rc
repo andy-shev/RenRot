@@ -1,7 +1,7 @@
 #
 ## This is configuration file for RenRot. See commented variables for defaults.
 #
-# Note: options except 'tag' prefixed can be overriden by CLI.
+# Note: Thease variables can be overriden by command line options.
 
 # Process files with or without mtime modification.
 #mtime			= Yes
@@ -51,14 +51,14 @@
 
 # The commentary to put to UserComment tag. Default is undefined.
 # (This option could be overriden by --user-comment parameter)
-#Tag UserComment	= 'User commentary here'
+#Tag = UserComment: 'User commentary here'
 
 # Personal information could be set to XMP tags. Default is undefined.
-#Tag CiAdrCity		= 'Here Is Your City'
-#Tag CiAdrCtry		= 'Here Is Your Country'
-#Tag CiAdrExtadr	= 'Here Is Your Apartments'
-#Tag CiAdrPcode		= 'Here Is Your Zip Code'
-#Tag CiAdrRegion	= 'Here Is Your Region'
-#Tag CiEmailWork	= 'Here Is Your Email'
-#Tag CiTelWork		= 'Here Is Your Phone'
-#Tag CiUrlWork		= 'Here Is Your URL'
+#Tag = CreatorContactInfoCiAdrCity [XMP]: 'Here Is Your City'
+#Tag = CreatorContactInfoCiAdrCtry [XMP]: 'Here Is Your Country'
+#Tag = CreatorContactInfoCiAdrExtadr [XMP]: 'Here Is Your Apartments'
+#Tag = CreatorContactInfoCiAdrPcode [XMP]: 'Here Is Your Zip Code'
+#Tag = CreatorContactInfoCiAdrRegion [XMP]: 'Here Is Your Region'
+#Tag = CreatorContactInfoCiEmailWork [XMP]: 'Here Is Your Email'
+#Tag = CreatorContactInfoCiTelWork [XMP]: 'Here Is Your Phone'
+#Tag = CreatorContactInfoCiUrlWork [XMP]: 'Here Is Your URL'

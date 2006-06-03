@@ -1,4 +1,8 @@
 $Log$
+Revision 1.113  2006/06/03 15:25:03  andy
+Fix spec according Fedora Extras Review.
+First part of tags filling implementation.
+
 Revision 1.112  2006/06/02 13:06:02  andy
 Update ExifTool requirement due to new implementation of WriteInfo().
 
@@ -457,3 +461,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

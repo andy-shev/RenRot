@@ -8,7 +8,6 @@ URL:		http://freshmeat.net/projects/renrot/
 Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
-BuildRequires:	perl >= 1:5.6.0
 BuildRequires:	perl(Image::ExifTool) >= 5.72
 BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
@@ -37,6 +36,9 @@ make
 rm -rf $RPM_BUILD_ROOT
 make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
 
+# Fix renrot permissions
+chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
+
 # install rc-file
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 install -m644 renrot.rc $RPM_BUILD_ROOT%{_sysconfdir}/renrot.rc
@@ -57,6 +59,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/renrot.rc
 
 %changelog
+* Sat Jun 03 2006 Andy Shevchenko <andriy@asplinux.com.ua>
+- remove BR: perl
+- fix renrot permissions
+
 * Mon May 15 2006 Andy Shevchenko <andriy@asplinux.com.ua>
 - install rc-file
 
