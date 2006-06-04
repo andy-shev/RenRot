@@ -55,6 +55,8 @@ the following sites:
  ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
  ftp://andriy.asplinux.com.ua/pub/people/andy/renrot/ (mirror)
  ftp://ftp.asplinux.ru/ (looking for renrot package in RPM)
+ Fedora Extras repository on any mirror (use yum or yumex utility to install
+ package)
 
 
 RUNNING
@@ -171,6 +173,8 @@ ASPLinux company (http://www.asplinux.ru) has included renrot to their
 distribution.
 
 Alex Zasypkin for his help with documentation writing.
+
+Fedora Extras Team for including RenRot to its repository.
 
 
 ARE YOU WANT SOMETHING TO SAY?

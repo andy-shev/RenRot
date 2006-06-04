@@ -65,3 +65,26 @@ you must build it from source code yourself or download from this site
 
 4. Use double quotes instead of single in command line for disabling
    misinterpretation of arguments.
+
+
+INSTALL TO PDA (EXPERIMENTAL AND UNDER DEVELOPMENT, MAY NOT WORK)
+
+Installation process for a WinCE devices is not trivial. Please, be accurate
+when you make installation. Using renrot and exiftool scripts on PDA is useful
+for device that has built-in camera such as FSC Pocket Loox 720.
+
+First, you need to install Perl and Image::ExifTool to Pocket PC or another
+PDA. Visit the following site and get last perl distribution according to
+platform (usually ARM for Pocket PC):
+    http://perlce.sf.net
+There you can found detailed installation instructions for perl. Also we
+recommends to install the PerlIDE GUI that helps with scripting very much.
+
+Second, additional modules should be installed for starting ExifTool:
+    File::RandomAccess
+Simple way to install is a copy their as-is from your PC perl distribution to
+the %perllib% on PDA.
+
+RenRot and ExifTool's several functions are not working now due to precompiled
+perl does not contain strftime().
+

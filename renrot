@@ -1464,39 +1464,49 @@ aggregation mode, possible values are: none, delta or template
 aggregation template, which defines the file aggregation (see
 B<--aggr-template>)
 
-=item B<Tag UserComment>
+=back
+
+=back
+
+Information about tag variable is placed at section L<TAGS>.
+
+=head1 TAGS
+
+=over
+
+=item B<UserComment>
 
 anything you'd wanna put as commentary
 
-=item B<Tag CiAdrCity>
+=item B<CreatorContactInfoCiAdrCity>
 
 city tag
 
-=item B<Tag CiAdrCtry>
+=item B<CreatorContactInfoCiAdrCtry>
 
 country tag
 
-=item B<Tag CiAdrExtadr>
+=item B<CreatorContactInfoCiAdrExtadr>
 
 extended address (usually street and apartments)
 
-=item B<Tag CiAdrPcode>
+=item B<CreatorContactInfoCiAdrPcode>
 
 zip code
 
-=item B<Tag CiAdrRegion>
+=item B<CreatorContactInfoCiAdrRegion>
 
 region
 
-=item B<Tag CiEmailWork>
+=item B<CreatorContactInfoCiEmailWork>
 
 email
 
-=item B<Tag CiTelWork>
+=item B<CreatorContactInfoCiTelWork>
 
 phone
 
-=item B<Tag CiUrlWork>
+=item B<CreatorContactInfoCiUrlWork>
 
 URL
 
@@ -1515,6 +1525,11 @@ Configuration file placement (with high priority first):
 =item B</etc/renrot.rc>
 
 =back
+
+=head1 BUGS
+
+If you found some bug or have nice proposition, you are welcome. Additionally,
+please, read RESTRICTIONS section in README.
 
 =head1 AUTHORS
 

@@ -1,4 +1,11 @@
 $Log$
+Revision 1.115  2006/06/04 15:02:59  andy
+Added INSTALLATION ON PDA section to README.Windows (still theoretical).
+TODO has been modified.
+Fedora Extras Team credit is added to README.
+New section BUGS in the manual is added.
+Splited tag option description to separate manual section.
+
 Revision 1.114  2006/06/04 08:21:01  andy
 Configuration file tag variable parser has been added.
 Fix usage of undefined group in tagParser().
@@ -465,3 +472,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

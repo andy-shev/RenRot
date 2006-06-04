@@ -13,7 +13,7 @@ q  to write to some tag the options passed to renrot
 
 +- to review XMP tags related code
 
--  to implement %t in name template, where the array of desired tags will be
++- to implement %t in name template, where the array of desired tags will be
    inited
 
 
@@ -38,6 +38,12 @@ Disk I/O
 -  avoid hard link making where in and out files on different partitions
 
 
+User interface
+
+-  GUI on PerlTk (due to WinCE hasn't real console) with some additional
+   functions such as keywordizer
+
+
 File naming
 
 
@@ -46,10 +52,14 @@ Verbosity
 q  to implement progress indicator or spinning indicator
 
 
+Code
+
++- to review the code to optimize it where it's possible.
+
+-  to tune style look of comments, code e.t.c.
+
+
 Other
 
 -  UTF8fy (comments, tags, ...) since it's not implemented in ExifTool yet
 
--  to tune style look of comments, code e.t.c.
-
-+- to review the code to optimize it where it's possible.
