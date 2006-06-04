@@ -1,4 +1,8 @@
 $Log$
+Revision 1.114  2006/06/04 08:21:01  andy
+Configuration file tag variable parser has been added.
+Fix usage of undefined group in tagParser().
+
 Revision 1.113  2006/06/03 15:25:03  andy
 Fix spec according Fedora Extras Review.
 First part of tags filling implementation.
@@ -461,4 +465,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

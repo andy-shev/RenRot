@@ -357,15 +357,15 @@ sub parsePair {
 #
 sub tagParser {
 	my $tagStr = shift;
-	my %tag = {};
+	my %tag;
 	$tagStr =~ s/:/=/;		# change first ':' to '='
 	my ($key, $value) = parsePair($tagStr);
 	if (defined $key) {
 		$value = "" if (not defined $value);
-		$key =~ s/[\(\[]([^\(\)\[\]]+)[\)\]]$//;
-		my $group = (defined $1) ? $1 : undef;
+		$key =~ s/\s*[\(\[]([^\(\)\[\]]*)[\)\]]$//;
+		my $group = (defined $1 and $1 ne "") ? $1 : undef;
 		$tag{$key} = {value => $value, group => $group};
-		dbgmsg (4, "tagParser(): Parsed: $key [$group] = '$value'\n");
+		dbgmsg (4, "tagParser(): Parsed: $key [", defined $group ? $group : "", "] = '$value'\n");
 	} else {
 		warnmsg ("Invalid tag format: $tagStr\n");
 	}
@@ -505,6 +505,29 @@ if (scalar(@filenames) == 0) {
 
 # Convert old style of tags to new one
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
+
+# Parse configuration file tag set
+foreach my $cKey (keys %configOptions) {
+	next if ($cKey !~ m/^tag\d+$/);		# skip not a tag
+	my %tag = tagParser($configOptions{$cKey});
+	foreach my $key (keys %tag) {
+		$tags{$key} = $tag{$key};
+	}
+}
+
+# Merge tags from configuration file with command line arguments
+foreach my $key (keys %tagsFromCli) {
+	$tags{$key} = $tagsFromCli{$key};
+}
+
+# Print parsed tags at debug level
+my @dbgTags;
+foreach my $key (keys %tags) {
+	my $group = defined $tags{$key}{group} ? $tags{$key}{group} : "";
+	my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
+	push (@dbgTags, "$key [$group] = $value");
+}
+dbgmsg (4, "Tags:\n", join("\n", @dbgTags), "\n") if (scalar(@dbgTags) > 0);
 
 # Preparing the variable, which contains the format of the counter output
 if ($countFF != 0) {
