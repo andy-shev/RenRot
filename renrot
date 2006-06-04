@@ -1074,6 +1074,7 @@ Options:
   --aggr-template <TPL>		aggregation template (see manual for details)
   --comment-file <FILE>		file with commentary
   --user-comment <COMMENTARY>	text to put into UserComment tag
+  --tag <TAG> ...		tag to put into EXIF of renamed files
   --dry-run			show what would have been happened
   -v [-v -v ...]		amount of these options defines debug level
   -?, --help			display this help and exit
@@ -1206,7 +1207,7 @@ The script, also, can place the commentary into:
 =back
 
 Personal details could be specified via XMP tags defined in a configuration
-file, look L<CONFIG> section.
+file, see L<CONFIG> section.
 
 In addition, RenRot can aggregate all files in directories according the given
 date/time pattern template, set with B<--aggr-template>.
@@ -1236,7 +1237,7 @@ extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
 template, which is used for file name building while renaming. It could be
 defined in configuration file (the variable Name Template). The default is
-I<%Y%m%d%H%M%S>. For practical results look L<EXAMPLES> section.
+I<%Y%m%d%H%M%S>. For practical results see L<EXAMPLES> section.
 
 Interpreted sequences are:
 
@@ -1349,7 +1350,7 @@ date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
 B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 (the variable Aggregation Template). The default is I<%Y%m%d>. For detailed
 description, please, turn to B<--name-template> option. For practical results
-look L<EXAMPLES> section.
+see L<EXAMPLES> section.
 
 =item B<--comment-file> I<Comment FILE>
 
@@ -1357,7 +1358,9 @@ file with commentary
 
 =item B<--user-comment> I<User's COMMENTARY>
 
-text to put into UserComment tag
+=item B<--tag> <TAG>
+
+turn to L<TAGS> section for detailed description
 
 =item B<--dry-run>
 
@@ -1468,7 +1471,7 @@ B<--aggr-template>)
 
 =back
 
-Information about tag variable is placed at section L<TAGS>.
+Information about tag variable is placed in L<TAGS> section.
 
 =head1 TAGS
 
