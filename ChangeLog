@@ -1,4 +1,9 @@
 $Log$
+Revision 1.116  2006/06/04 21:02:50  andy
+Implemented new tag parser and option style.
+Make old style of tag prefixed options work, but it deprecated since now.
+Release as 0.21rc1.
+
 Revision 1.115  2006/06/04 15:02:59  andy
 Added INSTALLATION ON PDA section to README.Windows (still theoretical).
 TODO has been modified.
@@ -472,4 +477,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

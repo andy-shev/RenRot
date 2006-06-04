@@ -1,3 +1,13 @@
+* 0.21rc1 *
+
+A new tag parser and option style are represented in this version (the old
+style of the tag prefixed options still works, but is deprecated). The EXIF
+data for a rotated file is rewritten (used ExifTool rather than jpegtran).
+The ExifTool requirement was updated due to new implementation of WriteInfo().
+The documentation has been expanded with a new part in README.Windows, BUGS
+and TAGS sections are added to manual.
+
+
 * 0.20 *
 
 The deprecated options (--aggr, --aggr-dumb, and the "delta" keyword in the

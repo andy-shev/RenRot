@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.20";		# the version of this script
+our $VERSION = "0.21rc1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -506,6 +506,34 @@ if (scalar(@filenames) == 0) {
 # Convert old style of tags to new one
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
 
+if (defined $configOptions{'tag usercomment'}) {
+	$tags{'UserComment'} = {value => $configOptions{'tag usercomment'}};
+}
+if (defined $configOptions{'tag ciadrcity'}) {
+	$tags{'CreatorContactInfoCiAdrCity'} = {value => $configOptions{'tag ciadrcity'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciadrctry'}) {
+	$tags{'CreatorContactInfoCiAdrCtry'} = {value => $configOptions{'tag ciadrctry'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciadrextadr'}) {
+	$tags{'CreatorContactInfoCiAdrExtadr'} = {value => $configOptions{'tag ciadrextadr'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciadrpcode'}) {
+	$tags{'CreatorContactInfoCiAdrPcode'} = {value => $configOptions{'tag ciadrpcode'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciadrregion'}) {
+	$tags{'CreatorContactInfoCiAdrRegion'} = {value => $configOptions{'tag ciadrregion'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciemailwork'}) {
+	$tags{'CreatorContactInfoCiEmailWork'} = {value => $configOptions{'tag ciemailwork'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag citelwork'}) {
+	$tags{'CreatorContactInfoCiTelWork'} = {value => $configOptions{'tag citelwork'}, group => 'XMP'};
+}
+if (defined $configOptions{'tag ciurlwork'}) {
+	$tags{'CreatorContactInfoCiUrlWork'} = {value => $configOptions{'tag ciurlwork'}, group => 'XMP'};
+}
+
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
 	next if ($cKey !~ m/^tag\d+$/);		# skip not a tag
@@ -522,7 +550,7 @@ foreach my $key (keys %tagsFromCli) {
 
 # Print parsed tags at debug level
 my @dbgTags;
-foreach my $key (keys %tags) {
+foreach my $key (sort (keys %tags)) {
 	my $group = defined $tags{$key}{group} ? $tags{$key}{group} : "";
 	my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
 	push (@dbgTags, "$key [$group] = $value");
@@ -720,40 +748,12 @@ sub tagWriter {
 	my $exifToolObj = shift;
 	my $file = shift;
 
-	if (defined $configOptions{'tag usercomment'}) {
-		$exifToolObj->SetNewValue(UserComment => $configOptions{'tag usercomment'});
+	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
+	foreach my $key (sort (keys %tags)) {
+		if (defined $tags{$key}{value}) {
+			$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
+		}
 	}
-
-	if (defined $configOptions{'tag ciadrcity'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrCity', $configOptions{'tag ciadrcity'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciadrctry'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrCtry', $configOptions{'tag ciadrctry'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciadrextadr'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrExtadr', $configOptions{'tag ciadrextadr'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciadrpcode'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrPcode', $configOptions{'tag ciadrpcode'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciadrregion'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiAdrRegion', $configOptions{'tag ciadrregion'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciemailwork'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiEmailWork', $configOptions{'tag ciemailwork'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag citelwork'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiTelWork', $configOptions{'tag citelwork'}, Group => 'XMP');
-	}
-	if (defined $configOptions{'tag ciurlwork'}) {
-		$exifToolObj->SetNewValue('CreatorContactInfoCiUrlWork', $configOptions{'tag ciurlwork'}, Group => 'XMP');
-	}
-
-	#$exifToolObj->SetNewValue('Software', $softwareString, Group => 'EXIF');
-
-	$exifToolObj->SetNewValue('RenRotProcessingTimestamp', timeNow(), Group => 'RenRot');
-	$exifToolObj->SetNewValue('RenRotVersion', $VERSION, Group => 'RenRot');
-	$exifToolObj->SetNewValue('RenRotURL', 'http://freshmeat.net/projects/renrot/', Group => 'RenRot');
 
 	# writing the changes to the EXIFs
 	exifWriter($exifToolObj, $file);
