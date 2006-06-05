@@ -1,4 +1,7 @@
 $Log$
+Revision 1.119  2006/06/05 21:29:58  andy
+Fix tag configuration option parser (no collision with tagNNN, where NNN - numberF).
+
 Revision 1.118  2006/06/05 14:23:34  zeus
 POD edited. Detailed section TAGS description added.
 
@@ -483,3 +486,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

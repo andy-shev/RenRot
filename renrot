@@ -398,7 +398,7 @@ sub getConfig {
 			my ($key, $value) = parsePair($line);
 			if (defined $value) {
 				$key = lc($key);
-				$key .= sprintf("%d", $i) if ($key eq "tag");
+				$key .= sprintf("#%d", $i) if ($key eq "tag");
 				$hConfig{$key} = boolConverter($value);
 				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
 			} else {
@@ -538,7 +538,7 @@ if (defined $configOptions{'tag ciurlwork'}) {
 
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
-	next if ($cKey !~ m/^tag\d+$/);		# skip not a tag
+	next if ($cKey !~ m/^tag#\d+$/);		# skip not a tag
 	my %tag = tagParser($configOptions{$cKey});
 	foreach my $key (keys %tag) {
 		$tags{$key} = $tag{$key};
