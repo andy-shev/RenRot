@@ -155,7 +155,7 @@ my %rotorient = (
 
 my %rotorientrev = reverse %rotorient;
 
-# processing message ( ? necessary to consult man GetOptions sub { $verbose = 0 } )
+# processing message
 sub procmsg {
 	print @_ if ($quiet == 0);
 }
@@ -361,11 +361,13 @@ sub tagParser {
 	$tagStr =~ s/:/=/;		# change first ':' to '='
 	my ($key, $value) = parsePair($tagStr);
 	if (defined $key) {
-		$value = "" if (not defined $value);
 		$key =~ s/\s*[\(\[]([^\(\)\[\]]*)[\)\]]$//;
 		my $group = (defined $1 and $1 ne "") ? $1 : undef;
 		$tag{$key} = {value => $value, group => $group};
-		dbgmsg (4, "tagParser(): Parsed: $key [", defined $group ? $group : "", "] = '$value'\n");
+		# Print debug message
+		$value = "" if (not defined $value);
+		$group = "" if (not defined $group);
+		dbgmsg (4, "tagParser(): Parsed: $key [$group] = '$value'\n");
 	} else {
 		warnmsg ("Invalid tag format: $tagStr\n");
 	}
@@ -750,9 +752,7 @@ sub tagWriter {
 
 	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
 	foreach my $key (sort (keys %tags)) {
-		if (defined $tags{$key}{value}) {
-			$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
-		}
+		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
 	}
 
 	# writing the changes to the EXIFs

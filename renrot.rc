@@ -1,7 +1,7 @@
 #
 ## This is configuration file for RenRot. See commented variables for defaults.
 #
-# Note: Thease variables can be overriden by command line options.
+# Note: These variables can be overriden by command line options.
 
 # Process files with or without mtime modification.
 #mtime			= Yes
@@ -62,3 +62,6 @@
 #Tag = CreatorContactInfoCiEmailWork [XMP]: 'Here Is Your Email'
 #Tag = CreatorContactInfoCiTelWork [XMP]: 'Here Is Your Phone'
 #Tag = CreatorContactInfoCiUrlWork [XMP]: 'Here Is Your URL'
+
+# You can add any known tag here in the following format:
+#Tag = KnownTagName [TagGroup]: 'Value of the tag'
