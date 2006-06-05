@@ -1202,12 +1202,12 @@ The script, also, can place the commentary into:
 
 - Commentary tag from file (see B<--comment-file> option)
 
-- UserComment tag from configuration variable (see L<CONFIG> section)
+- UserComment tag from configuration variable (see L</CONFIG> section)
 
 =back
 
 Personal details could be specified via XMP tags defined in a configuration
-file, see L<CONFIG> section.
+file, see L</CONFIG> section.
 
 In addition, RenRot can aggregate all files in directories according the given
 date/time pattern template, set with B<--aggr-template>.
@@ -1216,15 +1216,15 @@ date/time pattern template, set with B<--aggr-template>.
 
 =over
 
-=item B<-c> or B<--config-file> I<Configuration FILE>
+=item B<-c> or B<--config-file> F<FILE>
 
-location of the configuration file
+path to the configuration file
 
-=item B<-d> or B<--work-directory> I<DIR>
+=item B<-d> or B<--work-directory> F<DIR>
 
 define the working directory
 
-=item B<--exclude> I<FILE>
+=item B<--exclude> F<FILE>
 
 specify files to exclude. No wildcards are available. For set of files option
 must be occured same times as files given.
@@ -1233,11 +1233,11 @@ must be occured same times as files given.
 
 extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
-=item B<--name-template> I<Name TEMPLATE>
+=item B<--name-template> I<TEMPLATE>
 
 template, which is used for file name building while renaming. It could be
 defined in configuration file (the variable Name Template). The default is
-I<%Y%m%d%H%M%S>. For practical results see L<EXAMPLES> section.
+I<%Y%m%d%H%M%S>. For practical results see L</TEMPLATE EXAMPLES> section.
 
 Interpreted sequences are:
 
@@ -1285,14 +1285,13 @@ set fixed length for file counter (corresponding to B<%c>), where it is used
 in templates. It's enabled by default. Use B<--no-counter-fixed-field> to set
 dynamic width of field.
 
-=item B<--counter-start> I<Start NUMBER>
+=item B<--counter-start> I<NUMBER>
 
-the number to start count the files, to be renamed, from (default equals to
-I<1>)
+the number to start count the files, to be renamed, from (default is I<1>)
 
-=item B<--counter-step> I<Step NUMBER>
+=item B<--counter-step> I<NUMBER>
 
-the step for the counter of the files to be renamed (default equals to I<1>)
+the step for the counter of the files to be renamed (default is I<1>)
 
 =item B<--rotate-angle> I<ANGLE>
 
@@ -1333,34 +1332,36 @@ Use B<--no-mtime> to set it to current time stamp after processing.
 run aggregation process in given I<MODE>. Possible values are: none, delta or
 template.
 
-=item B<--aggr-delta> I<Time INTERVAL>
+=item B<--aggr-delta> I<NUMBER>
 
 aggregation time delta in seconds (file with DateTimeOriginal and the one of
 the previous file delta, greater than B<--aggr-delta> is placed to the
 B<--aggr-directory> followed by directory name counter).
 
-=item B<--aggr-directory> I<DIR>
+=item B<--aggr-directory> F<DIR>
 
 counterless aggregation directory name (default is I<Images>)
 
-=item B<--aggr-template> I<Aggregation TEMPLATE>
+=item B<--aggr-template> I<TEMPLATE>
 
 template, which is used for file aggregation. Aggregation fulfils according
 date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
 B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 (the variable Aggregation Template). The default is I<%Y%m%d>. For detailed
 description, please, turn to B<--name-template> option. For practical results
-see L<EXAMPLES> section.
+see L</TEMPLATE EXAMPLES> section.
 
-=item B<--comment-file> I<Comment FILE>
+=item B<--comment-file> F<FILE>
 
 file with commentary
 
-=item B<--user-comment> I<User's COMMENTARY>
+=item B<--user-comment> I<STRING>
 
-=item B<--tag> <TAG>
+equivalent to I<--tag UserComment: STRING>
 
-turn to L<TAGS> section for detailed description
+=item B<--tag> I<TAG>
+
+look L</TAGS> section for the detailed description
 
 =item B<--dry-run>
 
@@ -1379,7 +1380,9 @@ display quick help and exit
 
 output version information and exit
 
-=head1 B<EXAMPLES>
+=back
+
+=head1 B<TEMPLATE EXAMPLES>
 
 The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following
 names:
@@ -1399,9 +1402,7 @@ I<W> for WhiteBalance.
 
 The aggregation template C<%Y%m%d> produces following aggregation:
 
-=over
-
-this couple of files
+these three files
 
 =over
 
@@ -1427,9 +1428,7 @@ will be put to the directory I<20030414> and
 
 =back
 
-will be put to the directory I<20040131>.
-
-=back
+will be put to the directory F<20040131>.
 
 =head1 CONFIG
 
@@ -1438,8 +1437,8 @@ case-insensivity keys and its values separated by equal sign. Boolean
 variables can be defined via following keywords: 0, No, False, Off for false,
 and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file> option
 firstly, than it looks for file named renrot.rc in system directories such as
-/etc and /usr/local/etc. And finally it looks for file named .renrotrc in home
-directory of the user. User defined configuration file can be given via
+F</etc> and F</usr/local/etc>. And finally it looks for file named F<.renrotrc>
+in home directory of the user. User defined configuration file can be given via
 B<--config-file> option.
 
 These variables could be set via configuration file:
@@ -1467,6 +1466,10 @@ aggregation mode, possible values are: none, delta or template
 aggregation template, which defines the file aggregation (see
 B<--aggr-template>)
 
+=item B<Tag>
+
+look L</TAGS> section for the detailed description
+
 =back
 
 =back
@@ -1474,6 +1477,35 @@ B<--aggr-template>)
 Information about tag variable is placed in L<TAGS> section.
 
 =head1 TAGS
+
+I<TAG> is defined by the next combination: I<TagName [Group]: 'value'>
+
+Using command line option B<--tag> and/or config file option
+B<Tag> it's possible to choose defined tags to be set and
+writen to the EXIF tree.
+
+The syntax of the command line option B<--tag>:
+
+=over
+
+B<--tag> I<TagName [Group]: 'value'>
+
+=back
+
+the syntax of the config file option B<Tag>:
+
+=over
+
+B<Tag => I<TagName [Group]: 'value'>
+
+=back
+
+Parameters I<TagName> and I<Group> are case sensitive.
+Name of the group have to be enclosed in square brackets.
+The I<value> (after semicolon) of the tag could be enclosed in tics.
+
+Bellow are the tags, possible now to use with the options I<--tag>
+and I<Tag>:
 
 =over
 
