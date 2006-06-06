@@ -46,6 +46,13 @@
 # Counterless aggregation directory name.
 #aggregation directory	= 'Images'
 
+# To run virtualized aggregation (see documentation)
+#aggregation virtual	= No
+
+# Default virtual aggregation directory.
+# For now it is imposible to set anything except 'Images.Links.Directory'
+#aggregation virtual directory = 'Images.Links.Directory'
+
 # The commentary filename to put to Comment tag. Default is undefined.
 #TagFile = Comment: '/etc/renrot.comment'
 

@@ -55,6 +55,8 @@ my %configOptions = (
 			'aggregation directory' => 'Images',
 			'aggregation mode' => 'none',
 			'aggregation template' => '%Y%m%d',
+			'aggregation virtual' => 0,
+			'aggregation virtual directory' => 'Images.Links.Directory',
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
@@ -68,6 +70,8 @@ my $aggrDelta;		# aggregation time delta in seconds (file with delta > $aggrDelt
 my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrMode;		# define aggregation mode, possible values are: none, delta or template
 my $aggrTemplate;	# template for the files aggregation taken from CLI
+my $aggrVirtual;	# flag to do links instead real file moving while aggregation
+my $aggrVirtDir;	# directory name for virtual aggregation
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $countFF = 1;	# use fixed field for counter
@@ -227,6 +231,8 @@ sub getOptions {
 					"aggr-directory=s" => \$aggrDir,
 					"aggr-mode=s" => \$aggrMode,
 					"aggr-template=s" => \$aggrTemplate,
+					"aggr-virtual!" => \$aggrVirtual,
+					"aggr-virtual-directory=s" => \$aggrVirtDir,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"counter-fixed-field!" => \$countFF,
@@ -258,6 +264,8 @@ sub getOptions {
 	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
 	dbgmsg (3, "   --aggr-mode: $aggrMode\n") if (defined $aggrMode);
 	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
+	dbgmsg (3, "   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
+	dbgmsg (3, "   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "   --counter-start: $countStart",
@@ -450,6 +458,9 @@ $configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
 $configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
 $configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
 $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
+$configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
+# $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
+$configOptions{'aggregation virtual directory'}	= 'Images.Links.Directory'; # defining by user, now not possible!
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -816,6 +827,7 @@ sub aggregationProcess {
 						$configOptions{'aggregation template'},
 						$fileCounter);
 			aggregateFile($file, $NewDir) if ($dryRun == 0);
+
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 			$fileCounter += $countStep;
 		}
@@ -860,11 +872,26 @@ sub aggregateFile {
 	my $file = shift;
 	my $NewDir = shift;
 
+	if ($configOptions{'aggregation virtual'} != 0) {
+		my $LnkDir = $configOptions{'aggregation virtual directory'};
+		if (not -d $LnkDir) {
+			unless (mkdir $LnkDir) { errmsg ("$LnkDir wasn't created!\n"); }
+		}
+		$NewDir = $LnkDir . "/" . $NewDir;
+	}
+
 	if (not -d $NewDir) {
 		unless (mkdir $NewDir) { errmsg ("$NewDir wasn't created!\n"); }
 	}
 	my $newfilename = $NewDir . "/" . $file;
-	rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
+	my $symlink = "../../" . $file;
+
+	if ($configOptions{'aggregation virtual'} != 0) {
+		symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
+	}
+	else {
+		rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
+	}
 }
 
 ########################################################################################
@@ -1081,6 +1108,8 @@ Options:
   --aggr-delta <INTERVAL>	aggregation time delta (file with delta great than INTERVAL is placed to the --aggr-directory followed by directory name counter starting from 1)
   --aggr-directory <DIR>	counterless aggregation directory name
   --aggr-template <TPL>		aggregation template (see manual for details)
+  --aggr-virtual (*)		virtual aggregation (symlinks are aggregated instead of the very files)
+  --aggr-virtual-directory <DIR>		root directory for virtual aggregation
   --comment-file <FILE>		file with commentary
   --user-comment <COMMENTARY>	text to put into UserComment tag
   --tag <TAG> ...		tag to put into EXIF of renamed files
@@ -1360,6 +1389,21 @@ B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
 description, please, turn to B<--name-template> option. For practical results
 see L</TEMPLATE EXAMPLES> section.
 
+=item B<--aggr-virtual>, B<--no-aggr-virtual>
+
+defines virtualization for existent aggregation modes. If set, than results of
+the aggregation are placed into the directory defined with command line option
+I<--aggr-virtual-directory> or config file option I<aggregation virtual directory>
+and further occures the things, which have to occure with the choosen
+aggregation mode but without this option. The difference is that the files to
+be aggregated are remains untouched in their places, and symlinks are placed to
+the directory tree created instead. Use B<--no-aggr-virtual> to prevent
+virtualization.
+
+=item B<--aggr-virtual-directory> F<DIR>
+
+defines the directory, the results of the virtual aggregation to be placed to
+
 =item B<--comment-file> F<FILE>
 
 file with commentary
@@ -1474,6 +1518,14 @@ aggregation mode, possible values are: none, delta or template
 
 aggregation template, which defines the file aggregation (see
 B<--aggr-template>)
+
+=item B<aggregation virtual>
+
+defines virtualization for existent aggregation modes (see I<--aggr-virtual> option)
+
+=item B<aggregation virtual directory>
+
+defines the directory for virtual aggregation (see I<--aggr-virtual-directory> option>
 
 =item B<Tag>
 

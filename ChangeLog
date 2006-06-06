@@ -1,4 +1,8 @@
 $Log$
+Revision 1.121  2006/06/06 11:17:07  zeus
+Virtualization of aggregation has been implemented.
+POD, README, renrot.rc are edited.
+
 Revision 1.120  2006/06/06 08:51:58  andy
 TagFile configuration option was added. Any tag could be filled by file content.
 "comment file" configuration variable are deprecated by new TagFile.
@@ -491,3 +495,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
