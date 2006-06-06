@@ -887,7 +887,12 @@ sub aggregateFile {
 	my $symlink = "../../" . $file;
 
 	if ($configOptions{'aggregation virtual'} != 0) {
-		symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
+		if (not -l $newfilename) {
+			symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
+		}
+		else {
+			procmsg ("Link $newfilename already exists\n");
+		}
 	}
 	else {
 		rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );

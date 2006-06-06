@@ -56,6 +56,10 @@
 # The commentary filename to put to Comment tag. Default is undefined.
 #TagFile = Comment: '/etc/renrot.comment'
 
+# The file containing the copyright, if you prefer the copyright as 
+# string, than define it as Tag
+#TagFile = Copyright [EXIF]: './copyright'
+
 # The commentary to put to UserComment tag. Default is undefined.
 # (This option could be overriden by --user-comment parameter)
 #Tag = UserComment: 'User commentary here'
@@ -69,6 +73,20 @@
 #Tag = CreatorContactInfoCiEmailWork [XMP]: 'Here Is Your Email'
 #Tag = CreatorContactInfoCiTelWork [XMP]: 'Here Is Your Phone'
 #Tag = CreatorContactInfoCiUrlWork [XMP]: 'Here Is Your URL'
+
+#Tag = Artist [EXIF]: 'Here Is Artist'
+#Tag = ImageDescription [EXIF]: 'Here Is Image description'
+
+# GPS Tags (for more info, consult http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/GPS.html)
+# sample is given for Donetsk,UA (the home city of the authors)
+#Tag = GPSLatitudeRef [GPS]: 'N'	# N for Noth and S for South
+#Tag = GPSLatitude [GPS]: '48 00 00'	# in form "%d %.2f %.2f"
+#Tag = GPSLongitudeRef [GPS]: 'E'	# E for East and W for West
+#Tag = GPSLongitude [GPS]: '37 45 00'	# in form "%d %.2f %.2f"
+#Tag = GPSAltitude [GPS]: '300'		# in form "%d"
+#Tag = GPSDateStamp [GPS]: ''		# in form "YYYY:MM:DD"
+#Tag = GPSDateStamp [GPS]: ''		# in form "HH MM SS"
+
 
 # You can add any known tag here in the following format:
 #Tag = KnownTagName [TagGroup]: 'Value of the tag'
