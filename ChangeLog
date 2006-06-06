@@ -1,4 +1,7 @@
 $Log$
+Revision 1.122  2006/06/06 11:34:38  andy
+Use getFileData() in rotateThumb().
+
 Revision 1.121  2006/06/06 11:17:07  zeus
 Virtualization of aggregation has been implemented.
 POD, README, renrot.rc are edited.
@@ -495,4 +498,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

@@ -1055,13 +1055,7 @@ sub rotateThumbnail {
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
 		# preparing to write the just rotated thumbnail, back to the file
-		unless ( open ( THUMBNAILROTATED, "<$ThumbnailOriginalRotated" ) ) {
-			errmsg ("$ThumbnailOriginalRotated wasn't opened!\n");
-		}
-		binmode THUMBNAILROTATED;
-		my ( @rthumb ) = <THUMBNAILROTATED>;
-		my $thethumb = join ('', @rthumb);
-		unless ( close ( THUMBNAILROTATED ) ) { errmsg ("$ThumbnailOriginalRotated wasn't closed!\n"); }
+		my $thethumb = getFileData($ThumbnailOriginalRotated);
 
  	 	# preparing to write thumbnale to the just rotated file
 		my $exifThumbnailed = new Image::ExifTool;
@@ -1109,7 +1103,7 @@ Options:
   --aggr-directory <DIR>	counterless aggregation directory name
   --aggr-template <TPL>		aggregation template (see manual for details)
   --aggr-virtual (*)		virtual aggregation (symlinks are aggregated instead of the very files)
-  --aggr-virtual-directory <DIR>		root directory for virtual aggregation
+  --aggr-virtual-directory <DIR> root directory for virtual aggregation
   --comment-file <FILE>		file with commentary
   --user-comment <COMMENTARY>	text to put into UserComment tag
   --tag <TAG> ...		tag to put into EXIF of renamed files

@@ -24,10 +24,10 @@
 #	%y  last two digits of year (00..99)
 #name template		= '%Y%m%d%H%M%S'
 
-# Trimming rotated images when using jpegtran
+# Trimming rotated images when using jpegtran.
 #trim			= Yes
 
-# Aggregation mode. Possible values are: none, delta or template
+# Aggregation mode. Possible values are: none, delta or template.
 #aggregation mode	= 'none'
 
 # Template used for file aggregation. Interpreted sequences are:
@@ -46,7 +46,7 @@
 # Counterless aggregation directory name.
 #aggregation directory	= 'Images'
 
-# To run virtualized aggregation (see documentation)
+# To run virtualized aggregation (see documentation).
 #aggregation virtual	= No
 
 # Default virtual aggregation directory.
