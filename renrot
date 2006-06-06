@@ -55,7 +55,6 @@ my %configOptions = (
 			'aggregation directory' => 'Images',
 			'aggregation mode' => 'none',
 			'aggregation template' => '%Y%m%d',
-			'comment file' => undef,
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
@@ -70,7 +69,7 @@ my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrMode;		# define aggregation mode, possible values are: none, delta or template
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $comfile;		# file with commentary
-my $configFile;		# config file
+my $configFile;		# configuration file
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -398,7 +397,7 @@ sub getConfig {
 			my ($key, $value) = parsePair($line);
 			if (defined $value) {
 				$key = lc($key);
-				$key .= sprintf("#%d", $i) if ($key eq "tag");
+				$key .= sprintf("#%d", $i) if (grep (/^$key$/, ('tag', 'tagfile')));
 				$hConfig{$key} = boolConverter($value);
 				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
 			} else {
@@ -446,12 +445,11 @@ getOptions();
 
 parseConfig($configFile);
 
-# redefining options set in config with set via CLI ones
+# redefining options set in configuration file with set via CLI ones
 $configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
 $configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
 $configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
 $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
-$configOptions{'comment file'}		= $comfile if (defined $comfile);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -506,7 +504,12 @@ if (scalar(@filenames) == 0) {
 }
 
 # Convert old style of tags to new one
+$configOptions{'comment file'}		= $comfile if (defined $comfile);
 $configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
+
+if (defined $configOptions{'comment file'}) {
+	$tags{'Comment'} = {value => getFileData($configOptions{'comment file'})};
+}
 
 if (defined $configOptions{'tag usercomment'}) {
 	$tags{'UserComment'} = {value => $configOptions{'tag usercomment'}};
@@ -538,10 +541,14 @@ if (defined $configOptions{'tag ciurlwork'}) {
 
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
-	next if ($cKey !~ m/^tag#\d+$/);		# skip not a tag
+	next if ($cKey !~ m/^tag(file)?#\d+$/);		# skip not a tag or tagfile
 	my %tag = tagParser($configOptions{$cKey});
 	foreach my $key (keys %tag) {
 		$tags{$key} = $tag{$key};
+		if ($cKey =~ m/^tagfile#\d+$/) {
+			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'.\n");
+			$tags{$key}{value} = getFileData($tags{$key}{value});
+		}
 	}
 }
 
@@ -600,9 +607,6 @@ sub renRotProcess {
 
 		# analyzing whether and how to rename file
 		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
-
-		# analyzing whether to comment
-		commentWriter($exifTool);
 
 		# Writting tags.
 		tagWriter($exifTool, $newFileName) if ($noRename == 0);
@@ -711,20 +715,25 @@ sub renameFile {
 
 ########################################################################################
 #
-# commentWriter() applies comment from given file
+# getFileData() gets data from a given file
 #
-sub commentWriter {
-	my $exifToolObj = shift;
-	if ($configOptions{'comment file'}) {
-		if (open(COMMENT, "<$configOptions{'comment file'}")) {
-			my @commentar = <COMMENT>;
-			unless (close(COMMENT)) { errmsg ("$configOptions{'comment file'} wasn't closed!\n"); }
-			my $comment = join ('', @commentar);
-			# preparing to write the commentary
-			$exifToolObj->SetNewValue(Comment => $comment);
-		}
+sub getFileData {
+	my $file = shift;
+
+	if (not defined $file or $file eq "") {
+		warnmsg ("Can't read file with emty name!\n");
+		return undef;
 	}
-	else { dbgmsg (2, "commentWriter(): No commenting, file commentary is left untouched.\n"); }
+
+	if (open(XXXFILE, "<$file")) {
+		binmode XXXFILE;
+		my @xxxData = <XXXFILE>;
+		unless (close(XXXFILE)) { errmsg ("$file wasn't closed!\n"); }
+		return join ('', @xxxData);
+	}
+
+	warnmsg ("Can't read file $file!\n");
+	return undef;
 }
 
 ########################################################################################
@@ -1357,7 +1366,7 @@ file with commentary
 
 =item B<--user-comment> I<STRING>
 
-equivalent to I<--tag UserComment: STRING>
+low priority equivalent to I<--tag UserComment: STRING>
 
 =item B<--tag> I<TAG>
 
@@ -1414,7 +1423,7 @@ these three files
 
 =back
 
-will be put to the directory I<20030414> and
+will be put to the directory I<20030414>, and
 
 =over
 
@@ -1432,14 +1441,14 @@ will be put to the directory F<20040131>.
 
 =head1 CONFIG
 
-Config file could be used to set some variables. Config file is just set of
-case-insensivity keys and its values separated by equal sign. Boolean
-variables can be defined via following keywords: 0, No, False, Off for false,
-and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file> option
-firstly, than it looks for file named renrot.rc in system directories such as
-F</etc> and F</usr/local/etc>. And finally it looks for file named F<.renrotrc>
-in home directory of the user. User defined configuration file can be given via
-B<--config-file> option.
+Configuration file could be used to set some variables. Configuration file is
+just set of case-insensivity keys and its values separated by equal sign.
+Boolean variables can be defined via following keywords: 0, No, False, Off for
+false, and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file>
+option firstly, than it looks for file named renrot.rc in system directories
+such as F</etc> and F</usr/local/etc>. And finally it looks for file named
+F<.renrotrc> in home directory of the user. User defined configuration file
+can be given via B<--config-file> option.
 
 These variables could be set via configuration file:
 
@@ -1472,17 +1481,14 @@ look L</TAGS> section for the detailed description
 
 =back
 
-=back
-
-Information about tag variable is placed in L<TAGS> section.
+Information about tag variable is placed in L</TAGS> section.
 
 =head1 TAGS
 
 I<TAG> is defined by the next combination: I<TagName [Group]: 'value'>
 
-Using command line option B<--tag> and/or config file option
-B<Tag> it's possible to choose defined tags to be set and
-writen to the EXIF tree.
+Using command line option B<--tag> and/or configuration file option B<Tag>
+it's possible to choose defined tags to be set and writen to the EXIF tree.
 
 The syntax of the command line option B<--tag>:
 
@@ -1492,20 +1498,19 @@ B<--tag> I<TagName [Group]: 'value'>
 
 =back
 
-the syntax of the config file option B<Tag>:
+The syntax of the configuration file option B<Tag>:
 
 =over
 
-B<Tag => I<TagName [Group]: 'value'>
+B<Tag> = I<TagName [Group]: 'value'>
 
 =back
 
-Parameters I<TagName> and I<Group> are case sensitive.
-Name of the group have to be enclosed in square brackets.
-The I<value> (after semicolon) of the tag could be enclosed in tics.
+Parameters I<TagName> and I<Group> are passed to ExifTool as is. Name of the
+group have to be enclosed in square brackets. The I<value> (after semicolon)
+of the tag could be enclosed in tics.
 
-Bellow are the tags, possible now to use with the options I<--tag>
-and I<Tag>:
+Bellow are the tags, possible now to use with the options I<--tag> and I<Tag>:
 
 =over
 
@@ -1560,6 +1565,8 @@ Configuration file placement (with high priority first):
 =item B</etc/renrot.rc>
 
 =back
+
+=head1 NOTES
 
 =head1 BUGS
 

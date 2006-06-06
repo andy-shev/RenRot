@@ -47,7 +47,7 @@
 #aggregation directory	= 'Images'
 
 # The commentary filename to put to Comment tag. Default is undefined.
-#comment file		= '/etc/renrot.comment'
+#TagFile = Comment: '/etc/renrot.comment'
 
 # The commentary to put to UserComment tag. Default is undefined.
 # (This option could be overriden by --user-comment parameter)
