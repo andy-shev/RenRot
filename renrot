@@ -427,7 +427,9 @@ sub parseConfig {
 	my $file = shift;
 	my @rcFiles = (
 			"/etc/renrot.rc",
+			"/etc/renrot/renrot.rc",
 			"/usr/local/etc/renrot.rc",
+			"/usr/local/etc/renrot/renrot.rc",
 			$ENV{"HOME"} . "/" . ".renrotrc",
 		      );
 

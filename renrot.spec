@@ -39,9 +39,10 @@ make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
 # Fix renrot permissions
 chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
 
-# install rc-file
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
-install -m644 renrot.rc $RPM_BUILD_ROOT%{_sysconfdir}/renrot.rc
+# install sample confuration files
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/renrot.rc $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/*.tag $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 
 # Remove some unwanted files
 find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
@@ -59,6 +60,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/renrot.rc
 
 %changelog
+* Wed Jun 07 2006 Andy Shevchenko <andriy@asplinux.com.ua>
+- relocate configuration to %_sysconfdir/%name
+
 * Sat Jun 03 2006 Andy Shevchenko <andriy@asplinux.com.ua>
 - remove BR: perl
 - fix renrot permissions
