@@ -463,6 +463,7 @@ sub parseConfig {
 			"/usr/local/etc/renrot/renrot.rc",
 			"/usr/local/etc/renrot/renrot.conf",
 			$ENV{"HOME"} . "/" . ".renrotrc",
+			$ENV{"HOME"} . "/" . ".renrot/renrot.conf",
 		      );
 
 	@rcFiles = ($file) if (defined $file);
