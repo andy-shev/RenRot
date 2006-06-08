@@ -1,6 +1,6 @@
 Name:		renrot
 Version:	0.21
-Release:	0.1.rc1%{?dist}
+Release:	0.2.rc2%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
