@@ -1,4 +1,7 @@
 $Log$
+Revision 1.126  2006/06/08 14:08:09  zeus
+Information concerning the perl 5.8.7 and 5.8.8 behaviour on FreeBSD 6, while processing large amount of files, was added to the POD and README.
+
 Revision 1.125  2006/06/08 06:49:48  andy
 Release as 0.21rc2.
 
@@ -508,4 +511,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

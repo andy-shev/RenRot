@@ -102,6 +102,14 @@ Third, rename operation is not permited between different partitions due to
 hard link technology used (this will be avoided in future). Rotation process
 is available only on JPEG files.
 
+It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug, which
+cause crash of the renrot, exists. In case when total amount of the files to
+process is bigger than RAM amount, the renrot falls with error:
+
+	Out of memory during "large" request for XXXX bytes ...
+
+This doesn't occure for Perl v.5.6.1
+
 
 DEBUGGING
 
