@@ -1,3 +1,11 @@
+* 0.21rc3 *
+
+There is bugfix release. The issue where the parsed data of the configuration
+files does not used anymore was fixed. The RESTRICTIONS and BUGS sections are
+expanded by description of the discovered problem on the FreeBSD 6 with perl
+5.8.7/5.8.8.
+
+
 * 0.21rc2 *
 
 The include directive for the configuration file has been added. The
