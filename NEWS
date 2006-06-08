@@ -1,13 +1,13 @@
 * 0.21rc2 *
 
-The include directive for configuration file has been added. The configuration
-file is splited to the main part and tags definitions. A new configuration
-files are relocated to the its own direcory on a filesystem. The configuration
-keywords was expanded (a new TagFile directive was added). And the "comment
-file" configuration variable are deprecated now. The two issues in tag parser
-was fixed. The virtualization of an aggregation has been implemented. The
-documentation has been expanded according to last changes. The detailed
-description of the TAGS section was written.
+The include directive for the configuration file has been added. The
+configuration file is split into the main part and the tag definitions. The
+new configuration files are relocated to the their own directory on a
+filesystem. The configuration keywords were expanded (a new TagFile directive
+was added). The comment file configuration variable is deprecated now. Two
+issues in the tag parser were fixed. The virtualization of an aggregation has
+been implemented. The documentation has been expanded according to above
+changes. A detailed description of the TAGS section was written.
 
 
 * 0.21rc1 *
