@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.21rc2";	# the version of this script
+our $VERSION = "0.21rc3";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -447,6 +447,7 @@ sub parseConfigFile {
 			$hConfig{$key} = $tmpConfig{$key};
 		}
 	}
+	return %hConfig;
 }
 
 ########################################################################################
@@ -469,7 +470,7 @@ sub parseConfig {
 	@rcFiles = ($file) if (defined $file);
 
 	foreach my $rcfile (@rcFiles) {
-		parseConfigFile(0, $rcfile, %configOptions);
+		 %configOptions = parseConfigFile(0, $rcfile, %configOptions);
 	}
 }
 
@@ -763,7 +764,7 @@ sub getFileData {
 	my $file = shift;
 
 	if (not defined $file or $file eq "") {
-		warnmsg ("Can't read file with emty name!\n");
+		warnmsg ("Can't read file with empty name!\n");
 		return undef;
 	}
 
