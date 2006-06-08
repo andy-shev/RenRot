@@ -41,8 +41,9 @@ chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
 
 # install sample confuration files
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
-install -m644 etc/renrot.rc $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
-install -m644 etc/*.tag $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/copyright.tag $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/renrot.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/tags.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 
 # Remove some unwanted files
 find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
@@ -51,13 +52,22 @@ find $RPM_BUILD_ROOT -type f -name perllocal.pod -exec rm -f {} \;
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%triggerin -- renrot < 0.21-0.2.rc2
+if [ -f %{_sysconfdir}/renrot.rc ]; then
+    /bin/mkdir -p %{_sysconfdir}/%{name}
+    /bin/mv -fb %{_sysconfdir}/renrot.rc %{_sysconfdir}/%{name}/renrot.conf
+fi
+
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS README ChangeLog NEWS TODO
 %lang(ru) %doc README.russian
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
-%config(noreplace) %{_sysconfdir}/renrot.rc
+%dir %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{name}/copyright.tag
+%config(noreplace) %{_sysconfdir}/%{name}/renrot.conf
+%config(noreplace) %{_sysconfdir}/%{name}/tags.conf
 
 %changelog
 * Wed Jun 07 2006 Andy Shevchenko <andriy@asplinux.com.ua>

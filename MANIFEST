@@ -8,6 +8,8 @@ README
 README.russian                           Small description for russians users
 README.Windows                           Installation instructions for windows users
 renrot                                   RenRot script
-renrot.rc                                Sample of configuration file
 renrot.spec                              RPM spec file
 TODO
+etc/copyright.tag                        Text to put to Copyright tag
+etc/renrot.conf                          Sample of configuration file
+etc/tags.conf                            Strings to fill appropriate tags

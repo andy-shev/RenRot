@@ -158,6 +158,14 @@ my %rotorient = (
 
 my %rotorientrev = reverse %rotorient;
 
+my %incFiles;		# hash of included files while parsing configuration file 
+
+my @multOpts = (
+		'tag',
+		'tagfile',
+		'include',
+	       );
+
 # processing message
 sub procmsg {
 	print @_ if ($quiet == 0);
@@ -386,6 +394,7 @@ sub tagParser {
 # getConfig() parses configuration file
 #
 sub getConfig {
+	my $fc = shift;
 	my $file = shift;
 
 	my %hConfig;
@@ -393,6 +402,7 @@ sub getConfig {
 	if (open (CFGFILE, "<$file")) {
 		my @cfgfile = <CFGFILE>;
 		unless (close (CFGFILE)) { errmsg ("$file wasn't closed!\n"); }
+		$incFiles{$file} = $fc;
 		my $i = 0;
 		while ($i < scalar(@cfgfile)) {
 			my $line = $cfgfile[$i++];
@@ -405,7 +415,11 @@ sub getConfig {
 			my ($key, $value) = parsePair($line);
 			if (defined $value) {
 				$key = lc($key);
-				$key .= sprintf("#%d", $i) if (grep (/^$key$/, ('tag', 'tagfile')));
+				if ($key eq "include" and not $incFiles{$value}) {
+					dbgmsg (2, "getConfig(): Parsing included file: '$value'.\n");
+					parseConfigFile($fc, $value, %hConfig);
+				}
+				$key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
 				$hConfig{$key} = boolConverter($value);
 				dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
 			} else {
@@ -421,6 +435,22 @@ sub getConfig {
 
 ########################################################################################
 #
+# parseConfigFile() parses one file to a hash and merges it with already passed
+#
+sub parseConfigFile {
+	my $fc = shift;
+	my $file = shift;
+	my %hConfig = @_;
+	if (-f $file) {
+		my %tmpConfig = getConfig($fc + 1, $file);
+		foreach my $key (keys %tmpConfig) {
+			$hConfig{$key} = $tmpConfig{$key};
+		}
+	}
+}
+
+########################################################################################
+#
 # parseConfig() parses user's or standart configuration files to hash
 #
 sub parseConfig {
@@ -428,20 +458,17 @@ sub parseConfig {
 	my @rcFiles = (
 			"/etc/renrot.rc",
 			"/etc/renrot/renrot.rc",
+			"/etc/renrot/renrot.conf",
 			"/usr/local/etc/renrot.rc",
 			"/usr/local/etc/renrot/renrot.rc",
+			"/usr/local/etc/renrot/renrot.conf",
 			$ENV{"HOME"} . "/" . ".renrotrc",
 		      );
 
 	@rcFiles = ($file) if (defined $file);
 
 	foreach my $rcfile (@rcFiles) {
-		if (-f $rcfile) {
-			my %tmpConfig = getConfig($rcfile);
-			foreach my $key (keys %tmpConfig) {
-				$configOptions{$key} = $tmpConfig{$key};
-			}
-		}
+		parseConfigFile(0, $rcfile, %configOptions);
 	}
 }
 
@@ -554,11 +581,11 @@ if (defined $configOptions{'tag ciurlwork'}) {
 
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
-	next if ($cKey !~ m/^tag(file)?#\d+$/);		# skip not a tag or tagfile
+	next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
 	my %tag = tagParser($configOptions{$cKey});
 	foreach my $key (keys %tag) {
 		$tags{$key} = $tag{$key};
-		if ($cKey =~ m/^tagfile#\d+$/) {
+		if ($cKey =~ m/^tagfile/) {
 			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'.\n");
 			$tags{$key}{value} = getFileData($tags{$key}{value});
 		}
