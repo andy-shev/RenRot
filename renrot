@@ -545,16 +545,13 @@ if (scalar(@filenames) == 0) {
 }
 
 # Convert old style of tags to new one
-$configOptions{'comment file'}		= $comfile if (defined $comfile);
-$configOptions{'tag usercomment'}	= $userComment if (defined $userComment);
-
 if (defined $configOptions{'comment file'}) {
 	$tags{'Comment'} = {value => getFileData($configOptions{'comment file'})};
 }
-
 if (defined $configOptions{'tag usercomment'}) {
 	$tags{'UserComment'} = {value => $configOptions{'tag usercomment'}};
 }
+
 if (defined $configOptions{'tag ciadrcity'}) {
 	$tags{'CreatorContactInfoCiAdrCity'} = {value => $configOptions{'tag ciadrcity'}, group => 'XMP'};
 }
@@ -592,6 +589,10 @@ foreach my $cKey (keys %configOptions) {
 		}
 	}
 }
+
+# Put command line arguments to appropriate tags
+$tags{'Comment'} = {value => getFileData($comfile)} if (defined $comfile);
+$tags{'UserComment'} = {value => $userComment} if (defined $userComment);
 
 # Merge tags from configuration file with command line arguments
 foreach my $key (keys %tagsFromCli) {
@@ -1269,12 +1270,12 @@ The script, also, can place the commentary into:
 
 - Commentary tag from file (see B<--comment-file> option)
 
-- UserComment tag from configuration variable (see L</CONFIG> section)
+- UserComment tag from configuration variable (see L</TAGS> section)
 
 =back
 
 Personal details could be specified via XMP tags defined in a configuration
-file, see L</CONFIG> section.
+file, see L</TAGS> section.
 
 In addition, RenRot can aggregate all files in directories according the given
 date/time pattern template, set with B<--aggr-template>.
@@ -1435,11 +1436,12 @@ defines the directory, the results of the virtual aggregation to be placed to
 
 =item B<--comment-file> F<FILE>
 
-file with commentary
+file with commentary. The low priority alias to this option looks as I<TagFile
+= Comment: FILE>.
 
 =item B<--user-comment> I<STRING>
 
-low priority equivalent to I<--tag UserComment: STRING>
+low priority alias to I<--tag UserComment: STRING>
 
 =item B<--tag> I<TAG>
 
@@ -1518,10 +1520,10 @@ Configuration file could be used to set some variables. Configuration file is
 just set of case-insensivity keys and its values separated by equal sign.
 Boolean variables can be defined via following keywords: 0, No, False, Off for
 false, and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file>
-option firstly, than it looks for file named renrot.rc in system directories
-such as F</etc> and F</usr/local/etc>. And finally it looks for file named
-F<.renrotrc> in home directory of the user. User defined configuration file
-can be given via B<--config-file> option.
+option firstly, than it looks for file named F<renrot.conf> in system
+directories such as F</etc/renrot> and F</usr/local/etc/renrot>. And finally
+it looks for file in home directory of the user in subdirectory F<.renrot>.
+User defined configuration file can be given via B<--config-file> option.
 
 These variables could be set via configuration file:
 
@@ -1639,11 +1641,11 @@ Configuration file placement (with high priority first):
 
 =over
 
-=item B<~/.renrotrc>
+=item B<~/.renrot/renrot.conf>
 
-=item B</usr/local/etc/renrot.rc>
+=item B</usr/local/etc/renrot/renrot.conf>
 
-=item B</etc/renrot.rc>
+=item B</etc/renrot/renrot.conf>
 
 =back
 
