@@ -1424,12 +1424,12 @@ see L</TEMPLATE EXAMPLES> section.
 
 defines virtualization for existent aggregation modes. If set, than results of
 the aggregation are placed into the directory defined with command line option
-B<--aggr-virtual-directory> or config file option I<aggregation virtual directory>
-and further occures the things, which have to occure with the choosen
-aggregation mode but without this option. The difference is that the files to
-be aggregated are remains untouched in their places, and symlinks are placed to
-the directory tree created instead. Use B<--no-aggr-virtual> to prevent
-virtualization.
+B<--aggr-virtual-directory> or configuration file option B<aggregation virtual
+directory> and further occures the things, which have to occure with the
+choosen aggregation mode but without this option. The difference is that the
+files to be aggregated are remains untouched in their places, and symlinks are
+placed to the directory tree created instead. Use B<--no-aggr-virtual> to
+prevent virtualization.
 
 =item B<--aggr-virtual-directory> F<DIR>
 
