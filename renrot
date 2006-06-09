@@ -1531,7 +1531,7 @@ These variables could be set via configuration file:
 
 =item B<mtime>
 
-set to Yes for synchronize mtime with tags, otherwise set it to No
+set to C<Yes> for synchronize mtime with tags, otherwise set it to C<No>
 
 =item B<name template>
 
@@ -1539,7 +1539,7 @@ name template, which defines the file name look (see B<--name-template>)
 
 =item B<trim>
 
-set to Yes to trim rotated images when using L<jpegtran(1)>
+set to C<Yes> to trim rotated images when using L<jpegtran(1)>
 
 =item B<aggregation mode>
 
@@ -1654,8 +1654,8 @@ URL
 
 =back
 
-Additionally you can add any known tag here in the format described above by
-B<Tag> or B<TagFile> options.
+Additionally you can add any known tag here to be passed by B<Tag> or
+B<TagFile> options in the format described above.
 
 =head1 FILES
 
