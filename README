@@ -1,4 +1,5 @@
-WHAT IS IT?
+WHAT IT IS
+---- -- --
 
 RenRot is a program to rename and lossless rotate (for now only JPEG format)
 files according to their EXIF tags values.
@@ -33,6 +34,7 @@ In addition RenRot can aggregate all files in directories according the given
 date/time pattern template, set with --aggr-template.
 
 WHY RenRot?
+--- -------
 
 Several projects like RenRot are available in the net, but why to choose
 namely RenRot? Because:
@@ -42,13 +44,14 @@ namely RenRot? Because:
       to run);
     - it uses Image::ExifTool (the best open tool to work with EXIF data) and
       libjpeg6 (the best open tool to operate JPEG format files, to correctly
-      rotate both, the very file and the thumbnail inside it);
+      rotate both, the entire file and the thumbnail inside it);
     - it has very much flex file naming and aggregation template engines;
     - it uses original algorithm of smart Orientation tag rotation;
     - it works in batch mode.
 
 
 GETTING
+-------
 
 RenRot home page is an ftp site for now. You can download script package from
 the following sites:
@@ -60,6 +63,7 @@ the following sites:
 
 
 RUNNING
+-------
 
 After installation process was done renrot is being running by typing its name
 in console as usual. The next several examples provide general applications of
@@ -93,6 +97,7 @@ the script:
 
 
 RESTRICTIONS
+------------
 
 RenRot has some restrictions at runtime. First off, script handles a whole
 directory without recursion and only with one extension of files. Second,
@@ -103,15 +108,16 @@ hard link technology used (this will be avoided in future). Rotation process
 is available only on JPEG files.
 
 It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug, which
-cause crash of the renrot, exists. In case when total amount of the files to
-process is bigger than RAM amount, the renrot falls with error:
+cause crash of the renrot, exists. In case when total amount of the files size
+to process is bigger than RAM amount, the renrot falls with error:
 
 	Out of memory during "large" request for XXXX bytes ...
 
-This doesn't occure for Perl v.5.6.1
+This doesn't occure for Perl v.5.6.1.
 
 
 DEBUGGING
+---------
 
 For advanced users and developers renrot provides debug interface. Amount of
 -v options in a command line defines level of verbosity. So script differs the
@@ -122,6 +128,7 @@ nine levels of debugging such as:
 
 
 INSTALLATION
+------------
 
 You can install RenRot to make it available for use by other users by typing
 the following:
@@ -145,6 +152,7 @@ distribution you may install package by next way:
 
 
 DEPENDENCIES
+------------
 
 Requires Perl version 5.6.0 or later. No other special libraries are required,
 except:
@@ -155,6 +163,7 @@ except:
 
 
 LICENSING
+---------
 
 RenRot is an Open Source project distributed under GPL or Artistic license.
 
@@ -173,6 +182,7 @@ For more information, please, consult with the full license text.
 
 
 THANKS
+------
 
 Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) for his valued
 comments and suggestions.
@@ -188,6 +198,7 @@ Vyacheslav Garonin for his idea concerning the virtual aggregation.
 
 
 ARE YOU WANT SOMETHING TO SAY?
+--- --- ---- --------- -- ----
 
 If you have notes, propositions, found bugs or something else do not hesitate
 to contact us!

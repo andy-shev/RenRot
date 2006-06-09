@@ -1,4 +1,9 @@
 $Log$
+Revision 1.130  2006/06/09 18:26:54  andy
+Add the one-letter aliases to --name-template, --aggr-template, and --tag options.
+Change preamble in CONFIG section for drop possible misunderstanding.
+Add two tags to TAGS section of manual.
+
 Revision 1.129  2006/06/09 08:21:07  andy
 Fix unusing included files.
 Add 'include' description to POD.
@@ -524,4 +529,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

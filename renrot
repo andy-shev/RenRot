@@ -238,7 +238,7 @@ sub getOptions {
 					"aggr-delta=i" => \$aggrDelta,
 					"aggr-directory=s" => \$aggrDir,
 					"aggr-mode=s" => \$aggrMode,
-					"aggr-template=s" => \$aggrTemplate,
+					"aggr-template|a=s" => \$aggrTemplate,
 					"aggr-virtual!" => \$aggrVirtual,
 					"aggr-virtual-directory=s" => \$aggrVirtDir,
 					"comment-file=s" => \$comfile,
@@ -251,14 +251,14 @@ sub getOptions {
 					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
 					"mtime!" => \$mtime,
-					"name-template=s" => \$nameTemplate,
+					"name-template|n=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
 					"no-rotate" => \$noRotation,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
-					"tag=s" => \@tmpTags,
+					"tag|t=s" => \@tmpTags,
 					"trim!" => \$trim,
 					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
@@ -1124,7 +1124,7 @@ Options:
   -d, --work-directory <DIR>	specify working directory
   --exclude <FILE> ...		define excluding files from process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
-  --name-template <TPL>		filename template (see manual for details)
+  -n, --name-template <TPL>	filename template (see manual for details)
   --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
   --counter-fixed-field (*)	set fixed field for file counter, where it's used in templates
   --counter-start <NUMBER>	the number to start count the files, to be renamed, from
@@ -1138,12 +1138,12 @@ Options:
   --aggr-mode <MODE>		run aggregation in MODE (possible values are: none, delta or template)
   --aggr-delta <INTERVAL>	aggregation time delta (file with delta great than INTERVAL is placed to the --aggr-directory followed by directory name counter starting from 1)
   --aggr-directory <DIR>	counterless aggregation directory name
-  --aggr-template <TPL>		aggregation template (see manual for details)
-  --aggr-virtual (*)		virtual aggregation (symlinks are aggregated instead of the very files)
+  -a, --aggr-template <TPL>	aggregation template (see manual for details)
+  --aggr-virtual (*)		virtual aggregation (symlinks are aggregated instead of the whole files)
   --aggr-virtual-directory <DIR> root directory for virtual aggregation
   --comment-file <FILE>		file with commentary
   --user-comment <COMMENTARY>	text to put into UserComment tag
-  --tag <TAG> ...		tag to put into EXIF of renamed files
+  -t, --tag <TAG> ...		tag to put into EXIF of renamed files
   --dry-run			show what would have been happened
   -v [-v -v ...]		amount of these options defines debug level
   -?, --help			display this help and exit
@@ -1302,7 +1302,7 @@ must be occured same times as files given.
 
 extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
 
-=item B<--name-template> I<TEMPLATE>
+=item B<-n> or B<--name-template> I<TEMPLATE>
 
 template, which is used for file name building while renaming. It could be
 defined in configuration file (the variable Name Template). The default is
@@ -1362,7 +1362,7 @@ the number to start count the files, to be renamed, from (default is I<1>)
 
 the step for the counter of the files to be renamed (default is I<1>)
 
-=item B<--rotate-angle> I<ANGLE>
+=item B<-r> or B<--rotate-angle> I<ANGLE>
 
 define the angle to rotate file and the thumbnail on 90, 180 or 270. It's for
 the files where no Orientation tag is set right way.
@@ -1411,7 +1411,7 @@ B<--aggr-directory> followed by directory name counter).
 
 counterless aggregation directory name (default is I<Images>)
 
-=item B<--aggr-template> I<TEMPLATE>
+=item B<-a> or B<--aggr-template> I<TEMPLATE>
 
 template, which is used for file aggregation. Aggregation fulfils according
 date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
@@ -1424,7 +1424,7 @@ see L</TEMPLATE EXAMPLES> section.
 
 defines virtualization for existent aggregation modes. If set, than results of
 the aggregation are placed into the directory defined with command line option
-I<--aggr-virtual-directory> or config file option I<aggregation virtual directory>
+B<--aggr-virtual-directory> or config file option I<aggregation virtual directory>
 and further occures the things, which have to occure with the choosen
 aggregation mode but without this option. The difference is that the files to
 be aggregated are remains untouched in their places, and symlinks are placed to
@@ -1437,14 +1437,13 @@ defines the directory, the results of the virtual aggregation to be placed to
 
 =item B<--comment-file> F<FILE>
 
-file with commentary. The low priority alias to this option looks as I<TagFile
-= Comment: FILE>.
+file with commentary. The low priority alias to I<TagFile = Comment: FILE>.
 
 =item B<--user-comment> I<STRING>
 
 low priority alias to I<--tag UserComment: STRING>
 
-=item B<--tag> I<TAG>
+=item B<-t> or B<--tag> I<TAG>
 
 look L</TAGS> section for the detailed description
 
@@ -1520,11 +1519,11 @@ will be put to the directory F<20040131>.
 Configuration file could be used to set some variables. Configuration file is
 just set of case-insensivity keys and its values separated by equal sign.
 Boolean variables can be defined via following keywords: 0, No, False, Off for
-false, and 1, Yes, True, On for true. B<RenRot> looks for B<--config-file>
-option firstly, than it looks for file named F<renrot.conf> in system
-directories such as F</etc/renrot> and F</usr/local/etc/renrot>. And finally
-it looks for file in home directory of the user in subdirectory F<.renrot>.
-User defined configuration file can be given via B<--config-file> option.
+false, and 1, Yes, True, On for true. B<RenRot> looks for file named
+F<renrot.conf> in system directories such as F</etc/renrot> and
+F</usr/local/etc/renrot>, and in home directory of the user in subdirectory
+F<.renrot>. User defined configuration file can be given via B<--config-file>
+option. In the last case the given file is used only.
 
 These variables could be set via configuration file:
 
@@ -1553,11 +1552,11 @@ B<--aggr-template>)
 
 =item B<aggregation virtual>
 
-defines virtualization for existent aggregation modes (see I<--aggr-virtual> option)
+defines virtualization for existent aggregation modes (see B<--aggr-virtual> option)
 
 =item B<aggregation virtual directory>
 
-defines the directory for virtual aggregation (see I<--aggr-virtual-directory> option>
+defines the directory for virtual aggregation (see B<--aggr-virtual-directory> option>
 
 =item B<Tag>, B<TagFile>
 
@@ -1571,9 +1570,9 @@ defines the file that would be included in place as part of configuration
 
 =head1 TAGS
 
-I<TAG> is defined by the next combination: I<TagName [Group]: 'value'>
+I<TAG> is defined by the next combination: I<TagName [Group]: 'value'>.
 
-Using command line option B<--tag> and/or configuration file option B<Tag>
+Using command line option B<--tag> and/or configuration file options B<Tag>
 it's possible to choose defined tags to be set and writen to the EXIF tree.
 
 The syntax of the command line option B<--tag>:
@@ -1605,9 +1604,17 @@ B<TagFile> = I<TagName [Group]:> F<FILE>
 
 =back
 
-Bellow are the tags, possible now to use with the options I<--tag> and I<Tag>:
+Bellow are the tags to make sense to use with the options B<--tag> and B<Tag>:
 
 =over
+
+=item B<Copyright>
+
+copyright notes
+
+=item B<Comment>
+
+general commentary
 
 =item B<UserComment>
 
@@ -1647,6 +1654,9 @@ URL
 
 =back
 
+Additionally you can add any known tag here in the format described above by
+B<Tag> or B<TagFile> options.
+
 =head1 FILES
 
 Configuration file placement (with high priority first):
@@ -1671,8 +1681,8 @@ please, read RESTRICTIONS section in README.
 It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug, which
 cause crash of the renrot, exists.
 
-In case when total amount of the files to process is bigger than RAM amount,
-the renrot falls with error:
+In case when total amount of the files size to process is bigger than RAM
+amount, the renrot falls with error:
 
 =over
 
@@ -1680,7 +1690,7 @@ Out of memory during "large" request for XXXX bytes ...
 
 =back
 
-This doesn't occure for Perl v.5.6.1
+This doesn't occure for Perl v.5.6.1.
 
 =head1 AUTHORS
 
