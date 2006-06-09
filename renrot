@@ -1563,6 +1563,10 @@ defines the directory for virtual aggregation (see I<--aggr-virtual-directory> o
 
 look L</TAGS> section for the detailed description
 
+=item B<TagFile>
+
+look L</TAGS> section for the detailed description
+
 =back
 
 Information about tag variable is placed in L</TAGS> section.
@@ -1593,6 +1597,15 @@ B<Tag> = I<TagName [Group]: 'value'>
 Parameters I<TagName> and I<Group> are passed to ExifTool as is. Name of the
 group have to be enclosed in square brackets. The I<value> (after semicolon)
 of the tag could be enclosed in tics.
+
+Also the option TagFile was defined to give posibility to fill value of some
+tags with multi line content from the file. The syntax as follows:
+
+=over
+
+B<TagFile> = I<TagName [Group]:> F<FILE>
+
+=back
 
 Bellow are the tags, possible now to use with the options I<--tag> and I<Tag>:
 
