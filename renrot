@@ -417,7 +417,7 @@ sub getConfig {
 				$key = lc($key);
 				if ($key eq "include" and not $incFiles{$value}) {
 					dbgmsg (2, "getConfig(): Parsing included file: '$value'.\n");
-					parseConfigFile($fc, $value, %hConfig);
+					%hConfig = parseConfigFile($fc, $value, %hConfig);
 				}
 				$key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
 				$hConfig{$key} = boolConverter($value);
@@ -1559,17 +1559,15 @@ defines virtualization for existent aggregation modes (see I<--aggr-virtual> opt
 
 defines the directory for virtual aggregation (see I<--aggr-virtual-directory> option>
 
-=item B<Tag>
+=item B<Tag>, B<TagFile>
 
 look L</TAGS> section for the detailed description
 
-=item B<TagFile>
+=item B<include>
 
-look L</TAGS> section for the detailed description
+defines the file that would be included in place as part of configuration
 
 =back
-
-Information about tag variable is placed in L</TAGS> section.
 
 =head1 TAGS
 

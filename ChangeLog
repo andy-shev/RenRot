@@ -1,4 +1,8 @@
 $Log$
+Revision 1.129  2006/06/09 08:21:07  andy
+Fix unusing included files.
+Add 'include' description to POD.
+
 Revision 1.128  2006/06/09 07:44:18  zeus
 TagFile config option added to the POD.
 
@@ -520,3 +524,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
