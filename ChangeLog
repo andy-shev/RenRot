@@ -1,4 +1,7 @@
 $Log$
+Revision 1.131  2006/06/10 06:51:13  zeus
+tag GPSAltitudeRef added to etc/tags.conf
+
 Revision 1.130  2006/06/09 18:26:54  andy
 Add the one-letter aliases to --name-template, --aggr-template, and --tag options.
 Change preamble in CONFIG section for drop possible misunderstanding.
@@ -16,8 +19,8 @@ Fix configuration file parser (parsed data wasn't used).
 Release as 0.21rc3.
 
 Revision 1.126  2006/06/08 14:08:09  zeus
-Information concerning the perl 5.8.7 and 5.8.8 behaviour 
-on FreeBSD 6, while processing large amount of files, was 
+Information concerning the perl 5.8.7 and 5.8.8 behaviour
+on FreeBSD 6, while processing large amount of files, was
 added to the POD and README.
 
 Revision 1.125  2006/06/08 06:49:48  andy
@@ -529,3 +532,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
