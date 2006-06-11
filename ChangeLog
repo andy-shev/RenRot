@@ -1,4 +1,7 @@
 $Log$
+Revision 1.132  2006/06/11 14:05:38  andy
+Use $dryRun in the rotateOrient(), renameFile(), mtimeSet(), and tagWriter().
+
 Revision 1.131  2006/06/10 06:51:13  zeus
 tag GPSAltitudeRef added to etc/tags.conf
 
@@ -532,4 +535,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

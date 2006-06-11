@@ -21,7 +21,7 @@ my $maxVerbosity = 4;		# our max verbosity level (internal)
 # added to mark the file as processed with RenRot.
 #
 if (defined %Image::ExifTool::UserDefined::RenRot) {
-	fatalmsg ("Won't redefine Image::ExifTool::UserDefined::RenRot\n"), die;
+	fatalmsg ("Won't redefine Image::ExifTool::UserDefined::RenRot.\n"), die;
 }
 
 %Image::ExifTool::UserDefined::RenRot = (
@@ -680,7 +680,7 @@ sub rotateFile {
 	elsif ( defined $rotateAngle ) {
 		dbgmsg (2, "rotateFile(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
 		if ($orientTag != 0) {
-			rotateOrient($file, $orientation);
+			rotateOrient($exifToolObj, $file, $orientation);
 		} else {
 			rotateImg($file, $rotangles{$rotateAngle}, $trimStr);
 			rotateThumbnail($infoObj, $file, $rotangles{$rotateAngle}, $trimStr);
@@ -723,11 +723,12 @@ sub renameFile {
 	my $fileCounter = shift;
 
 	my $newFileName;
+	my $unixTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
 
 	if ($noRename != 0) {
 		dbgmsg (2, "renameFile(): No renaming asked, filename is left untouched.\n");
 		$newFileName = $file;
-		$filenameshash{$newFileName} = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+		$filenameshash{$newFileName} = $unixTime;
 	} else {
 		my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
 		my $extLen = length($ext);
@@ -741,14 +742,15 @@ sub renameFile {
 		if ($filenameshash{$newFileName}) {
 			$newFileName .= "." . sprintf($counterSize, $fileCounter);
 		}
-		$filenameshash{$newFileName} = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+		$filenameshash{$newFileName} = $unixTime;
 
 		if ($file ne $newFileName) {
 			if (-f $newFileName) {
 				fatalmsg ("File $newFileName already exists!\n"), die;
 			}
-			rename ($file, $newFileName)
+			if ($dryRun == 0) { rename ($file, $newFileName)
 				|| ( fatalmsg ("Unable to rename $file -> $newFileName.\n"), die );
+			}
 			procmsg ("Renamed: $file -> $newFileName\n");
 		} else { warnmsg ("No renaming needed for $newFileName, it looks as needed!\n"); }
 	}
@@ -789,7 +791,8 @@ sub mtimeSet {
 	my $file = shift;
 	if ($configOptions{'mtime'} != 0) {
 		my $mTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
-		utime $mTime, $mTime, $file;
+		if ($dryRun == 0) { utime $mTime, $mTime, $file; }
+		else { procmsg ("Setting mtime.\n"); }
 		dbgmsg (2, "mtimeSet(): Changing mtime for $file OK.\n");
 	}
 }
@@ -808,7 +811,8 @@ sub tagWriter {
 	}
 
 	# writing the changes to the EXIFs
-	exifWriter($exifToolObj, $file);
+	if ($dryRun == 0) { exifWriter($exifToolObj, $file); }
+	else { procmsg ("Writting user defined EXIF tags.\n"); }
 }
 
 ########################################################################################
@@ -872,7 +876,6 @@ sub aggregationProcess {
 		foreach $file (sort (keys %filenameshash)) {
 			$filetmp = $file;
 			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
-			$info = $exifTool->ImageInfo($file);
 
 			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
@@ -923,7 +926,7 @@ sub aggregateFile {
 			symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
 		}
 		else {
-			procmsg ("Link $newfilename already exists\n");
+			procmsg ("Link $newfilename already exists.\n");
 		}
 	}
 	else {
@@ -1018,13 +1021,14 @@ sub getUnixTime {
 # will be made.
 #
 sub rotateOrient {
+	my $exifToolObj = shift;
 	my $fileOrient = shift;
 	my $orientation = shift;
 
 	dbgmsg (4, "rotateOrient(): Original Orientation: $orientation\n");
 	my $angleTmp = $rotorient{$orientation};
 	if (not defined $angleTmp) {
-		errmsg ("Operation not permited for mirror orientation\n");
+		errmsg ("Operation not permited for mirror type orientation.\n");
 		return;
 	}
 
@@ -1034,8 +1038,9 @@ sub rotateOrient {
 	$orientation = $rotorientrev{$angleTmp};
 	dbgmsg (4, "rotateOrient(): New Orientation: $orientation\n");
 
-	$exifTool->SetNewValue("Orientation", $orientation, Type => 'ValueConv');
-	exifWriter($exifTool, $fileOrient);
+	$exifToolObj->SetNewValue("Orientation", $orientation, Type => 'ValueConv');
+	if ($dryRun == 0) { exifWriter($exifToolObj, $fileOrient); }
+	else { procmsg ("Rotating Orientation tag value.\n"); }
 }
 
 ########################################################################################
@@ -1059,7 +1064,7 @@ sub rotateImg {
 	# preparing to write Orientation tag to the just rotated file
 	my $exifAfterRot = new Image::ExifTool;
 	$exifAfterRot->Options(Binary => 1);
-	$exifAfterRot->SetNewValuesFromFile($origfile,'*:*');
+	$exifAfterRot->SetNewValuesFromFile($origfile, '*:*');
 	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
 
 	# writing the changes to the EXIFs
@@ -1091,7 +1096,7 @@ sub rotateThumbnail {
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
-		# preparing to write the just rotated thumbnail, back to the file
+		# preparing to write the just rotated thumbnail back to the file
 		my $thethumb = getFileData($ThumbnailOriginalRotated);
 
  	 	# preparing to write thumbnale to the just rotated file
@@ -1162,6 +1167,7 @@ sub template2name {
 	my $infoObj = shift;
 	my $template = shift;	# the template to be used
 	my $fileNo = shift;	# counter for %c
+	my $ext = '';		# file extension for %e
 
 	if (not defined $template) {
 		fatalmsg ("Template isn't given!\n"), die;
@@ -1206,6 +1212,7 @@ sub template2name {
 				'c' => sprintf($counterSize, $fileNo),
 				'd' => $tm[3],
 				'E' => $ExposureTime,
+				'e' => $ext,
 				'F' => $FNumber,
 				'H' => $tm[4],
 				'I' => $ISO,
