@@ -1,11 +1,11 @@
 Name:		renrot
 Version:	0.21
-Release:	0.4.rc4%{?dist}
+Release:	1%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
 URL:		http://freshmeat.net/projects/renrot/
-Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}rc4.tar.gz
+Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 BuildRequires:	perl(Image::ExifTool) >= 5.72
@@ -26,7 +26,7 @@ Personal details can be specified via XMP tags defined in a
 configuration file.
 
 %prep
-%setup -q -n %{name}-%{version}rc4
+%setup -q -n %{name}-%{version}
 
 %build
 %{__perl} Makefile.PL PREFIX=%{_prefix}

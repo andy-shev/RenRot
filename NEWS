@@ -1,3 +1,13 @@
+* 0.21 *
+
+The new one-letter aliases had been added (see -n, -a, and -t in the manual).
+The aggregation directory argument is checked for a level of path (the current
+and multilevel directory isn't supported now). The --dry-run option now works
+on the almost general functions. The old style tag options is no longer
+supported. The tags documentation has been expanded. Additionally, the CONFIG
+section has been partially rewritten.
+
+
 * 0.21rc3 *
 
 The issue where the parsed data of the configuration files was not used was
