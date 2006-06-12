@@ -1,4 +1,8 @@
 $Log$
+Revision 1.133  2006/06/12 07:42:14  andy
+Check for directory tree in aggregation arguments. Now it isn't possible.
+Remove support of old style tag options.
+
 Revision 1.132  2006/06/11 14:05:38  andy
 Use $dryRun in the rotateOrient(), renameFile(), mtimeSet(), and tagWriter().
 
@@ -535,3 +539,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

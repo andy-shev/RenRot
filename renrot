@@ -416,7 +416,7 @@ sub getConfig {
 			if (defined $value) {
 				$key = lc($key);
 				if ($key eq "include" and not $incFiles{$value}) {
-					dbgmsg (2, "getConfig(): Parsing included file: '$value'.\n");
+					dbgmsg (2, "getConfig(): Parsing included file: '$value'\n");
 					%hConfig = parseConfigFile($fc, $value, %hConfig);
 				}
 				$key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
@@ -476,6 +476,33 @@ sub parseConfig {
 
 ########################################################################################
 #
+# dirConv() simplifies directory name
+#
+sub dirConv {
+	my $dirStr = shift;
+	$dirStr =~ s/\/*\/\.\/\/*/\//g;		# remove dotslashes
+	$dirStr =~ s/^\.\/\/*//;		# remove heading dotslash
+	$dirStr =~ s/\/+$//;			# remove trailing slashes
+	return $dirStr;
+}
+
+########################################################################################
+#
+# dirValidator() validates given string as no tree and no current directory
+#
+sub dirValidator {
+	my $dirStr = shift;
+	if ($dirStr =~ m/\// or
+	    $dirStr eq "." or
+	    $dirStr eq ".." or
+	    $dirStr eq "") {
+		return 0;
+	}
+	return 1;
+}
+
+########################################################################################
+#
 # MAIN() renames and rotates given files
 #
 
@@ -490,8 +517,7 @@ $configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
 $configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
 $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
-# $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
-$configOptions{'aggregation virtual directory'}	= 'Images.Links.Directory'; # defining by user, now not possible!
+$configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -502,6 +528,14 @@ dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if
 if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
 	warnmsg ("Aggregation mode isn't correct!\n");
 }
+
+$configOptions{'aggregation directory'} = dirConv($configOptions{'aggregation directory'});
+$configOptions{'aggregation virtual directory'} = dirConv($configOptions{'aggregation virtual directory'});
+
+fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
+    if ($configOptions{'aggregation mode'} ne "none" and
+	(dirValidator($configOptions{'aggregation directory'}) == 0 or
+	 dirValidator($configOptions{'aggregation virtual directory'}) == 0));
 
 # Calculate ExifTool's verbosity
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
@@ -545,39 +579,6 @@ if (scalar(@filenames) == 0) {
 	exit 1;
 }
 
-# Convert old style of tags to new one
-if (defined $configOptions{'comment file'}) {
-	$tags{'Comment'} = {value => getFileData($configOptions{'comment file'})};
-}
-if (defined $configOptions{'tag usercomment'}) {
-	$tags{'UserComment'} = {value => $configOptions{'tag usercomment'}};
-}
-
-if (defined $configOptions{'tag ciadrcity'}) {
-	$tags{'CreatorContactInfoCiAdrCity'} = {value => $configOptions{'tag ciadrcity'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciadrctry'}) {
-	$tags{'CreatorContactInfoCiAdrCtry'} = {value => $configOptions{'tag ciadrctry'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciadrextadr'}) {
-	$tags{'CreatorContactInfoCiAdrExtadr'} = {value => $configOptions{'tag ciadrextadr'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciadrpcode'}) {
-	$tags{'CreatorContactInfoCiAdrPcode'} = {value => $configOptions{'tag ciadrpcode'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciadrregion'}) {
-	$tags{'CreatorContactInfoCiAdrRegion'} = {value => $configOptions{'tag ciadrregion'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciemailwork'}) {
-	$tags{'CreatorContactInfoCiEmailWork'} = {value => $configOptions{'tag ciemailwork'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag citelwork'}) {
-	$tags{'CreatorContactInfoCiTelWork'} = {value => $configOptions{'tag citelwork'}, group => 'XMP'};
-}
-if (defined $configOptions{'tag ciurlwork'}) {
-	$tags{'CreatorContactInfoCiUrlWork'} = {value => $configOptions{'tag ciurlwork'}, group => 'XMP'};
-}
-
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
 	next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
@@ -585,7 +586,7 @@ foreach my $cKey (keys %configOptions) {
 	foreach my $key (keys %tag) {
 		$tags{$key} = $tag{$key};
 		if ($cKey =~ m/^tagfile/) {
-			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'.\n");
+			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'\n");
 			$tags{$key}{value} = getFileData($tags{$key}{value});
 		}
 	}
@@ -901,36 +902,39 @@ sub aggregationProcess {
 
 ########################################################################################
 #
+# makeDir() makes one level directory
+#
+sub makeDir {
+	my $newDir = shift;
+	if (not -d $newDir) {
+		unless (mkdir $newDir) { errmsg ("$newDir wasn't created!\n"); }
+	}
+}
+
+########################################################################################
+#
 # aggregateFile() moves file to new directory
 #
 sub aggregateFile {
 	my $file = shift;
 	my $NewDir = shift;
 
-	if ($configOptions{'aggregation virtual'} != 0) {
-		my $LnkDir = $configOptions{'aggregation virtual directory'};
-		if (not -d $LnkDir) {
-			unless (mkdir $LnkDir) { errmsg ("$LnkDir wasn't created!\n"); }
-		}
-		$NewDir = $LnkDir . "/" . $NewDir;
-	}
-
-	if (not -d $NewDir) {
-		unless (mkdir $NewDir) { errmsg ("$NewDir wasn't created!\n"); }
-	}
-	my $newfilename = $NewDir . "/" . $file;
-	my $symlink = "../../" . $file;
-
-	if ($configOptions{'aggregation virtual'} != 0) {
+	if ($configOptions{'aggregation virtual'} == 0) {
+		makeDir($NewDir);
+		my $newfilename = $NewDir . "/" . $file;
+		rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
+	} else {
+		makeDir($configOptions{'aggregation virtual directory'});
+		$NewDir = $configOptions{'aggregation virtual directory'} . "/" . $NewDir;
+		makeDir($NewDir);
+		my $newfilename = $NewDir . "/" . $file;
 		if (not -l $newfilename) {
+			my $symlink = "../../" . $file;
 			symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
 		}
 		else {
 			procmsg ("Link $newfilename already exists.\n");
 		}
-	}
-	else {
-		rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
 	}
 }
 
@@ -1677,8 +1681,6 @@ Configuration file placement (with high priority first):
 =item B</etc/renrot/renrot.conf>
 
 =back
-
-=head1 NOTES
 
 =head1 BUGS
 

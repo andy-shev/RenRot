@@ -11,8 +11,6 @@ EXIF tags
 
 q  to write to some tag the options passed to renrot
 
-+- to review XMP tags related code
-
 +- to implement %t in name template, where the array of desired tags will be
    inited
 
@@ -25,7 +23,7 @@ Disk I/O
    mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
 
 +- implement aggregation option (to aggregate large bundle of files according
-   the different time intervals, perhapse with some kind of euristics for
+   the different time intervals, perhaps with some kind of euristics for
    analyzing the bigest time interval between shots)
 
 -  to fix the feature with --aggr-template SOMENAME, when SOMENAME is dumb
@@ -36,6 +34,8 @@ Disk I/O
    to the set of OUT directories
 
 -  avoid hard link making where in and out files on different partitions
+
+-  backup option for making or not backups
 
 
 User interface
