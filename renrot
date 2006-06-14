@@ -741,7 +741,7 @@ sub renameFile {
 		$newFileName .= $ext;
 
 		if ($filenameshash{$newFileName}) {
-			$newFileName .= "." . sprintf($counterSize, $fileCounter);
+			$newFileName = sprintf($counterSize, $fileCounter) . "." . $newFileName;
 		}
 		$filenameshash{$newFileName} = $unixTime;
 
