@@ -1126,39 +1126,43 @@ sub rotateThumbnail {
 #
 sub usage {
 infomsg (
-"Usage:	renrot 	<--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename] [--name-template TPL] [--comment-file FILE] [--work-directory DIR] [[--] FILE1 FILE2 ...]
+"Usage:	renrot 	<--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
+		[--name-template TPL] [--comment-file FILE] [--work-directory DIR] 
+		[[--] FILE1 FILE2 ...]
 
 Options:
-  -c, --config-file <FILE>	use this configuration file
-  -d, --work-directory <DIR>	specify working directory
-  --exclude <FILE> ...		define excluding files from process. No wildcards.
-  -e, --extension <EXTENSION>	extension of files to be processed: JPG, jpg, JPEG e.t.c.
+  -c, --config-file <FILE>	configuration file to use
+  -d, --work-directory <DIR>	working directory
+  --exclude <FILE> ...		files to not process. No wildcards.
+  -e, --extension <EXTENSION>	extension of files to process (case sensitive): JPG,jpg ...
   -n, --name-template <TPL>	filename template (see manual for details)
-  --no-rename			no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
-  --counter-fixed-field (*)	set fixed field for file counter, where it's used in templates
-  --counter-start <NUMBER>	the number to start count the files, to be renamed, from
-  --counter-step <NUMBER>	the step for the counter of the files to be renamed
-  -r, --rotate-angle <ANGLE>	define the angle to rotate file and the thumbnail on 90, 180 or 270 (it's for the files where no Orientation tag is present and set right way)
-  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 degree (it's for the files which were rotated, but thumbnail wasn't)
+  --no-rename			no rename needed, default is to rename
+  --counter-fixed-field (*)	set fixed field for file counter (used in templates)
+  --counter-start <NUMBER>	start to count files to be renamed from
+  --counter-step <NUMBER>	step for files to be renamed counter
+  -r, --rotate-angle <ANGLE>	angle to rotate file and thumbnail by 90, 180 or 270 deg
+  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 deg
   --trim (*)			pass -trim to jpegtran
-  --only-orientation		rotate by changing Orientation tag (no real rotation)
+  --only-orientation		changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
-  --mtime (*)			set file mtime according to DateTimeOriginal tag value
-  --aggr-mode <MODE>		run aggregation in MODE (possible values are: none, delta or template)
-  --aggr-delta <INTERVAL>	aggregation time delta (file with delta great than INTERVAL is placed to the --aggr-directory followed by directory name counter starting from 1)
-  --aggr-directory <DIR>	counterless aggregation directory name
+  --mtime (*)			set file mtime according to DateTimeOriginal tag
+  --aggr-mode <MODE>		run aggregation in MODE (variants: none, delta or template)
+  --aggr-delta <INTERVAL>	aggregation time delta
+  --aggr-directory <DIR>	aggregation directory name
   -a, --aggr-template <TPL>	aggregation template (see manual for details)
-  --aggr-virtual (*)		virtual aggregation (symlinks are aggregated instead of the whole files)
+  --aggr-virtual (*)		virtual aggregation (symlinks instead of files)
   --aggr-virtual-directory <DIR> root directory for virtual aggregation
-  --comment-file <FILE>		file with commentary
-  --user-comment <COMMENTARY>	text to put into UserComment tag
-  -t, --tag <TAG> ...		tag to put into EXIF of renamed files
-  --dry-run			show what would have been happened
-  -v [-v -v ...]		amount of these options defines debug level
+  --comment-file <FILE>		file with text to put into Commentary tag
+  --user-comment <COMMENTARY>	file with text to put into UserComment tag
+  -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
+  --dry-run			show what would have been happened (no real processing)
+  -v [-v -v ...]		number of these options defines debug level
   -?, --help			display this help and exit
-  --version			output version information and exit
+  --version			output version and exit
 
-(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' and '--no-mtime' (negative value will be assigned).
+(*)	The option does not take an argument and may be negated, i.e. prefixed by 'no'.
+	E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime'
+	or '--no-mtime' (negative value will be assigned).
 ");
 }
 

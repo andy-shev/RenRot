@@ -1,4 +1,7 @@
 $Log$
+Revision 1.136  2006/06/19 11:19:08  zeus
+online documentation (option -h) tailored.
+
 Revision 1.135  2006/06/14 20:40:19  zeus
 in renameFile(), $newname look changed on opposite in case of it's existance.
 
@@ -545,4 +548,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
