@@ -738,11 +738,12 @@ sub renameFile {
 					     $infoObj,
 					     $configOptions{'name template'},
 					     $fileCounter);
-		$newFileName .= $ext;
-
-		if ($filenameshash{$newFileName}) {
-			$newFileName = sprintf($counterSize, $fileCounter) . "." . $newFileName;
+		if ($filenameshash{$newFileName . $ext}) {
+			$newFileName .= "." . sprintf($counterSize, $fileCounter) . $ext;
+		} else {
+			$newFileName .= $ext;
 		}
+
 		$filenameshash{$newFileName} = $unixTime;
 
 		if ($file ne $newFileName) {
