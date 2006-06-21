@@ -46,6 +46,9 @@ User interface
 
 File naming
 
+-  to add to the template %n - original file name as is
+-  to add to the template %e - original extention as is
+q  virtual renaming
 
 Verbosity
 
