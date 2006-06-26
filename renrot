@@ -737,7 +737,8 @@ sub renameFile {
 		$newFileName = template2name($exifToolObj,
 					     $infoObj,
 					     $configOptions{'name template'},
-					     $fileCounter);
+					     $fileCounter,
+				     	     $file);
 		if ($filenameshash{$newFileName . $ext}) {
 			$newFileName .= "." . sprintf($counterSize, $fileCounter) . $ext;
 		} else {
@@ -863,7 +864,8 @@ sub aggregationProcess {
 			$NewDir = template2name($exifTool,
 						$info,
 						$configOptions{'aggregation template'},
-						$fileCounter);
+						$fileCounter,
+						$file);
 			aggregateFile($file, $NewDir) if ($dryRun == 0);
 
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
@@ -1128,7 +1130,7 @@ sub rotateThumbnail {
 sub usage {
 infomsg (
 "Usage:	renrot 	<--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
-		[--name-template TPL] [--comment-file FILE] [--work-directory DIR] 
+		[--name-template TPL] [--comment-file FILE] [--work-directory DIR]
 		[[--] FILE1 FILE2 ...]
 
 Options:
@@ -1176,7 +1178,17 @@ sub template2name {
 	my $infoObj = shift;
 	my $template = shift;	# the template to be used
 	my $fileNo = shift;	# counter for %c
-	my $ext = '';		# file extension for %e
+	my $fileName = shift;	# file name for %n and %e
+	my ($base, $ext);	# file name %n and extension %e
+
+	if ($fileName =~ m/^(.*)\.([^\.]+)$/) {
+		$base = $1;
+		$ext = $2;
+	}
+	else {
+		$base = $fileName;
+		$ext = '';
+	}
 
 	if (not defined $template) {
 		fatalmsg ("Template isn't given!\n"), die;
@@ -1228,6 +1240,7 @@ sub template2name {
 				'i' => $FileNumber,
 				'M' => $tm[5],
 				'm' => $tm[2],
+				'n' => $base,
 				'S' => $tm[6],
 				'W' => $WhiteBalance,
 				'Y' => $tm[0],
@@ -1337,6 +1350,8 @@ B<%d>	day of the month (01-31)
 
 B<%E>	ExposureTime tag value if defined
 
+B<%e>	old file extention
+
 B<%F>	FNumber tag value if defined
 
 B<%H>	hour (00-23)
@@ -1349,6 +1364,8 @@ C<NA>)
 B<%M>	minute (00-59)
 
 B<%m>	month (01-12)
+
+B<%n>	old file name
 
 B<%S>	second (00-59)
 

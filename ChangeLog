@@ -1,4 +1,7 @@
 $Log$
+Revision 1.138  2006/06/26 09:09:20  zeus
+%n and %e template patters've being implemented.
+
 Revision 1.137  2006/06/21 19:36:51  zeus
 TODO edited (%n,%e & virtual renaming)
 
@@ -551,4 +554,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
