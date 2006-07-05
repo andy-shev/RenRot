@@ -11,7 +11,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.21";		# the version of this script
+our $VERSION = "0.21.1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -1354,7 +1354,7 @@ B<%d>	day of the month (01-31)
 
 B<%E>	ExposureTime tag value if defined
 
-B<%e>	old file extention
+B<%e>	old file extension
 
 B<%F>	FNumber tag value if defined
 
@@ -1369,7 +1369,7 @@ B<%M>	minute (00-59)
 
 B<%m>	month (01-12)
 
-B<%n>	old file name
+B<%n>	old filename
 
 B<%S>	second (00-59)
 

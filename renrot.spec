@@ -1,5 +1,5 @@
 Name:		renrot
-Version:	0.21
+Version:	0.21.1
 Release:	1%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia

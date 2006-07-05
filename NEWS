@@ -1,3 +1,12 @@
+* 0.21.1 *
+
+The new template parameters %n and %e had been injected (they are represented
+the original name and the extension of the given file respectively). A new
+option --backup has been added (use --no-backup if you won't backup the
+original files before rotating). Additionally, the online (-h) documentation
+has been reduced to approach 80 symbols wide. the bug with counter in has been
+fixed.
+
 * 0.21 *
 
 The new one-letter aliases had been added (see -n, -a, and -t in the manual).
