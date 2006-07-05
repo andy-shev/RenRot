@@ -17,7 +17,7 @@ New template ideology was implemented. It includes flexibility in file name
 construction. In version 0.16 and later the previous behaviour still present
 with default NameTemplate. The template can contain different data, from
 direct name to EXIF data (the date, id or shooting details such as
-WhiteBalance, ISO e.t.c.). For further information, please, see applied
+WhiteBalance, ISO, e.t.c.). For further information, please, see applied
 manual.
 
 RenRot rotates file and its thumbnail, according to EXIF tag Orientation. If

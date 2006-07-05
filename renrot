@@ -72,6 +72,7 @@ my $aggrMode;		# define aggregation mode, possible values are: none, delta or te
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrVirtual;	# flag to do links instead real file moving while aggregation
 my $aggrVirtDir;	# directory name for virtual aggregation
+my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $countFF = 1;	# use fixed field for counter
@@ -241,6 +242,7 @@ sub getOptions {
 					"aggr-template|a=s" => \$aggrTemplate,
 					"aggr-virtual!" => \$aggrVirtual,
 					"aggr-virtual-directory=s" => \$aggrVirtDir,
+					"backup!" => \$backup,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"counter-fixed-field!" => \$countFF,
@@ -274,6 +276,7 @@ sub getOptions {
 	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
 	dbgmsg (3, "   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
 	dbgmsg (3, "   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
+	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "   --counter-start: $countStart",
@@ -1065,8 +1068,10 @@ sub rotateImg {
 	dbgmsg (3, "rotateImg(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
-	rename ( $oldfile, $origfile ) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
-	rename ( $newfile, $oldfile )  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
+	if ($backup != 0) {
+		rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
+	}
+	rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
 
 	# preparing to write Orientation tag to the just rotated file
 	my $exifAfterRot = new Image::ExifTool;
@@ -1137,19 +1142,19 @@ Options:
   -c, --config-file <FILE>	configuration file to use
   -d, --work-directory <DIR>	working directory
   --exclude <FILE> ...		files to not process. No wildcards.
-  -e, --extension <EXTENSION>	extension of files to process (case sensitive): JPG,jpg ...
+  -e, --extension <EXTENSION>	extension of files to process: JPG, jpeg, ...
   -n, --name-template <TPL>	filename template (see manual for details)
   --no-rename			no rename needed, default is to rename
-  --counter-fixed-field (*)	set fixed field for file counter (used in templates)
+  --counter-fixed-field (*)	set fixed field for counter (used in templates)
   --counter-start <NUMBER>	start to count files to be renamed from
   --counter-step <NUMBER>	step for files to be renamed counter
-  -r, --rotate-angle <ANGLE>	angle to rotate file and thumbnail by 90, 180 or 270 deg
-  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180 or 270 deg
+  -r, --rotate-angle <ANGLE>	angle to rotate file and thumbnail by 90, 180, 270
+  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180, 270
   --trim (*)			pass -trim to jpegtran
   --only-orientation		changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			set file mtime according to DateTimeOriginal tag
-  --aggr-mode <MODE>		run aggregation in MODE (variants: none, delta or template)
+  --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
   --aggr-delta <INTERVAL>	aggregation time delta
   --aggr-directory <DIR>	aggregation directory name
   -a, --aggr-template <TPL>	aggregation template (see manual for details)
@@ -1158,14 +1163,12 @@ Options:
   --comment-file <FILE>		file with text to put into Commentary tag
   --user-comment <COMMENTARY>	file with text to put into UserComment tag
   -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
-  --dry-run			show what would have been happened (no real processing)
+  --dry-run			show what would have been happened
   -v [-v -v ...]		number of these options defines debug level
   -?, --help			display this help and exit
   --version			output version and exit
 
-(*)	The option does not take an argument and may be negated, i.e. prefixed by 'no'.
-	E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime'
-	or '--no-mtime' (negative value will be assigned).
+(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' or '--no-mtime' (negative value will be assigned).
 ");
 }
 
@@ -1329,7 +1332,8 @@ must be occured same times as files given.
 
 =item B<-e> or B<--extension> I<EXTENSION>
 
-extension of files to be processed, JPG, jpg, JPEG, CRW, crw e.t.c.
+extension of files to be processed, JPG, jpeg, CRW, crw, or any other you need.
+The given extension is case-sensivity in related filesystems.
 
 =item B<-n> or B<--name-template> I<TEMPLATE>
 

@@ -35,7 +35,11 @@ Disk I/O
 
 -  avoid hard link making where in and out files on different partitions
 
--  backup option for making or not backups
++  backup option for making or not backups
+
+-  check free space before start batch operation (probably find given file with
+   maximum lenght and compare it with 1/3 of free space or 1/2 if --no-backup is
+   defined)
 
 
 User interface
@@ -46,9 +50,12 @@ User interface
 
 File naming
 
--  to add to the template %n - original file name as is
--  to add to the template %e - original extention as is
++  to add to the template %n - original file name as is
+
++  to add to the template %e - original extention as is
+
 q  virtual renaming
+
 
 Verbosity
 
@@ -59,7 +66,7 @@ Code
 
 +- to review the code to optimize it where it's possible.
 
--  to tune style look of comments, code e.t.c.
+-  to tune style look of comments, code, e.t.c.
 
 
 Other
