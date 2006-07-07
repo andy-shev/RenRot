@@ -13,6 +13,7 @@ use Getopt::Long;
 
 our $VERSION = "0.21.1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
+my @keywordArr;			# array for keywords
 
 ########################################################################################
 #
@@ -57,6 +58,7 @@ my %configOptions = (
 			'aggregation template' => '%Y%m%d',
 			'aggregation virtual' => 0,
 			'aggregation virtual directory' => 'Images.Links.Directory',
+			'keywordize' => 0,
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
@@ -81,6 +83,8 @@ my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
+my $keywordize;		# keywordize or not
+my $keywordFile;	# keywords file
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
@@ -252,6 +256,8 @@ sub getOptions {
 					"exclude=s" => \@excludeList,
 					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
+					"keywordize!" => \$keywordize,
+					"keyword-file|k=s" => \$keywordFile,
 					"mtime!" => \$mtime,
 					"name-template|n=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
@@ -285,6 +291,8 @@ sub getOptions {
 	dbgmsg (3, "   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
 	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
 	dbgmsg (3, "   --extension: $extToProcess\n");
+	dbgmsg (3, "   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
+	dbgmsg (3, "   --keyword-file: $keywordFile\n") if (defined $keywordFile);
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n");
@@ -318,13 +326,6 @@ sub getOptions {
 
 	if ($getOptions == 0) {
 		usage();
-		exit 1;
-	}
-
-	# Validate angle value
-	if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
-	    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
-		fatalmsg ("Angle should be 90, 180 or 270!\n");
 		exit 1;
 	}
 
@@ -521,6 +522,7 @@ $configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
 $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
 $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
+$configOptions{'keywordize'}		= $keywordize if (defined $keywordize);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -622,6 +624,38 @@ if ($countFF != 0) {
 	$counterSize = "%d";
 }
 
+# Validate keywords
+sub keywordizer {
+	my $keywordFile = shift;	# keywords file
+	my @keywordArr;
+	unless ( open ( KEYWORDSFILE, "<$keywordFile" ) ) {
+		fatalmsg ("$keywordFile wasn't opened! Perhaps it doesn't exist ...\n");
+		exit 1;
+	}
+	@keywordArr = <KEYWORDSFILE>;
+	unless ( close ( KEYWORDSFILE ) ) {  warnmsg ("$keywordFile wasn't closed!\n"); }
+	chop(@keywordArr);
+	return @keywordArr;
+}
+
+if($configOptions{'keywordize'} != 0 and defined $keywordFile and -R $keywordFile and -f $keywordFile and -T $keywordFile ) {
+	@keywordArr = keywordizer ($keywordFile);
+}
+elsif($configOptions{'keywordize'} != 0 and -R "./.keywords" and -f "./.keywords" and -T "./.keywords" ) {
+	@keywordArr = keywordizer ("./.keywords");
+}
+elsif($configOptions{'keywordize'} != 0 and not -e $keywordFile and not -e "./.keywords") {
+	fatalmsg ("it's needed to create file ./.keywords or set\n\t--keyword-file option in conjunction with --keywordize\n");
+	exit 1;
+}
+
+# Validate angle value
+if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
+    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
+	fatalmsg ("Angle should be 90, 180 or 270!\n");
+	exit 1;
+}
+
 @files = sort @filenames;
 dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
@@ -656,7 +690,7 @@ sub renRotProcess {
 		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
 
 		# Writting tags.
-		tagWriter($exifTool, $newFileName) if ($noRename == 0);
+		tagWriter($exifTool, $newFileName, @keywordArr) if ($noRename == 0);
 
 		# seting mtime for the file if been asked for
 		mtimeSet($exifTool, $info, $newFileName);
@@ -810,10 +844,15 @@ sub mtimeSet {
 sub tagWriter {
 	my $exifToolObj = shift;
 	my $file = shift;
+	my $keywordArr = @_;
 
 	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
 	foreach my $key (sort (keys %tags)) {
 		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
+	}
+
+	if($#keywordArr != 0 ) {
+		$exifTool->SetNewValue(Keywords => \@keywordArr );
 	}
 
 	# writing the changes to the EXIFs
@@ -1154,6 +1193,8 @@ Options:
   --only-orientation		changing Orientation tag (no real rotation)
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			set file mtime according to DateTimeOriginal tag
+  --keywordize (*)		set tags Keywords
+  -k, --keyword-file		file with keywords
   --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
   --aggr-delta <INTERVAL>	aggregation time delta
   --aggr-directory <DIR>	aggregation directory name
@@ -1320,6 +1361,16 @@ date/time pattern template, set with B<--aggr-template>.
 =item B<-c> or B<--config-file> F<FILE>
 
 path to the configuration file
+
+=item B<--keywordize>, B<--no-keywordize>
+
+whether to keywordize. Default is to not. Be careful, since this option when on,
+rewrites existing keywords, not adds. The keywords are taken from F<./.keywords>
+file or file specified with option B<--keyword-file>.
+
+=item B<-k> or B<--keyword-file> F<FILE>
+
+path to the file with keywords (format is each keyword per line)
 
 =item B<-d> or B<--work-directory> F<DIR>
 
