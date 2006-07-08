@@ -13,7 +13,6 @@ use Getopt::Long;
 
 our $VERSION = "0.21.1";	# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
-my @keywordArr;			# array for keywords
 
 ########################################################################################
 #
@@ -170,6 +169,8 @@ my @multOpts = (
 		'tagfile',
 		'include',
 	       );
+
+my @keywordArr;		# array for keywords
 
 # processing message
 sub procmsg {
@@ -624,27 +625,22 @@ if ($countFF != 0) {
 	$counterSize = "%d";
 }
 
-# Validate keywords
-sub keywordizer {
-	my $keywordFile = shift;	# keywords file
-	my @keywordArr;
-	unless ( open ( KEYWORDSFILE, "<$keywordFile" ) ) {
-		fatalmsg ("$keywordFile wasn't opened! Perhaps it doesn't exist ...\n");
-		exit 1;
-	}
-	@keywordArr = <KEYWORDSFILE>;
-	unless ( close ( KEYWORDSFILE ) ) {  warnmsg ("$keywordFile wasn't closed!\n"); }
-	chop(@keywordArr);
-	return @keywordArr;
-}
-
-if($configOptions{'keywordize'} != 0 and defined $keywordFile and -R $keywordFile and -f $keywordFile and -T $keywordFile ) {
+# FIXME: optimization
+if ($configOptions{'keywordize'} != 0 and
+    defined $keywordFile and
+    -R $keywordFile and
+    -f $keywordFile and
+    -T $keywordFile) {
 	@keywordArr = keywordizer ($keywordFile);
-}
-elsif($configOptions{'keywordize'} != 0 and -R "./.keywords" and -f "./.keywords" and -T "./.keywords" ) {
+} elsif ($configOptions{'keywordize'} != 0 and
+         -R "./.keywords" and
+         -f "./.keywords" and
+         -T "./.keywords" ) {
 	@keywordArr = keywordizer ("./.keywords");
-}
-elsif($configOptions{'keywordize'} != 0 and not -e $keywordFile and not -e "./.keywords") {
+} elsif ($configOptions{'keywordize'} != 0 and
+         not -e $keywordFile and
+         not -e "./.keywords") {
+        # FIXME: line too long
 	fatalmsg ("it's needed to create file ./.keywords or set\n\t--keyword-file option in conjunction with --keywordize\n");
 	exit 1;
 }
@@ -661,6 +657,17 @@ dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), 
 
 renRotProcess();
 aggregationProcess();
+
+########################################################################################
+#
+# keywordizer() validates keywords
+#
+sub keywordizer {
+	my $keywordFile = shift;	# keywords file
+	my @keywordArr = getFileDataLines($keywordFile);
+	chop (@keywordArr);
+	return @keywordArr;
+}
 
 ########################################################################################
 #
@@ -800,25 +807,36 @@ sub renameFile {
 
 ########################################################################################
 #
-# getFileData() gets data from a given file
+# getFileData() gets data from a given file in one-line string
 #
 sub getFileData {
+	my $file = shift;
+	my @result = getFileDataLines($file);
+	return join ('', @result) if (scalar(@result) > 0);
+	return undef;
+}
+
+########################################################################################
+#
+# getFileDataLines() gets data from a given file in array of lines
+#
+sub getFileDataLines {
 	my $file = shift;
 
 	if (not defined $file or $file eq "") {
 		warnmsg ("Can't read file with empty name!\n");
-		return undef;
+		return (undef);
 	}
 
 	if (open(XXXFILE, "<$file")) {
 		binmode XXXFILE;
 		my @xxxData = <XXXFILE>;
 		unless (close(XXXFILE)) { errmsg ("$file wasn't closed!\n"); }
-		return join ('', @xxxData);
+		return @xxxData;
 	}
 
 	warnmsg ("Can't read file $file!\n");
-	return undef;
+	return (undef);
 }
 
 ########################################################################################
@@ -851,8 +869,8 @@ sub tagWriter {
 		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
 	}
 
-	if($#keywordArr != 0 ) {
-		$exifTool->SetNewValue(Keywords => \@keywordArr );
+	if (scalar(@keywordArr) > 0) {
+		$exifTool->SetNewValue(Keywords => \@keywordArr);
 	}
 
 	# writing the changes to the EXIFs

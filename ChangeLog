@@ -1,4 +1,7 @@
 $Log$
+Revision 1.142  2006/07/08 05:04:24  andy
+Optimize keywordizer code. Should be checked.
+
 Revision 1.141  2006/07/07 11:43:25  zeus
 keywordizer() added, managed via CLI and config file
 options --keywordize and --keyword-file.
@@ -565,4 +568,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
