@@ -58,6 +58,7 @@ my %configOptions = (
 			'aggregation virtual' => 0,
 			'aggregation virtual directory' => 'Images.Links.Directory',
 			'keywordize' => 0,
+			'keywords file' => '.keywords',
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
@@ -83,7 +84,7 @@ my $dryRun = 0;		# show what would have been happened
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $keywordize;		# keywordize or not
-my $keywordFile;	# keywords file
+my $keywordFile;	# file with keyword set
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
@@ -169,8 +170,6 @@ my @multOpts = (
 		'tagfile',
 		'include',
 	       );
-
-my @keywordArr;		# array for keywords
 
 # processing message
 sub procmsg {
@@ -524,6 +523,7 @@ $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate
 $configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
 $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
 $configOptions{'keywordize'}		= $keywordize if (defined $keywordize);
+$configOptions{'keywords file'}		= $keywordFile if (defined $keywordFile);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -625,26 +625,6 @@ if ($countFF != 0) {
 	$counterSize = "%d";
 }
 
-# FIXME: optimization
-if ($configOptions{'keywordize'} != 0 and
-    defined $keywordFile and
-    -R $keywordFile and
-    -f $keywordFile and
-    -T $keywordFile) {
-	@keywordArr = keywordizer ($keywordFile);
-} elsif ($configOptions{'keywordize'} != 0 and
-         -R "./.keywords" and
-         -f "./.keywords" and
-         -T "./.keywords" ) {
-	@keywordArr = keywordizer ("./.keywords");
-} elsif ($configOptions{'keywordize'} != 0 and
-         not -e $keywordFile and
-         not -e "./.keywords") {
-        # FIXME: line too long
-	fatalmsg ("it's needed to create file ./.keywords or set\n\t--keyword-file option in conjunction with --keywordize\n");
-	exit 1;
-}
-
 # Validate angle value
 if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
     (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
@@ -663,8 +643,9 @@ aggregationProcess();
 # keywordizer() validates keywords
 #
 sub keywordizer {
-	my $keywordFile = shift;	# keywords file
-	my @keywordArr = getFileDataLines($keywordFile);
+	my $file = shift;	# keywords file
+	return (undef) if (not (-R $file and -f $file and -T $file));
+	my @keywordArr = getFileDataLines($file);
 	chop (@keywordArr);
 	return @keywordArr;
 }
@@ -677,6 +658,18 @@ sub renRotProcess {
 	my $fileCounter = $countStart;	# file counter
 	my $newFileName;		# the name file to be renamed to
 	my $info;			# ImageInfo object
+
+	my @keywordArr;			# array for keywords
+
+	if ($configOptions{'keywordize'} != 0) {
+		@keywordArr = keywordizer ($configOptions{'keywords file'});
+
+		if (not -e $configOptions{'keywords file'}) {
+			# FIXME: there is non-fatal case
+			fatalmsg ("Keywords file doesn't exist!\n");
+			exit 1;
+		}
+	}
 
 	# Convert trim boolean value to string
 	my $trimStr = (not defined $configOptions{'trim'} or $configOptions{'trim'}) ? '-trim' : '';
@@ -862,7 +855,7 @@ sub mtimeSet {
 sub tagWriter {
 	my $exifToolObj = shift;
 	my $file = shift;
-	my $keywordArr = @_;
+	my @keywordArr = @_;
 
 	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
 	foreach my $key (sort (keys %tags)) {
