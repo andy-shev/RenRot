@@ -58,8 +58,8 @@ my %configOptions = (
 			'aggregation virtual' => 0,
 			'aggregation virtual directory' => 'Images.Links.Directory',
 			'keywordize' => 0,
-			'keywords replace' => 0,
 			'keywords file' => '.keywords',
+			'keywords replace' => 0,
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
@@ -86,7 +86,7 @@ my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $keywordize;		# keywordize or not
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
-my $keywordFile;	# file with keyword set
+my $keywordsFile;	# file with keyword set
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
@@ -259,8 +259,8 @@ sub getOptions {
 					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
 					"keywordize!" => \$keywordize,
+					"keywords-file|k=s" => \$keywordsFile,
 					"keywords-replace!" => \$keywordsReplace,
-					"keyword-file|k=s" => \$keywordFile,
 					"mtime!" => \$mtime,
 					"name-template|n=s" => \$nameTemplate,
 					"no-rename" => \$noRename,
@@ -296,7 +296,7 @@ sub getOptions {
 	dbgmsg (3, "   --extension: $extToProcess\n");
 	dbgmsg (3, "   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
 	dbgmsg (3, "   --keywordis-add: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
-	dbgmsg (3, "   --keyword-file: $keywordFile\n") if (defined $keywordFile);
+	dbgmsg (3, "   --keywords-file: $keywordsFile\n") if (defined $keywordsFile);
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename), "\n");
@@ -527,7 +527,7 @@ $configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate
 $configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
 $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
 $configOptions{'keywordize'}		= $keywordize if (defined $keywordize);
-$configOptions{'keywords file'}		= $keywordFile if (defined $keywordFile);
+$configOptions{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
 $configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
@@ -682,11 +682,12 @@ sub renRotProcess {
 
 	procmsg ("RENAMING / ROTATING\n===================\n");
 
-	if (scalar(@keywordArr) > 0 and $configOptions{'keywords replace'} == 1) {
-		$exifTool->SetNewValue(Keywords => \@keywordArr);
-	}
-	elsif (scalar(@keywordArr) > 0 and $configOptions{'keywords replace'} == 0) {
-		$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
+	if (scalar(@keywordArr) > 0) {
+		if ($configOptions{'keywords replace'} != 0) {
+			$exifTool->SetNewValue(Keywords => \@keywordArr);
+		} else {
+			$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
+		}
 	}
 
 	foreach my $file (@files) {
@@ -1213,7 +1214,7 @@ Options:
   --mtime (*)			set file mtime according to DateTimeOriginal tag
   --keywordize (*)		set tags Keywords
   --keywords-replace (*)	replace tag Keywords rather than add value to it
-  -k, --keyword-file		file with keywords
+  -k, --keywords-file		file with keywords
   --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
   --aggr-delta <INTERVAL>	aggregation time delta
   --aggr-directory <DIR>	aggregation directory name
@@ -1387,14 +1388,14 @@ path to the configuration file
 
 whether to keywordize. Default is to not. Be careful, since this option when on,
 rewrites existing keywords, not adds. The keywords are taken from F<./.keywords>
-file or file specified with option B<--keyword-file>.
+file or file specified with option B<--keywords-file>.
 
 =item B<-k> or B<--keywords-replace>
 
 Replace existing tag Keywords list rather than add the values to it. Default is to
 not replace.
 
-=item B<-k> or B<--keyword-file> F<FILE>
+=item B<-k> or B<--keywords-file> F<FILE>
 
 path to the file with keywords (format is each keyword per line)
 

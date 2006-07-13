@@ -1,4 +1,9 @@
 $Log$
+Revision 1.145  2006/07/13 11:41:10  andy
+TODO cleanup.
+--keyword-file -> keywords-file.
+Minor optimization in keywordizer code was added.
+
 Revision 1.144  2006/07/13 10:08:31  zeus
 option --keywords-replace is added.
 
@@ -574,3 +579,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
