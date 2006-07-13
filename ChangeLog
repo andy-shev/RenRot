@@ -1,4 +1,7 @@
 $Log$
+Revision 1.143  2006/07/13 09:44:44  zeus
+Bugfix, tag Keywords was accumulated in the loop rather than written once.
+
 Revision 1.142  2006/07/08 05:04:24  andy
 Optimize keywordizer code. Should be checked.
 
@@ -568,3 +571,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

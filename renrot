@@ -677,6 +677,10 @@ sub renRotProcess {
 
 	procmsg ("RENAMING / ROTATING\n===================\n");
 
+	if (scalar(@keywordArr) > 0) {
+		$exifTool->SetNewValue(Keywords => \@keywordArr);
+	}
+
 	foreach my $file (@files) {
 		procmsg ("Processing file: $file ...\n");
 
@@ -690,7 +694,7 @@ sub renRotProcess {
 		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
 
 		# Writting tags.
-		tagWriter($exifTool, $newFileName, @keywordArr) if ($noRename == 0);
+		tagWriter($exifTool, $newFileName) if ($noRename == 0);
 
 		# seting mtime for the file if been asked for
 		mtimeSet($exifTool, $info, $newFileName);
@@ -855,15 +859,10 @@ sub mtimeSet {
 sub tagWriter {
 	my $exifToolObj = shift;
 	my $file = shift;
-	my @keywordArr = @_;
 
 	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
 	foreach my $key (sort (keys %tags)) {
 		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
-	}
-
-	if (scalar(@keywordArr) > 0) {
-		$exifTool->SetNewValue(Keywords => \@keywordArr);
 	}
 
 	# writing the changes to the EXIFs
