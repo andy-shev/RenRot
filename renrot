@@ -680,7 +680,10 @@ sub renRotProcess {
 	my $trimStr = (not defined $configOptions{'trim'} or $configOptions{'trim'}) ? '-trim' : '';
 	dbgmsg (1, "renRotProcess(): Trim string: '$trimStr'\n");
 
-	procmsg ("RENAMING / ROTATING\n===================\n");
+	dbgmsg (1, "renRotProcess(): Initializing tags ...\n");
+	foreach my $key (sort (keys %tags)) {
+		$exifTool->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
+	}
 
 	if (scalar(@keywordArr) > 0) {
 		if ($configOptions{'keywords replace'} != 0) {
@@ -689,6 +692,8 @@ sub renRotProcess {
 			$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
 		}
 	}
+
+	procmsg ("RENAMING / ROTATING\n===================\n");
 
 	foreach my $file (@files) {
 		procmsg ("Processing file: $file ...\n");
@@ -869,14 +874,9 @@ sub tagWriter {
 	my $exifToolObj = shift;
 	my $file = shift;
 
-	dbgmsg (2, "tagWriter(): Writting tags to file...\n");
-	foreach my $key (sort (keys %tags)) {
-		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
-	}
-
 	# writing the changes to the EXIFs
 	if ($dryRun == 0) { exifWriter($exifToolObj, $file); }
-	else { procmsg ("Writting user defined EXIF tags.\n"); }
+	else { procmsg ("Writting user defined EXIF tags to $file.\n"); }
 }
 
 ########################################################################################
@@ -1229,9 +1229,7 @@ Options:
   -?, --help			display this help and exit
   --version			output version and exit
 
-(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. 
-E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' 
-or '--no-mtime' (negative value will be assigned).
+(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' or '--no-mtime' (negative value will be assigned).
 ");
 }
 

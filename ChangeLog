@@ -1,4 +1,7 @@
 $Log$
+Revision 1.146  2006/07/13 13:07:39  zeus
+Tags initialization moved from tagWriter() to the renRotProcess().
+
 Revision 1.145  2006/07/13 11:41:10  andy
 TODO cleanup.
 --keyword-file -> keywords-file.
@@ -579,4 +582,5 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
 
