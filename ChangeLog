@@ -1,4 +1,7 @@
 $Log$
+Revision 1.144  2006/07/13 10:08:31  zeus
+option --keywords-replace is added.
+
 Revision 1.143  2006/07/13 09:44:44  zeus
 Bugfix, tag Keywords was accumulated in the loop rather than written once.
 
@@ -571,4 +574,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

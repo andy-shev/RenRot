@@ -58,6 +58,7 @@ my %configOptions = (
 			'aggregation virtual' => 0,
 			'aggregation virtual directory' => 'Images.Links.Directory',
 			'keywordize' => 0,
+			'keywords replace' => 0,
 			'keywords file' => '.keywords',
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
@@ -84,6 +85,7 @@ my $dryRun = 0;		# show what would have been happened
 my @excludeList;	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $keywordize;		# keywordize or not
+my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
 my $keywordFile;	# file with keyword set
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
@@ -257,6 +259,7 @@ sub getOptions {
 					"extension|e=s" => \$extToProcess,
 					"help|?"   => \$showHelp,
 					"keywordize!" => \$keywordize,
+					"keywords-replace!" => \$keywordsReplace,
 					"keyword-file|k=s" => \$keywordFile,
 					"mtime!" => \$mtime,
 					"name-template|n=s" => \$nameTemplate,
@@ -292,6 +295,7 @@ sub getOptions {
 	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
 	dbgmsg (3, "   --extension: $extToProcess\n");
 	dbgmsg (3, "   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
+	dbgmsg (3, "   --keywordis-add: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
 	dbgmsg (3, "   --keyword-file: $keywordFile\n") if (defined $keywordFile);
 	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
@@ -524,6 +528,7 @@ $configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
 $configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
 $configOptions{'keywordize'}		= $keywordize if (defined $keywordize);
 $configOptions{'keywords file'}		= $keywordFile if (defined $keywordFile);
+$configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
@@ -677,8 +682,11 @@ sub renRotProcess {
 
 	procmsg ("RENAMING / ROTATING\n===================\n");
 
-	if (scalar(@keywordArr) > 0) {
+	if (scalar(@keywordArr) > 0 and $configOptions{'keywords replace'} == 1) {
 		$exifTool->SetNewValue(Keywords => \@keywordArr);
+	}
+	elsif (scalar(@keywordArr) > 0 and $configOptions{'keywords replace'} == 0) {
+		$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
 	}
 
 	foreach my $file (@files) {
@@ -1204,6 +1212,7 @@ Options:
   --no-rotate			no rotation needed, default is to rotate
   --mtime (*)			set file mtime according to DateTimeOriginal tag
   --keywordize (*)		set tags Keywords
+  --keywords-replace (*)	replace tag Keywords rather than add value to it
   -k, --keyword-file		file with keywords
   --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
   --aggr-delta <INTERVAL>	aggregation time delta
@@ -1219,7 +1228,9 @@ Options:
   -?, --help			display this help and exit
   --version			output version and exit
 
-(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' or '--no-mtime' (negative value will be assigned).
+(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. 
+E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' 
+or '--no-mtime' (negative value will be assigned).
 ");
 }
 
@@ -1377,6 +1388,11 @@ path to the configuration file
 whether to keywordize. Default is to not. Be careful, since this option when on,
 rewrites existing keywords, not adds. The keywords are taken from F<./.keywords>
 file or file specified with option B<--keyword-file>.
+
+=item B<-k> or B<--keywords-replace>
+
+Replace existing tag Keywords list rather than add the values to it. Default is to
+not replace.
 
 =item B<-k> or B<--keyword-file> F<FILE>
 
