@@ -1,4 +1,11 @@
 $Log$
+Revision 1.147  2006/07/16 10:02:12  andy
+Remove fatal case when keywords file isn't exist.
+Fix return value in the getFileDataLines() and keywordizer().
+Now skip empty keywords, and remove tail \r if occurs.
+Add 'no'-prefixed aliases to exist 'no-' options: --norename, --norotate.
+New option --no-tags (with alias --notags) switches tags writting.
+
 Revision 1.146  2006/07/13 13:07:39  zeus
 Tags initialization moved from tagWriter() to the renRotProcess().
 
@@ -582,5 +589,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
 
