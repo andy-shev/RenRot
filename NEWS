@@ -1,11 +1,21 @@
+* 0.22 *
+
+A new option --no-tags has been added. Use it when you don't want to write
+EXIF tags. The 'no'-prefixed aliases to the 'no-' options were added:
+--norename, --norotate, and --notags. The main functionality has been expanded
+with keywordizer procedure. See the applied manual to get details of usaging
+it.
+
+
 * 0.21.1 *
 
-The new template parameters %n and %e had been injected (they are represented
-the original name and the extension of the given file respectively). A new
-option --backup has been added (use --no-backup if you won't backup the
-original files before rotating). Additionally, the online (-h) documentation
-has been reduced to approach 80 symbols wide. the bug with counter in has been
-fixed.
+The new template parameters %n and %e have been added, representing the
+original name and the extension of the given file, respectively. A new
+--backup option has been added, and --no-backup should be used if you don't
+want to backup the original files before rotating. Additionally, the online
+(-h) documentation has been reduced to approach 80 characters wide. The bug
+with counter in has been fixed.
+
 
 * 0.21 *
 

@@ -1,4 +1,7 @@
 $Log$
+Revision 1.148  2006/07/16 16:59:44  andy
+Release as 0.22.
+
 Revision 1.147  2006/07/16 10:02:12  andy
 Remove fatal case when keywords file isn't exist.
 Fix return value in the getFileDataLines() and keywordizer().
@@ -589,4 +592,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
