@@ -3,8 +3,8 @@
 A new option --no-tags has been added. Use it when you don't want to write
 EXIF tags. The 'no'-prefixed aliases to the 'no-' options were added:
 --norename, --norotate, and --notags. The main functionality has been expanded
-with keywordizer procedure. See the applied manual to get details of usaging
-it.
+with the keywordizer procedure. See the applied manual to get details for
+using it.
 
 
 * 0.21.1 *
