@@ -1,4 +1,8 @@
 $Log$
+Revision 1.150  2006/07/18 18:36:52  andy
+--test-speed -> --test-use-ipc (and 'test speed' -> 'test use ipc').
+Split rotateThumbnail() to its own, rotateByJpegtran(), and thumbWriter().
+
 Revision 1.149  2006/07/18 13:58:05  zeus
 option --test-speed for thumbnail rotate, via pipe, speeding added.
 
@@ -595,4 +599,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

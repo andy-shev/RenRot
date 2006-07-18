@@ -63,7 +63,7 @@ my %configOptions = (
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
-			'test speed' => 0,
+			'test use ipc' => 0,
 		    );
 
 ########################################################################################
@@ -98,7 +98,7 @@ my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my %tagsFromCli;	# tags are got from CLI
-my $testSpeed;		# rotate thumbnail via pipe
+my $testUseIPC;		# rotate thumbnail via pipe
 my $trim;		# jpegtran -trim
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
@@ -274,7 +274,7 @@ sub getOptions {
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
 					"tag|t=s" => \@tmpTags,
-					"test-speed!" => \$testSpeed,
+					"test-use-ipc!" => \$testUseIPC,
 					"trim!" => \$trim,
 					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
@@ -311,7 +311,7 @@ sub getOptions {
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "   --tag:\n", join('\n', @tmpTags), "\n") if (scalar(@tmpTags) > 0);
-	dbgmsg (3, "   --test-speed: ", boolConv($testSpeed), "\n") if (defined $testSpeed);
+	dbgmsg (3, "   --test-use-ipc: ", boolConv($testUseIPC), "\n") if (defined $testUseIPC);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
 	dbgmsg (3, "   --work-directory: $workDir\n");
 	dbgmsg (3, "   ARGV:\n", join('\n', @ARGV), "\n") if ($fileCount > 0);
@@ -538,6 +538,7 @@ $configOptions{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
 $configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
+$configOptions{'test use ipc'}		= $testUseIPC if (defined $testUseIPC);
 $configOptions{'trim'}			= $trim if (defined $trim);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
@@ -1155,21 +1156,38 @@ sub rotateImg {
 
 ########################################################################################
 #
-# rotate thubnail only, where the file was rotated but thumbnail was left untouched
+# thumbWriter() writes binary data as thumbnail to given file
 #
-sub rotateThumbnail {
-	my $infoObj = shift;
-	my $file = shift;	# file, which thumbnale to transform with jpegtran
-	my @addon = @_;		# the switches for jpegtran to rotate the thumbnail
+sub thumbWriter {
+	my $file = shift;
+	my $thethumb = shift;
 
-	if (defined ${$$infoObj{ThumbnailImage}} and $configOptions{'test speed'} == 0) {
+	# preparing to write thumbnale to the just rotated file
+	my $exifThumbnailed = new Image::ExifTool;
+	$exifThumbnailed->Options(Binary => 1);
+	$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
+
+	# writing the changes to the EXIFs
+	exifWriter($exifThumbnailed, $file);
+}
+
+########################################################################################
+#
+# rotateByJpegtran() rotates file by jpegtran utility
+#
+sub rotateByJpegtran {
+	my $file = shift;
+	my $origThumb = shift;
+	my @addon = @_;
+
+	if ($configOptions{'test use ipc'} == 0) {
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $file . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
 			errmsg ("$ThumbnailOriginal wasn't opened!\n");
 		}
 		binmode OLDTHUMBNAIL;
-		print OLDTHUMBNAIL ${$$infoObj{ThumbnailImage}};
+		print OLDTHUMBNAIL $origThumb;
 		unless ( close ( OLDTHUMBNAIL ) ) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
 		# rotating the thumbnail
@@ -1178,35 +1196,31 @@ sub rotateThumbnail {
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
 		system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
-		# preparing to write the just rotated thumbnail back to the file
-		my $thethumb = getFileData($ThumbnailOriginalRotated);
-
- 	 	# preparing to write thumbnale to the just rotated file
-		my $exifThumbnailed = new Image::ExifTool;
-		$exifThumbnailed->Options(Binary => 1);
-
-		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
-
-		# writing the changes to the EXIFs
-		exifWriter($exifThumbnailed, $file);
+		# write the just rotated thumbnail back to file
+		thumbWriter($file, getFileData($ThumbnailOriginalRotated));
 
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
-	}
-	elsif (defined ${$$infoObj{ThumbnailImage}} and $configOptions{'test speed'} != 0) {
+        } else {
 		my $cmd = "jpegtran -copy none @addon";
-		dbgmsg (3, "rotateThumbnail(): $cmd; pipe\n");
-		# preparing to write the just rotated thumbnail back to the file
-		my $thethumb = piper (${$$infoObj{ThumbnailImage}}, $cmd );
+		dbgmsg (3, "rotateThumbnail(): $cmd\n");
+		# write the just rotated thumbnail back to file
+		thumbWriter($file, piper($origThumb, $cmd));
+	}
+}
 
- 	 	# preparing to write thumbnale to the just rotated file
-		my $exifThumbnailed = new Image::ExifTool;
-		$exifThumbnailed->Options(Binary => 1);
+########################################################################################
+#
+# rotateThumbnail() rotates thubnail only, where the file was rotated but
+# thumbnail was left untouched
+#
+sub rotateThumbnail {
+	my $infoObj = shift;
+	my $file = shift;	# file, which thumbnale to transform with jpegtran
+	my @addon = @_;		# the switches for jpegtran to rotate the thumbnail
 
-		$exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
-
-		# writing the changes to the EXIFs
-		exifWriter($exifThumbnailed, $file);
+	if (defined ${$$infoObj{ThumbnailImage}}) {
+		rotateByJpegtran($file, ${$$infoObj{ThumbnailImage}}, @addon);
 	}
 	else {
 		warnmsg ("No thumbnail found.\n");
@@ -1214,9 +1228,9 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
-##
-## piper() - first argument processed via cmd - the second one
-##
+#
+# piper() opens two pipes for process object via cmd 
+#
 sub piper {
 	use FileHandle;
 	use IPC::Open2;
@@ -1224,9 +1238,9 @@ sub piper {
 	my $pipeObj = shift;	# the object to be processed via pipe
 	my $pipeCmd = shift;	# the pipe command
 
-	local(*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
+	local (*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
 
-	unless ( open2( \*READ_FROM_FH, \*WRITE_TO_FH, $pipeCmd ) ) {
+	unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipeCmd)) {
 		errmsg ("Unable to create the pipe.\n");
 	}
 
@@ -1240,9 +1254,7 @@ sub piper {
 
 	unless ( close(READ_FROM_FH) ) { warnmsg ("READ_FROM_FH wasn't closed!\n"); };
 
-	my $result = join('', @pipedArr);
-
-	return $result;
+	return join('', @pipedArr);
 }
 
 ########################################################################################
