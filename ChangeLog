@@ -1,4 +1,7 @@
 $Log$
+Revision 1.149  2006/07/18 13:58:05  zeus
+option --test-speed for thumbnail rotate, via pipe, speeding added.
+
 Revision 1.148  2006/07/16 16:59:44  andy
 Release as 0.22.
 
@@ -592,3 +595,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
