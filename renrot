@@ -297,7 +297,7 @@ sub getOptions {
 		   "   --counter-step: $countStep",
 		   "   --counter-fixed-field: ", boolConv($countFF), "\n");
 	dbgmsg (3, "   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
-	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
+	dbgmsg (3, "   --exclude:\n", join('\n', @excludeList), "\n") if (scalar(@excludeList) > 0);
 	dbgmsg (3, "   --extension: $extToProcess\n");
 	dbgmsg (3, "   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
 	dbgmsg (3, "   --keywords-replace: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
@@ -310,11 +310,11 @@ sub getOptions {
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
-	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+	dbgmsg (3, "   --tag:\n", join('\n', @tmpTags), "\n") if (scalar(@tmpTags) > 0);
 	dbgmsg (3, "   --test-speed: ", boolConv($testSpeed), "\n") if (defined $testSpeed);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
 	dbgmsg (3, "   --work-directory: $workDir\n");
-	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
+	dbgmsg (3, "   ARGV:\n", join('\n', @ARGV), "\n") if ($fileCount > 0);
 
 	if ($showHelp != 0) {
 		usage();
@@ -626,7 +626,7 @@ foreach my $key (sort (keys %tags)) {
 	my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
 	push (@dbgTags, "$key [$group] = $value");
 }
-dbgmsg (4, "Tags:\n", join("\n", @dbgTags), "\n") if (scalar(@dbgTags) > 0);
+dbgmsg (4, "Tags:\n", join('\n', @dbgTags), "\n") if (scalar(@dbgTags) > 0);
 
 # Preparing the variable, which contains the format of the counter output
 if ($countFF != 0) {
@@ -645,7 +645,7 @@ if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
 }
 
 @files = sort @filenames;
-dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
+dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join('\n', @files), "\n");
 
 renRotProcess();
 aggregationProcess();
@@ -1218,7 +1218,6 @@ sub rotateThumbnail {
 ## piper() - first argument processed via cmd - the second one
 ##
 sub piper {
-
 	use FileHandle;
 	use IPC::Open2;
 
@@ -1228,20 +1227,20 @@ sub piper {
 	local(*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
 
 	unless ( open2( \*READ_FROM_FH, \*WRITE_TO_FH, $pipeCmd ) ) {
-		print "piper() error, unable to create the pipe\n";
+		errmsg ("Unable to create the pipe.\n");
 	}
 
 	binmode WRITE_TO_FH;
 	print WRITE_TO_FH $pipeObj;
 
-	unless ( close(WRITE_TO_FH) ) { print "WRITE_TO_FH wasn't closed!\n"};
+	unless ( close(WRITE_TO_FH) ) { warnmsg ("WRITE_TO_FH wasn't closed!\n"); };
 
 	binmode READ_FROM_FH;
 	my @pipedArr = <READ_FROM_FH>;
 
-	unless ( close(READ_FROM_FH) ) { print "READ_FROM_FH wasn't closed!\n"};
+	unless ( close(READ_FROM_FH) ) { warnmsg ("READ_FROM_FH wasn't closed!\n"); };
 
-	my $result = join("",@pipedArr);
+	my $result = join('', @pipedArr);
 
 	return $result;
 }
