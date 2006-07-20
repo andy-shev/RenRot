@@ -5,6 +5,7 @@
 #
 
 use strict;
+use warnings;
 require 5.006;
 use Time::localtime;
 use Time::Local;
@@ -97,6 +98,7 @@ my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
+my $subFileSet;		# subset of files to process, given in file rather than in commandline
 my %tagsFromCli;	# tags are got from CLI
 my $testUseIPC;		# rotate thumbnail via pipe
 my $trim;		# jpegtran -trim
@@ -273,6 +275,7 @@ sub getOptions {
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
+					"sub-fileset=s" => \$subFileSet,
 					"tag|t=s" => \@tmpTags,
 					"test-use-ipc!" => \$testUseIPC,
 					"trim!" => \$trim,
@@ -310,6 +313,7 @@ sub getOptions {
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "   --sub-fileset: $subFileSet\n") if (defined $subFileSet);
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
 	dbgmsg (3, "   --test-use-ipc: ", boolConv($testUseIPC), "\n") if (defined $testUseIPC);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
@@ -326,7 +330,7 @@ sub getOptions {
 		exit 0;
 	}
 
-	if ($extToProcess eq "" and ($fileCount == 0)) {
+	if ($extToProcess eq "" and ($fileCount == 0) and (not defined $subFileSet)) {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
 	}
@@ -572,8 +576,15 @@ my %filenameshash;	# hash for old file names
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
-# All things in ARGV will be treated as file names to process
-@files = @ARGV;
+if (defined $subFileSet) {
+	dbgmsg (2, "Reading file names for processing from file: $subFileSet\n");
+	@files =  getFileDataLines($subFileSet);
+	chomp(@files);
+}
+else {
+	# All things in ARGV will be treated as file names to process
+	@files = @ARGV;
+}
 
 # if no file is given
 if (scalar(@files) == 0) {
@@ -1229,7 +1240,7 @@ sub rotateThumbnail {
 
 ########################################################################################
 #
-# piper() opens two pipes for process object via cmd 
+# piper() opens two pipes for process object via cmd
 #
 sub piper {
 	use FileHandle;
@@ -1285,7 +1296,7 @@ Options:
   --mtime (*)			set file mtime according to DateTimeOriginal tag
   --keywordize (*)		set Keywords tag
   --keywords-replace (*)	replace Keywords tag rather than add value to it
-  -k, --keywords-file		file with keywords
+  -k, --keywords-file <FILE>	file with keywords
   --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
   --aggr-delta <INTERVAL>	aggregation time delta
   --aggr-directory <DIR>	aggregation directory name
@@ -1296,7 +1307,8 @@ Options:
   --user-comment <COMMENTARY>	file with text to put into UserComment tag
   -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
   --no-tags			no tags writting, default is to write tags
-  --dry-run			show what would have been happened
+  --dry-run			show what would have been happeneda
+  --sub-fileset	<FILE>		file with file names to be processed
   -v [-v -v ...]		number of these options defines debug level
   -?, --help			display this help and exit
   --version			output version and exit
@@ -1642,6 +1654,11 @@ no tags will be written. Default is to write tags.
 =item B<--dry-run>
 
 show what would have been happened (no real actions)
+
+=item B<--sub-fileset> F<FILE>
+
+file with file names to be processed. Each file name on separate string.
+Useful when you need process only set of n files among whole m ones in the directory.
 
 =item B<-v>
 

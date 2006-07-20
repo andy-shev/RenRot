@@ -1,4 +1,7 @@
 $Log$
+Revision 1.151  2006/07/20 06:26:50  zeus
+--sub-fileset <FILE> option is implemented.
+
 Revision 1.150  2006/07/18 18:36:52  andy
 --test-speed -> --test-use-ipc (and 'test speed' -> 'test use ipc').
 Split rotateThumbnail() to its own, rotateByJpegtran(), and thumbWriter().
@@ -599,3 +602,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
