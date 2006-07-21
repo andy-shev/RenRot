@@ -1659,6 +1659,7 @@ show what would have been happened (no real actions)
 
 file with file names to be processed. Each file name on separate string.
 Useful when you need process only set of n files among whole m ones in the directory.
+If specified, all files passed to renrot via command line are ignored.
 
 =item B<-v>
 

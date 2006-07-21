@@ -1,4 +1,7 @@
 $Log$
+Revision 1.152  2006/07/21 07:02:39  zeus
+POD for --sub-fileset edited.
+
 Revision 1.151  2006/07/20 06:26:50  zeus
 --sub-fileset <FILE> option is implemented.
 
@@ -602,4 +605,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
