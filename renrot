@@ -32,6 +32,7 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 	RenRotProcessingTimestamp => { },
 	RenRotVersion => { },
 	RenRotURL => { },
+	RenRotFileNameOriginal => { },
 );
 
 # The %Image::ExifTool::UserDefined hash defines new tags to be added to
@@ -110,7 +111,7 @@ my $workDir = './';	# we'll work ONLY in current directory
 #
 # Tags hash for injecting to EXIF when renaming
 #
-my %tags = (
+our %tags = (
 		'Software' => {
 			value => sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION),
 			group => 'EXIF',
@@ -810,6 +811,19 @@ sub renameFile {
 		$newFileName = $file;
 		$filenameshash{$newFileName} = $unixTime;
 	} else {
+
+		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
+		if (not defined $fileNameOriginal) {
+			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
+			$exifTool->SetNewValue('RenRotFileNameOriginal',
+						$tags{'RenRotFileNameOriginal'}{value},
+						Group => $tags{'RenRotFileNameOriginal'}{group});
+			dbgmsg (2, "renameFile(): RenRotFileNameOriginal tag is set as $file.\n");
+		}
+		else {
+			dbgmsg (2, "renameFile(): RenRotFileNameOriginal tag exists, the value is $fileNameOriginal.\n");
+		}
+
 		my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
 		my $extLen = length($ext);
 
