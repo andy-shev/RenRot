@@ -476,8 +476,12 @@ sub parseConfigFile {
 #
 sub parseConfig {
 	my $file = shift;
-	my $home = "HOME";
-	$home = "USERPROFILE" if (not defined $ENV{$home});
+	my $home = $ENV{"HOME"};
+	
+	$home = $ENV{"USERPROFILE"} if (not defined $home);
+	
+	warnmsg ("parseConfig(): Variable HOME is not defined!\n") if (not defined $home);
+	
 	my @rcFiles = (
 			"/etc/renrot.rc",
 			"/etc/renrot/renrot.rc",
@@ -485,8 +489,8 @@ sub parseConfig {
 			"/usr/local/etc/renrot.rc",
 			"/usr/local/etc/renrot/renrot.rc",
 			"/usr/local/etc/renrot/renrot.conf",
-			$ENV{$home} . "/" . ".renrotrc",
-			$ENV{$home} . "/" . ".renrot/renrot.conf",
+			$home . "/" . ".renrotrc",
+			$home . "/" . ".renrot/renrot.conf",
 		      );
 
 	@rcFiles = ($file) if (defined $file);

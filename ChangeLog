@@ -1,4 +1,7 @@
 $Log$
+Revision 1.156  2006/08/03 21:23:26  zeus
+parseConfig() code optimized.
+
 Revision 1.155  2006/08/03 20:27:33  zeus
 now win32 platform is considered in parseConfig(), the variable USERPROFILE
 instead of HOME.
@@ -615,4 +618,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
