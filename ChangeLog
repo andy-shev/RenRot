@@ -1,4 +1,7 @@
 $Log$
+Revision 1.154  2006/08/03 10:26:25  zeus
+Template sequence "%o" was added.
+
 Revision 1.153  2006/08/03 10:09:55  zeus
 Tag RenRotFileNameOriginal writing was added.
 
@@ -608,4 +611,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

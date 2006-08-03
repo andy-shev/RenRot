@@ -1365,6 +1365,7 @@ sub template2name {
 	my $FNumber = "";
 	my $ISO = "";
 	my $WhiteBalance = "";
+	my $fileNameOriginal = "";
 
 	if (defined $infoObj->{"FileNumber"}) {
 		$FileNumber = $infoObj->{"FileNumber"};
@@ -1388,6 +1389,10 @@ sub template2name {
 		$WhiteBalance =~ s/[\s()]//g;
 	}
 
+	if (defined $infoObj->{"RenRotFileNameOriginal"}) {
+		$fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
+	}
+
 	my @templatearea = split (//, $template);
 	my %templatehash = (
 				'%' => "%",
@@ -1403,6 +1408,7 @@ sub template2name {
 				'M' => $tm[5],
 				'm' => $tm[2],
 				'n' => $base,
+				'o' => $fileNameOriginal,
 				'S' => $tm[6],
 				'W' => $WhiteBalance,
 				'Y' => $tm[0],
@@ -1528,7 +1534,11 @@ B<%M>	minute (00-59)
 
 B<%m>	month (01-12)
 
-B<%n>	old filename
+B<%n>	old filename - the one before the current processing with renrot
+
+B<%o>	the name, file had before first processing with renrot. If the file
+was processed with renrot if only once, the tag RenRotFileNameOriginal written
+with the file name.
 
 B<%S>	second (00-59)
 
