@@ -1,4 +1,7 @@
 $Log$
+Revision 1.158  2006/08/08 11:15:27  zeus
+colorization for output implemented, the option --test-use-color
+
 Revision 1.157  2006/08/08 08:41:31  zeus
 Template sequence "%O" was added.
 
@@ -621,4 +624,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

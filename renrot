@@ -101,6 +101,7 @@ my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $subFileSet;		# subset of files to process, given in file rather than in commandline
 my %tagsFromCli;	# tags are got from CLI
+our $testUseColor;	# colorized output
 my $testUseIPC;		# rotate thumbnail via pipe
 my $trim;		# jpegtran -trim
 my $userComment;	# text to put into UserComment tag
@@ -186,29 +187,64 @@ sub procmsg {
 
 # information message
 sub infomsg {
+	if (defined $testUseColor) {
+		use Term::ANSIColor;
+		print STDERR color 'bold';
+	}
 	print STDERR @_;
+	if (defined $testUseColor) {
+		print STDERR color 'reset';
+	}
 }
 
 # warning message
 sub warnmsg {
+	if (defined $testUseColor) {
+		use Term::ANSIColor;
+		print STDERR color 'cyan';
+	}
 	print STDERR "Warning: ", @_;
+	if (defined $testUseColor) {
+		print STDERR color 'reset';
+	}
 }
 
 # error message
 sub errmsg {
+	if (defined $testUseColor) {
+		use Term::ANSIColor;
+		print STDERR color 'red';
+	}
 	print STDERR "ERROR: ", @_;
+	if (defined $testUseColor) {
+		print STDERR color 'reset';
+	}
 }
 
 # fatal message
 sub fatalmsg {
+	if (defined $testUseColor) {
+		use Term::ANSIColor;
+		print STDERR color 'white on_red';
+	}
 	print STDERR "FATAL: ", @_;
+	if (defined $testUseColor) {
+		print STDERR color 'reset';
+	}
 }
 
 # debug message
 sub dbgmsg {
+	if (defined $testUseColor) {
+		use Term::ANSIColor;
+		print STDERR color 'green';
+	}
 	my $level = shift;
 	if ($verbose >= $level) {
 		print STDERR "DEBUG[$level]: ", @_;
+	}
+	if (defined $testUseColor) {
+		print STDERR color 'reset';
 	}
 }
 
@@ -278,6 +314,7 @@ sub getOptions {
 					"rotate-thumb=i" => \$rotateThumbnail,
 					"sub-fileset=s" => \$subFileSet,
 					"tag|t=s" => \@tmpTags,
+					"test-use-color!" => \$testUseColor,
 					"test-use-ipc!" => \$testUseIPC,
 					"trim!" => \$trim,
 					"user-comment=s" => \$userComment,
@@ -316,6 +353,7 @@ sub getOptions {
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
 	dbgmsg (3, "   --sub-fileset: $subFileSet\n") if (defined $subFileSet);
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+	dbgmsg (3, "   --test-use-color: ", boolConv($testUseColor), "\n") if (defined $testUseColor);
 	dbgmsg (3, "   --test-use-ipc: ", boolConv($testUseIPC), "\n") if (defined $testUseIPC);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
 	dbgmsg (3, "   --work-directory: $workDir\n");
@@ -1326,6 +1364,8 @@ Options:
   --comment-file <FILE>		file with text to put into Commentary tag
   --user-comment <COMMENTARY>	file with text to put into UserComment tag
   -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
+  --test-use-color(*)		colorized output
+  --test-use-ipc(*)		thumbnail rotation via pipe, rather than via file
   --no-tags			no tags writting, default is to write tags
   --dry-run			show what would have been happeneda
   --sub-fileset	<FILE>		file with file names to be processed
@@ -1699,6 +1739,14 @@ show what would have been happened (no real actions)
 file with file names to be processed. Each file name on separate string.
 Useful when you need process only set of n files among whole m ones in the directory.
 If specified, all files passed to renrot via command line are ignored.
+
+=item B<--test-use-color>, B<--no-test-use-color>
+
+colorized output, not works under Win32
+
+=item B<--test-use-ipc>, B<--no-test-use-ipc>
+
+thumbnail rotation via pipe, rather than via file, not works under Win32
 
 =item B<-v>
 
