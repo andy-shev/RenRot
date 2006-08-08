@@ -477,11 +477,11 @@ sub parseConfigFile {
 sub parseConfig {
 	my $file = shift;
 	my $home = $ENV{"HOME"};
-	
+
 	$home = $ENV{"USERPROFILE"} if (not defined $home);
-	
+
 	warnmsg ("parseConfig(): Variable HOME is not defined!\n") if (not defined $home);
-	
+
 	my @rcFiles = (
 			"/etc/renrot.rc",
 			"/etc/renrot/renrot.rc",
@@ -1372,6 +1372,7 @@ sub template2name {
 	my $ISO = "";
 	my $WhiteBalance = "";
 	my $fileNameOriginal = "";
+	my $fileNameOriginalCounter = "";
 
 	if (defined $infoObj->{"FileNumber"}) {
 		$FileNumber = $infoObj->{"FileNumber"};
@@ -1399,6 +1400,10 @@ sub template2name {
 		$fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
 	}
 
+	if ($fileNameOriginal =~ m/^[a-zA-Z]*(\d*_*\-*\d+).*\.[^\.]+$/g) {
+		$fileNameOriginalCounter = $1;
+	}
+
 	my @templatearea = split (//, $template);
 	my %templatehash = (
 				'%' => "%",
@@ -1414,6 +1419,7 @@ sub template2name {
 				'M' => $tm[5],
 				'm' => $tm[2],
 				'n' => $base,
+				'O' => $fileNameOriginalCounter,
 				'o' => $fileNameOriginal,
 				'S' => $tm[6],
 				'W' => $WhiteBalance,
@@ -1541,6 +1547,9 @@ B<%M>	minute (00-59)
 B<%m>	month (01-12)
 
 B<%n>	old filename - the one before the current processing with renrot
+
+B<%O>	the numeric part of the original file name. Implemented for the sake of
+the cameras, where no FileNumber EXIF tag present (currently all except Canon)
 
 B<%o>	the name, file had before first processing with renrot. If the file
 was processed with renrot if only once, the tag RenRotFileNameOriginal written

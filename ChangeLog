@@ -1,4 +1,7 @@
 $Log$
+Revision 1.157  2006/08/08 08:41:31  zeus
+Template sequence "%O" was added.
+
 Revision 1.156  2006/08/03 21:23:26  zeus
 parseConfig() code optimized.
 
@@ -618,3 +621,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
