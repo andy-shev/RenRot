@@ -1413,6 +1413,7 @@ sub template2name {
 	my $WhiteBalance = "";
 	my $fileNameOriginal = "";
 	my $fileNameOriginalCounter = "";
+	my $fileNameOriginalExtentionLess = "";
 
 	if (defined $infoObj->{"FileNumber"}) {
 		$FileNumber = $infoObj->{"FileNumber"};
@@ -1438,16 +1439,22 @@ sub template2name {
 
 	if (defined $infoObj->{"RenRotFileNameOriginal"}) {
 		$fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
-	}
 
-	if ($fileNameOriginal =~ m/^[a-zA-Z]*(\d*_*\-*\d+).*\.[^\.]+$/g) {
-		$fileNameOriginalCounter = $1;
-	}
+		# file name ABC123, ABC_123, ABC-123, ABC123_456 case
+		if ($fileNameOriginal =~ m/^[a-zA-Z]*_*|-*(\d*_*|-*\d+).*\.[^\.]+$/g) {
+			$fileNameOriginalCounter = $1;
+		}
 
+		if ($fileNameOriginal =~ /^(.*)\.[^\.]+$/) {
+			$fileNameOriginalExtentionLess = $1;
+		}
+
+	}
 	my @templatearea = split (//, $template);
 	my %templatehash = (
 				'%' => "%",
 				'a' => $angleSuffix,
+				'C' => $fileNameOriginalCounter,
 				'c' => sprintf($counterSize, $fileNo),
 				'd' => $tm[3],
 				'E' => $ExposureTime,
@@ -1459,7 +1466,7 @@ sub template2name {
 				'M' => $tm[5],
 				'm' => $tm[2],
 				'n' => $base,
-				'O' => $fileNameOriginalCounter,
+				'O' => $fileNameOriginalExtentionLess,
 				'o' => $fileNameOriginal,
 				'S' => $tm[6],
 				'W' => $WhiteBalance,

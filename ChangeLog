@@ -1,4 +1,9 @@
 $Log$
+Revision 1.159  2006/08/09 07:29:31  zeus
+original file name counter template sequence moved to the "%C" and the
+base part of the original file name to "%O".
+code optimization around the template sequences.
+
 Revision 1.158  2006/08/08 11:15:27  zeus
 colorization for output implemented, the option --test-use-color
 
@@ -624,3 +629,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
