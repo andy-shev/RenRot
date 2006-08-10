@@ -65,5 +65,7 @@ Code
 
 Other
 
+-  to implement --include-file option (andy)
+
 -  UTF8fy (comments, tags, ...) since it's not implemented in ExifTool yet
 
