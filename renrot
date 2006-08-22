@@ -12,7 +12,12 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 
-our $VERSION = "0.22";		# the version of this script
+use Term::ANSIColor;
+
+$Term::ANSIColor::AUTORESET = 1;
+$Term::ANSIColor::EACHLINE = "\n";
+
+our $VERSION = "0.23";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -29,10 +34,10 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 	GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
 	NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
 	WRITABLE => 'string',
+	RenRotFileNameOriginal => { },
 	RenRotProcessingTimestamp => { },
 	RenRotVersion => { },
 	RenRotURL => { },
-	RenRotFileNameOriginal => { },
 );
 
 # The %Image::ExifTool::UserDefined hash defines new tags to be added to
@@ -65,7 +70,7 @@ my %configOptions = (
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
-			'test use ipc' => 0,
+			'use ipc' => 0,
 		    );
 
 ########################################################################################
@@ -79,6 +84,7 @@ my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrVirtual;	# flag to do links instead real file moving while aggregation
 my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
+my %colorsFromCli;	# colors are got from CLI
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $countFF = 1;	# use fixed field for counter
@@ -94,16 +100,15 @@ my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation = 0;	# no rotation needed, default is to rotate
-my $noTags = 0;		# no tags writting needed
+my $noTags = 0;		# no tags writing needed
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
-my $subFileSet;		# subset of files to process, given in file rather than in commandline
 my %tagsFromCli;	# tags are got from CLI
-our $testUseColor;	# colorized output
-my $testUseIPC;		# rotate thumbnail via pipe
 my $trim;		# jpegtran -trim
+my $useColor;		# colorized output
+my $useIPC;		# rotate thumbnail via pipe
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
@@ -112,7 +117,7 @@ my $workDir = './';	# we'll work ONLY in current directory
 #
 # Tags hash for injecting to EXIF when renaming
 #
-our %tags = (
+my %tags = (
 		'Software' => {
 			value => sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION),
 			group => 'EXIF',
@@ -175,76 +180,78 @@ my %rotorientrev = reverse %rotorient;
 my %incFiles;		# hash of included files while parsing configuration file
 
 my @multOpts = (
+		'color',
+		'include',
 		'tag',
 		'tagfile',
-		'include',
 	       );
+
+########################################################################################
+#
+# Colors hash
+#
+my %colors = (
+	debug => 'green',
+	error => 'magenta',
+	fatal => 'red',
+	info => 'bold',
+	process => 'white',
+	warning => 'cyan',
+);
+
+# Prints colored message to STDERR
+sub printColored {
+	my $facility = shift;
+
+	if (defined $useColor and $useColor != 0) {
+		if (defined $facility and defined $colors{$facility}) {
+			print STDERR colored [$colors{$facility}], @_;
+			return;
+		}
+	}
+
+	print STDERR @_;	# fallback to normal print
+}
 
 # processing message
 sub procmsg {
-	print @_ if ($quiet == 0);
+	return if ($quiet != 0);
+	
+	if (defined $useColor and $useColor != 0) {
+		if (defined $colors{'process'}) {
+			print colored [$colors{'process'}], @_;
+			return;
+		}
+	}
+
+	print @_;		# fallback to normal print
 }
 
 # information message
 sub infomsg {
-	if (defined $testUseColor) {
-		use Term::ANSIColor;
-		print STDERR color 'bold';
-	}
-	print STDERR @_;
-	if (defined $testUseColor) {
-		print STDERR color 'reset';
-	}
+	printColored('info', @_);
 }
 
 # warning message
 sub warnmsg {
-	if (defined $testUseColor) {
-		use Term::ANSIColor;
-		print STDERR color 'cyan';
-	}
-	print STDERR "Warning: ", @_;
-	if (defined $testUseColor) {
-		print STDERR color 'reset';
-	}
+	printColored('warning', "Warning: ", @_);
 }
 
 # error message
 sub errmsg {
-	if (defined $testUseColor) {
-		use Term::ANSIColor;
-		print STDERR color 'red';
-	}
-	print STDERR "ERROR: ", @_;
-	if (defined $testUseColor) {
-		print STDERR color 'reset';
-	}
+	printColored('error', "ERROR: ", @_);
 }
 
 # fatal message
 sub fatalmsg {
-	if (defined $testUseColor) {
-		use Term::ANSIColor;
-		print STDERR color 'white on_red';
-	}
-	print STDERR "FATAL: ", @_;
-	if (defined $testUseColor) {
-		print STDERR color 'reset';
-	}
+	printColored('fatal', "FATAL: ", @_);
 }
 
 # debug message
 sub dbgmsg {
-	if (defined $testUseColor) {
-		use Term::ANSIColor;
-		print STDERR color 'green';
-	}
 	my $level = shift;
 	if ($verbose >= $level) {
-		print STDERR "DEBUG[$level]: ", @_;
-	}
-	if (defined $testUseColor) {
-		print STDERR color 'reset';
+		printColored('debug', "DEBUG[$level]: ", @_);
 	}
 }
 
@@ -282,6 +289,7 @@ sub boolConverter {
 sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
+	my @tmpColors;
 	my @tmpTags;
 	my $getOptions = GetOptions (
 					"aggr-delta=i" => \$aggrDelta,
@@ -291,6 +299,7 @@ sub getOptions {
 					"aggr-virtual!" => \$aggrVirtual,
 					"aggr-virtual-directory=s" => \$aggrVirtDir,
 					"backup!" => \$backup,
+					"color=s" => \@tmpColors,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"counter-fixed-field!" => \$countFF,
@@ -312,11 +321,10 @@ sub getOptions {
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
-					"sub-fileset=s" => \$subFileSet,
 					"tag|t=s" => \@tmpTags,
-					"test-use-color!" => \$testUseColor,
-					"test-use-ipc!" => \$testUseIPC,
 					"trim!" => \$trim,
+					"use-color!" => \$useColor,
+					"use-ipc!" => \$useIPC,
 					"user-comment=s" => \$userComment,
 					"v+" => \$verbose,
 					"version" => \$showVersion,
@@ -332,6 +340,7 @@ sub getOptions {
 	dbgmsg (3, "   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
 	dbgmsg (3, "   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
 	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
+	dbgmsg (3, "   --color:\n", join("\n", @tmpColors), "\n") if (scalar(@tmpColors) > 0);
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "   --counter-start: $countStart",
@@ -351,11 +360,10 @@ sub getOptions {
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
-	dbgmsg (3, "   --sub-fileset: $subFileSet\n") if (defined $subFileSet);
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
-	dbgmsg (3, "   --test-use-color: ", boolConv($testUseColor), "\n") if (defined $testUseColor);
-	dbgmsg (3, "   --test-use-ipc: ", boolConv($testUseIPC), "\n") if (defined $testUseIPC);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
+	dbgmsg (3, "   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
+	dbgmsg (3, "   --use-ipc: ", boolConv($useIPC), "\n") if (defined $useIPC);
 	dbgmsg (3, "   --work-directory: $workDir\n");
 	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
@@ -369,7 +377,7 @@ sub getOptions {
 		exit 0;
 	}
 
-	if ($extToProcess eq "" and ($fileCount == 0) and (not defined $subFileSet)) {
+	if ($extToProcess eq "" and ($fileCount == 0)) {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
 	}
@@ -386,6 +394,14 @@ sub getOptions {
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
 	$extToProcess =~ s/^\*?\.?/\./ if ($fileCount == 0);
 	dbgmsg (1, "getOptions(): Process with '$extToProcess' extension.\n");
+
+	# Convert multiple color parameters to colors hash
+	foreach my $colorStr (@tmpColors) {
+		my %color = colorParser($colorStr);
+		foreach my $key (keys %color) {
+			$colorsFromCli{$key} = $color{$key};
+		}
+	}
 
 	# Convert multiple tag parameters to tags hash
 	foreach my $tagStr (@tmpTags) {
@@ -445,6 +461,26 @@ sub tagParser {
 		warnmsg ("Invalid tag format: $tagStr\n");
 	}
 	return %tag;
+}
+
+########################################################################################
+#
+# colorParser() parses given string to a color hash
+#
+sub colorParser {
+	my $colorStr = shift;
+	my %color;
+	$colorStr =~ s/:/=/;		# change first ':' to '='
+	my ($key, $value) = parsePair($colorStr);
+	if (defined $key) {
+		$color{$key} = $value;
+		# Print debug message
+		$value = 'reset' if (not defined $value);
+		dbgmsg (4, "colorParser(): Parsed: $key = '$value'\n");
+	} else {
+		warnmsg ("Invalid color format: $colorStr\n");
+	}
+	return %color;
 }
 
 ########################################################################################
@@ -514,11 +550,17 @@ sub parseConfigFile {
 #
 sub parseConfig {
 	my $file = shift;
-	my $home = $ENV{"HOME"};
 
+	my $home = $ENV{"HOME"};
+	my @homeRC = ();
 	$home = $ENV{"USERPROFILE"} if (not defined $home);
 
-	warnmsg ("parseConfig(): Variable HOME is not defined!\n") if (not defined $home);
+	if (defined $home and $home ne "") {
+		push (@homeRC, $home . "/" . ".renrotrc");
+		push (@homeRC, $home . "/" . ".renrot/renrot.conf");
+	} else {
+		warnmsg ("User's home environment variable isn't defined or empty!\n");
+	}
 
 	my @rcFiles = (
 			"/etc/renrot.rc",
@@ -527,8 +569,7 @@ sub parseConfig {
 			"/usr/local/etc/renrot.rc",
 			"/usr/local/etc/renrot/renrot.rc",
 			"/usr/local/etc/renrot/renrot.conf",
-			$home . "/" . ".renrotrc",
-			$home . "/" . ".renrot/renrot.conf",
+			@homeRC,
 		      );
 
 	@rcFiles = ($file) if (defined $file);
@@ -567,6 +608,28 @@ sub dirValidator {
 
 ########################################################################################
 #
+# switchColor() switches to user defined color scheme
+#
+sub switchColor {
+	dbgmsg (1, "Switch to user defined color scheme.\n");
+
+	# Parse configuration file color set
+	foreach my $cKey (keys %configOptions) {
+		next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
+		my %color = colorParser($configOptions{$cKey});
+		foreach my $key (keys %color) {
+			$colors{$key} = $color{$key};
+		}
+	}
+
+	# Merge colors from configuration file with command line arguments
+	foreach my $key (keys %colorsFromCli) {
+		$colors{$key} = $colorsFromCli{$key};
+	}
+}
+
+########################################################################################
+#
 # MAIN() renames and rotates given files
 #
 
@@ -574,6 +637,8 @@ sub dirValidator {
 getOptions();
 
 parseConfig($configFile);
+
+switchColor();
 
 # redefining options set in configuration file with set via CLI ones
 $configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
@@ -587,8 +652,8 @@ $configOptions{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
 $configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
-$configOptions{'test use ipc'}		= $testUseIPC if (defined $testUseIPC);
 $configOptions{'trim'}			= $trim if (defined $trim);
+$configOptions{'use ipc'}		= $useIPC if (defined $useIPC);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
@@ -621,15 +686,8 @@ my %filenameshash;	# hash for old file names
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
-if (defined $subFileSet) {
-	dbgmsg (2, "Reading file names for processing from file: $subFileSet\n");
-	@files =  getFileDataLines($subFileSet);
-	chomp(@files);
-}
-else {
-	# All things in ARGV will be treated as file names to process
-	@files = @ARGV;
-}
+# All things in ARGV will be treated as file names to process
+@files = @ARGV;
 
 # if no file is given
 if (scalar(@files) == 0) {
@@ -762,7 +820,8 @@ sub renRotProcess {
 		$exifTool->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
 	}
 
-	procmsg ("RENAMING / ROTATING\n===================\n");
+	procmsg ("RENAMING / ROTATING\n");
+	procmsg ("===================\n");
 
 	foreach my $file (@files) {
 		procmsg ("Processing file: $file ...\n");
@@ -855,17 +914,15 @@ sub renameFile {
 		$newFileName = $file;
 		$filenameshash{$newFileName} = $unixTime;
 	} else {
-
 		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
 		if (not defined $fileNameOriginal) {
 			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
-			$exifTool->SetNewValue('RenRotFileNameOriginal',
-						$tags{'RenRotFileNameOriginal'}{value},
-						Group => $tags{'RenRotFileNameOriginal'}{group});
-			dbgmsg (2, "renameFile(): RenRotFileNameOriginal tag is set as $file.\n");
-		}
-		else {
-			dbgmsg (2, "renameFile(): RenRotFileNameOriginal tag exists, the value is $fileNameOriginal.\n");
+			$exifTool->SetNewValue("RenRotFileNameOriginal",
+					$tags{'RenRotFileNameOriginal'}{value},
+					Group => $tags{'RenRotFileNameOriginal'}{group});
+			dbgmsg (2, "renameFile(): set RenRotFileNameOriginal to $file.\n");
+		} else {
+			dbgmsg (2, "renameFile(): RenRotFileNameOriginal: $fileNameOriginal.\n");
 		}
 
 		my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
@@ -995,7 +1052,8 @@ sub aggregationProcess {
 	my $info;
 	my $NewDir;
 
-	procmsg ("AGGREGATION\n===========\n");
+	procmsg ("AGGREGATION\n");
+	procmsg ("===========\n");
 
 	if ($configOptions{'aggregation mode'} eq "template") {
 		dbgmsg (1, "aggregationProcess(): Template: $configOptions{'aggregation template'}\n");
@@ -1242,14 +1300,22 @@ sub thumbWriter {
 
 ########################################################################################
 #
-# rotateByJpegtran() rotates file by jpegtran utility
+# rotateThumbnail() rotates thumbnail only, where the file was rotated but
+# thumbnail was left untouched
 #
-sub rotateByJpegtran {
-	my $file = shift;
-	my $origThumb = shift;
-	my @addon = @_;
+sub rotateThumbnail {
+	my $infoObj = shift;
+	my $file = shift;	# file, which thumbnale to transform with jpegtran
+	my @addon = @_;		# the switches for jpegtran to rotate the thumbnail
 
-	if ($configOptions{'test use ipc'} == 0) {
+	if (not defined ${$$infoObj{ThumbnailImage}}) {
+		warnmsg ("No thumbnail found.\n");
+		return;
+	}
+
+	my $origThumb = ${$$infoObj{ThumbnailImage}};
+	
+	if ($configOptions{'use ipc'} == 0) {
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $file . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
@@ -1270,29 +1336,12 @@ sub rotateByJpegtran {
 
 		unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die );
 		unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die );
-        } else {
+	} else {
 		my $cmd = "jpegtran -copy none @addon";
 		dbgmsg (3, "rotateThumbnail(): $cmd\n");
+
 		# write the just rotated thumbnail back to file
 		thumbWriter($file, piper($origThumb, $cmd));
-	}
-}
-
-########################################################################################
-#
-# rotateThumbnail() rotates thubnail only, where the file was rotated but
-# thumbnail was left untouched
-#
-sub rotateThumbnail {
-	my $infoObj = shift;
-	my $file = shift;	# file, which thumbnale to transform with jpegtran
-	my @addon = @_;		# the switches for jpegtran to rotate the thumbnail
-
-	if (defined ${$$infoObj{ThumbnailImage}}) {
-		rotateByJpegtran($file, ${$$infoObj{ThumbnailImage}}, @addon);
-	}
-	else {
-		warnmsg ("No thumbnail found.\n");
 	}
 }
 
@@ -1308,7 +1357,6 @@ sub piper {
 	my $pipeCmd = shift;	# the pipe command
 
 	local (*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
-
 	unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipeCmd)) {
 		errmsg ("Unable to create the pipe.\n");
 	}
@@ -1316,19 +1364,19 @@ sub piper {
 	binmode WRITE_TO_FH;
 	print WRITE_TO_FH $pipeObj;
 
-	unless ( close(WRITE_TO_FH) ) { warnmsg ("WRITE_TO_FH wasn't closed!\n"); };
+	unless (close(WRITE_TO_FH)) { warnmsg ("WRITE handle wasn't closed!\n"); };
 
 	binmode READ_FROM_FH;
 	my @pipedArr = <READ_FROM_FH>;
 
-	unless ( close(READ_FROM_FH) ) { warnmsg ("READ_FROM_FH wasn't closed!\n"); };
+	unless (close(READ_FROM_FH)) { warnmsg ("READ handle wasn't closed!\n"); };
 
 	return join("", @pipedArr);
 }
 
 ########################################################################################
 #
-# usage() - the instruction how to use the script
+# usage() prints the instructions how to use the script
 #
 sub usage {
 infomsg (
@@ -1339,39 +1387,53 @@ infomsg (
 Options:
   -c, --config-file <FILE>	configuration file to use
   -d, --work-directory <DIR>	working directory
-  --exclude <FILE> ...		files to not process. No wildcards.
+      --exclude <FILE> ...	files to not process. No wildcards.
   -e, --extension <EXTENSION>	extension of files to process: JPG, jpeg, ...
+
+Renaming options:
   -n, --name-template <TPL>	filename template (see manual for details)
-  --no-rename			no rename needed, default is to rename
-  --counter-fixed-field (*)	set fixed field for counter (used in templates)
-  --counter-start <NUMBER>	start to count files to be renamed from
-  --counter-step <NUMBER>	step for files to be renamed counter
+      --no-rename		no rename needed, default is to rename
+      --counter-fixed-field (*)	set fixed field for counter (used in templates)
+      --counter-start <NUMBER>	start to count files to be renamed from
+      --counter-step <NUMBER>	step for files to be renamed counter
+
+Rotating options:
   -r, --rotate-angle <ANGLE>	angle to rotate file and thumbnail by 90, 180, 270
-  --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180, 270
-  --only-orientation		changing Orientation tag (no real rotation)
-  --trim (*)			pass -trim to jpegtran
-  --no-rotate			no rotation needed, default is to rotate
-  --mtime (*)			set file mtime according to DateTimeOriginal tag
-  --keywordize (*)		set Keywords tag
-  --keywords-replace (*)	replace Keywords tag rather than add value to it
+      --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180, 270
+      --only-orientation	changing Orientation tag (no real rotation)
+      --no-rotate		no rotation needed, default is to rotate
+      --trim (*)		pass -trim to jpegtran
+      --mtime (*)		set file mtime according to DateTimeOriginal tag
+
+Keywordizing options:
+      --keywordize (*)		set Keywords tag
+      --keywords-replace (*)	replace Keywords tag rather than add value to it
   -k, --keywords-file <FILE>	file with keywords
-  --aggr-mode <MODE>		run aggregation (MODE: none, delta, template)
-  --aggr-delta <INTERVAL>	aggregation time delta
-  --aggr-directory <DIR>	aggregation directory name
+
+Aggregating options:
+      --aggr-mode <MODE>	run aggregation (MODE: none, delta, template)
+      --aggr-delta <INTERVAL>	aggregation time delta
+      --aggr-directory <DIR>	aggregation directory name
   -a, --aggr-template <TPL>	aggregation template (see manual for details)
-  --aggr-virtual (*)		virtual aggregation (symlinks instead of files)
-  --aggr-virtual-directory <DIR> root directory for virtual aggregation
-  --comment-file <FILE>		file with text to put into Commentary tag
-  --user-comment <COMMENTARY>	file with text to put into UserComment tag
+      --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
+      --aggr-virtual-directory <DIR> root directory for virtual aggregation
+
+Tag writing options:
+      --comment-file <FILE>	file with text to put into Commentary tag
+      --user-comment <COMMENT>	file with text to put into UserComment tag
   -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
-  --test-use-color(*)		colorized output
-  --test-use-ipc(*)		thumbnail rotation via pipe, rather than via file
-  --no-tags			no tags writting, default is to write tags
-  --dry-run			show what would have been happeneda
-  --sub-fileset	<FILE>		file with file names to be processed
-  -v [-v -v ...]		number of these options defines debug level
-  -?, --help			display this help and exit
-  --version			output version and exit
+      --no-tags			no tags writing, default is to write tags
+
+Colorizing options:
+      --use-color (*)		colorized output
+      --color <COLOR> ...	setup color(s)
+
+Misc options:
+      --dry-run			show what would have been happened
+      --use-ipc (*)		thumbnail rotation via pipe, rather than via file
+  -v				number of these options defines debug level
+  -h, --help			display this help and exit
+      --version			output version and exit
 
 (*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' or '--no-mtime' (negative value will be assigned).
 ");
@@ -1379,7 +1441,7 @@ Options:
 
 ########################################################################################
 #
-# template2name() - file name builder, according the template
+# template2name() builds file name according to the template
 #
 sub template2name {
 	my $exifToolObj = shift;
@@ -1412,8 +1474,8 @@ sub template2name {
 	my $ISO = "";
 	my $WhiteBalance = "";
 	my $fileNameOriginal = "";
-	my $fileNameOriginalCounter = "";
-	my $fileNameOriginalExtentionLess = "";
+	my $fileNameOriginalCounter = "";		# we can't use 0 as default value
+	my $fileNameOriginalExtensionLess = "";
 
 	if (defined $infoObj->{"FileNumber"}) {
 		$FileNumber = $infoObj->{"FileNumber"};
@@ -1439,17 +1501,15 @@ sub template2name {
 
 	if (defined $infoObj->{"RenRotFileNameOriginal"}) {
 		$fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
-
-		# file name ABC123, ABC_123, ABC-123, ABC123_456 case
-		if ($fileNameOriginal =~ m/^[a-zA-Z]*_*|-*(\d*_*|-*\d+).*\.[^\.]+$/g) {
+		# file name starts with letters and ends with digits
+		if ($fileNameOriginal =~ m/^[[:alpha:]\-_]*(\d+)(\.[^\.]+)?$/) {
 			$fileNameOriginalCounter = $1;
 		}
-
-		if ($fileNameOriginal =~ /^(.*)\.[^\.]+$/) {
-			$fileNameOriginalExtentionLess = $1;
+		if ($fileNameOriginal =~ m/^(.*)\.([^\.]+)$/) {
+			$fileNameOriginalExtensionLess = $1;
 		}
-
 	}
+
 	my @templatearea = split (//, $template);
 	my %templatehash = (
 				'%' => "%",
@@ -1466,7 +1526,7 @@ sub template2name {
 				'M' => $tm[5],
 				'm' => $tm[2],
 				'n' => $base,
-				'O' => $fileNameOriginalExtentionLess,
+				'O' => $fileNameOriginalExtensionLess,
 				'o' => $fileNameOriginal,
 				'S' => $tm[6],
 				'W' => $WhiteBalance,
@@ -1571,6 +1631,11 @@ Interpreted sequences are:
 
 B<%%>	a literal %
 
+B<%C>	the numeric part of the original file name. Implemented for the sake
+of the cameras, where no FileNumber EXIF tag is present (currently all except
+Canon). Filename would started by letters and ended by digits. No other
+symbols are not allowed, except C<->, C<.> and C<_>.
+
 B<%c>	file order number in the processed file set (also see
 B<--counter-fixed-field> option)
 
@@ -1593,10 +1658,10 @@ B<%M>	minute (00-59)
 
 B<%m>	month (01-12)
 
-B<%n>	old filename - the one before the current processing with renrot
+B<%n>	previous filename (the one before the current processing with renrot)
 
-B<%O>	the numeric part of the original file name. Implemented for the sake of
-the cameras, where no FileNumber EXIF tag present (currently all except Canon)
+B<%O>	base part of the original filename (see B<%o>). In other words the
+first part from the begin to the last dot symbol.
 
 B<%o>	the name, file had before first processing with renrot. If the file
 was processed with renrot if only once, the tag RenRotFileNameOriginal written
@@ -1737,23 +1802,21 @@ look L</TAGS> section for the detailed description
 
 no tags will be written. Default is to write tags.
 
+=item B<--use-color>, B<--no-use-color>
+
+colorized output. This NOT works under Win32.
+
+=item B<--color> I<COLOR>
+
+setup color for choosen facility
+
 =item B<--dry-run>
 
 show what would have been happened (no real actions)
 
-=item B<--sub-fileset> F<FILE>
+=item B<--use-ipc>, B<--no-use-ipc>
 
-file with file names to be processed. Each file name on separate string.
-Useful when you need process only set of n files among whole m ones in the directory.
-If specified, all files passed to renrot via command line are ignored.
-
-=item B<--test-use-color>, B<--no-test-use-color>
-
-colorized output, not works under Win32
-
-=item B<--test-use-ipc>, B<--no-test-use-ipc>
-
-thumbnail rotation via pipe, rather than via file, not works under Win32
+thumbnail rotation via pipe, rather than via file. This NOT works under Win32.
 
 =item B<-v>
 

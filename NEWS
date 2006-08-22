@@ -1,3 +1,14 @@
+* 0.23 *
+
+The additional template sequences %C, %O, and %o had been added. They
+represent the original filename counter, base part, and full copy of the
+original filename respectively. A new tag, RenRotFileNameOriginal, is written
+after the first pass by renrot. On the Win32 platform, the home path is taken
+from the environment variable USERPROFILE instead of HOME. The IPC support for
+rotating thumbnails has been added. The output messages of the usage function
+have been reformatted.
+
+
 * 0.22 *
 
 A new option --no-tags has been added. Use it when you don't want to write

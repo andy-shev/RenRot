@@ -10,3 +10,15 @@ WriteMakefile(
     'EXE_FILES'		=> [ 'renrot' ],
     'dist'		=> { COMPRESS => 'gzip', SUFFIX => 'gz' },
 );
+
+package MY;
+
+sub postamble {
+    my $postamble = << 'END';
+# Build rpm
+rpm : tardist
+	rpmbuild -ta $(DISTVNAME).tar.$(SUFFIX)
+	$(RM_F) $(DISTVNAME).tar.$(SUFFIX)
+END
+    return $postamble;
+}

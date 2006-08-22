@@ -1,5 +1,5 @@
 Name:		renrot
-Version:	0.22
+Version:	0.23
 Release:	1%{?dist}
 License:	GPL or Artistic
 Group:		Applications/Multimedia
@@ -41,6 +41,7 @@ chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
 
 # install sample confuration files
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
+install -m644 etc/colors.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 install -m644 etc/copyright.tag $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 install -m644 etc/renrot.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 install -m644 etc/tags.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
@@ -65,11 +66,15 @@ fi
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
 %dir %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{name}/colors.conf
 %config(noreplace) %{_sysconfdir}/%{name}/copyright.tag
 %config(noreplace) %{_sysconfdir}/%{name}/renrot.conf
 %config(noreplace) %{_sysconfdir}/%{name}/tags.conf
 
 %changelog
+* Tue Aug 22 2006 Andy Shevchenko <andy@smile.org.ua>
+- add colors.conf
+
 * Wed Jun 07 2006 Andy Shevchenko <andriy@asplinux.com.ua>
 - relocate configuration to %_sysconfdir/%name
 
