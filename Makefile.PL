@@ -19,6 +19,10 @@ sub postamble {
 rpm : tardist
 	rpmbuild -ta $(DISTVNAME).tar.$(SUFFIX)
 	$(RM_F) $(DISTVNAME).tar.$(SUFFIX)
+
+# CVS tagging
+tag :
+	cvs tag "renrot_$(shell date +'%Y%m%d%H%M%S')"
 END
     return $postamble;
 }
