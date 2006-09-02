@@ -216,7 +216,7 @@ sub printColored {
 # processing message
 sub procmsg {
 	return if ($quiet != 0);
-	
+
 	if (defined $useColor and $useColor != 0) {
 		if (defined $colors{'process'}) {
 			print colored [$colors{'process'}{value}], @_;
@@ -815,7 +815,7 @@ sub renRotProcess {
 		# analyzing whether and how to rename file
 		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
 
-		# Writting tags.
+		# Writing tags.
 		tagWriter($exifTool, $newFileName) if ($noTags == 0);
 
 		# seting mtime for the file if been asked for
@@ -995,7 +995,7 @@ sub tagWriter {
 
 	# writing the changes to the EXIFs
 	if ($dryRun == 0) { exifWriter($exifToolObj, $file); }
-	else { procmsg ("Writting user defined EXIF tags to $file.\n"); }
+	else { procmsg ("Writing user defined EXIF tags to $file.\n"); }
 }
 
 ########################################################################################
@@ -1294,7 +1294,7 @@ sub rotateThumbnail {
 	}
 
 	my $origThumb = ${$$infoObj{ThumbnailImage}};
-	
+
 	if ($configOptions{'use ipc'} == 0) {
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $file . "_thumborig";
