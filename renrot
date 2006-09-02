@@ -191,12 +191,12 @@ my @multOpts = (
 # Colors hash
 #
 my %colors = (
-	debug => 'green',
-	error => 'magenta',
-	fatal => 'red',
-	info => 'bold',
-	process => 'white',
-	warning => 'cyan',
+	debug => {value => 'green'},
+	error => {value => 'magenta'},
+	fatal => {value => 'red'},
+	info => {value => 'bold'},
+	process => {value => 'white'},
+	warning => {value => 'cyan'},
 );
 
 # Prints colored message to STDERR
@@ -205,7 +205,7 @@ sub printColored {
 
 	if (defined $useColor and $useColor != 0) {
 		if (defined $facility and defined $colors{$facility}) {
-			print STDERR colored [$colors{$facility}], @_;
+			print STDERR colored [$colors{$facility}{value}], @_;
 			return;
 		}
 	}
@@ -219,7 +219,7 @@ sub procmsg {
 	
 	if (defined $useColor and $useColor != 0) {
 		if (defined $colors{'process'}) {
-			print colored [$colors{'process'}], @_;
+			print colored [$colors{'process'}{value}], @_;
 			return;
 		}
 	}
@@ -397,7 +397,7 @@ sub getOptions {
 
 	# Convert multiple color parameters to colors hash
 	foreach my $colorStr (@tmpColors) {
-		my %color = colorParser($colorStr);
+		my %color = strToHash($colorStr, 'reset');
 		foreach my $key (keys %color) {
 			$colorsFromCli{$key} = $color{$key};
 		}
@@ -405,7 +405,7 @@ sub getOptions {
 
 	# Convert multiple tag parameters to tags hash
 	foreach my $tagStr (@tmpTags) {
-		my %tag = tagParser($tagStr);
+		my %tag = strToHash($tagStr);
 		foreach my $key (keys %tag) {
 			$tagsFromCli{$key} = $tag{$key};
 		}
@@ -427,60 +427,42 @@ sub trimValue {
 # parsePair() gets (key, value) pair from the string like [multiword] key = "value"
 #
 sub parsePair {
-	my $value = shift;
-	my ($key, $val) = (undef, undef);
-	if ($value =~ m/^([^=]+)=(.+)/) {
-		($key, $val) = (trimValue($1), trimValue($2));
-		$val =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
-		dbgmsg (4, "parsePair(): Parsed: '$key' <- '$val'\n");
-	} elsif ($value =~ m/^([^=]+)=$/) {
+	my $str = shift;
+	my ($key, $value) = (undef, shift);
+	if ($str =~ m/^([^=]+)=(.+)/) {
+		($key, $value) = (trimValue($1), trimValue($2));
+		$value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
+		dbgmsg (4, "parsePair(): Parsed: '$key' <- '$value'\n");
+	} elsif ($str =~ m/^([^=]+)=$/) {
 		$key = trimValue($1);
-		dbgmsg (4, "parsePair(): Parsed empty '$key'\n");
+		dbgmsg (4, "parsePair(): Parsed empty '$key', applying default value: ", defined $value ? "'$value'" : "undef", "\n");
 	}
-	return ($key, $val);
+	return ($key, $value);
 }
 
 ########################################################################################
 #
-# tagParser() parses given string to a tag hash
+# strToHash() parses given string to a hash
 #
-sub tagParser {
-	my $tagStr = shift;
-	my %tag;
-	$tagStr =~ s/:/=/;		# change first ':' to '='
-	my ($key, $value) = parsePair($tagStr);
+sub strToHash {
+	my $str = shift;
+	my $default = shift;
+	my %hash;
+	$str =~ s/:/=/;		# change first entrance of ':' to '='
+	my ($key, $value) = parsePair($str, $default);
 	if (defined $key) {
 		$key =~ s/\s*[\(\[]([^\(\)\[\]]*)[\)\]]$//;
 		my $group = (defined $1 and $1 ne "") ? $1 : undef;
-		$tag{$key} = {value => $value, group => $group};
+		$hash{$key} = {value => $value, group => $group};
+
 		# Print debug message
 		$value = "" if (not defined $value);
 		$group = "" if (not defined $group);
-		dbgmsg (4, "tagParser(): Parsed: $key [$group] = '$value'\n");
+		dbgmsg (4, "strToHash(): Parsed: $key [$group] = '$value'\n");
 	} else {
-		warnmsg ("Invalid tag format: $tagStr\n");
+		warnmsg ("Invalid line format: $str\n");
 	}
-	return %tag;
-}
-
-########################################################################################
-#
-# colorParser() parses given string to a color hash
-#
-sub colorParser {
-	my $colorStr = shift;
-	my %color;
-	$colorStr =~ s/:/=/;		# change first ':' to '='
-	my ($key, $value) = parsePair($colorStr);
-	if (defined $key) {
-		$color{$key} = $value;
-		# Print debug message
-		$value = 'reset' if (not defined $value);
-		dbgmsg (4, "colorParser(): Parsed: $key = '$value'\n");
-	} else {
-		warnmsg ("Invalid color format: $colorStr\n");
-	}
-	return %color;
+	return %hash;
 }
 
 ########################################################################################
@@ -616,16 +598,14 @@ sub switchColor {
 	# Parse configuration file color set
 	foreach my $cKey (keys %configOptions) {
 		next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
-		my %color = colorParser($configOptions{$cKey});
+		my %color = strToHash($configOptions{$cKey}, 'reset');
 		foreach my $key (keys %color) {
 			$colors{$key} = $color{$key};
 		}
 	}
 
 	# Merge colors from configuration file with command line arguments
-	foreach my $key (keys %colorsFromCli) {
-		$colors{$key} = $colorsFromCli{$key};
-	}
+	map { $colors{$_} = $colorsFromCli{$_} } keys %colorsFromCli;
 }
 
 ########################################################################################
@@ -715,7 +695,7 @@ if (scalar(@filenames) == 0) {
 # Parse configuration file tag set
 foreach my $cKey (keys %configOptions) {
 	next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
-	my %tag = tagParser($configOptions{$cKey});
+	my %tag = strToHash($configOptions{$cKey});
 	foreach my $key (keys %tag) {
 		$tags{$key} = $tag{$key};
 		if ($cKey =~ m/^tagfile/) {

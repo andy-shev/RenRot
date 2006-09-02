@@ -1,4 +1,7 @@
 $Log$
+Revision 1.162  2006/09/02 18:29:20  andy
+Optimize hash parser.
+
 Revision 1.161  2006/08/22 10:16:07  andy
 Sync with 0.23
 
@@ -635,4 +638,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
