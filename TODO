@@ -45,6 +45,9 @@ User interface
 -  GUI on PerlTk (due to WinCE hasn't real console) with some additional
    functions such as keywordizer
 
+-  to implement help output by topics (sole -h outputs list of topics like
+   rename,rotate,keyword e.t.c. and -h keyword outputs help for keyword related
+
 
 File naming
 
