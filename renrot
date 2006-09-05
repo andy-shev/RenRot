@@ -186,6 +186,9 @@ my @multOpts = (
 		'tagfile',
 	       );
 
+my @files;		# array of the sorted filenames to process
+my %filenameshash;	# hash for old file names
+
 ########################################################################################
 #
 # Colors hash
@@ -612,6 +615,8 @@ sub keywordizer {
 # renRotProcess() renames and rotates given file set
 #
 sub renRotProcess {
+	my $exifToolObj = shift;
+	my $counterSize = shift;
 	my $fileCounter = $countStart;	# file counter
 	my $newFileName;		# the name file to be renamed to
 	my $info;			# ImageInfo object
@@ -626,9 +631,9 @@ sub renRotProcess {
 	if (scalar(@keywordArr) > 0) {
 		dbgmsg (2, "Keywords count: ", scalar(@keywordArr), "\n");
 		if ($cfgOpts{'keywords replace'} != 0) {
-			$exifTool->SetNewValue(Keywords => \@keywordArr);
+			$exifToolObj->SetNewValue(Keywords => \@keywordArr);
 		} else {
-			$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
+			$exifToolObj->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
 		}
 	}
 
@@ -638,7 +643,7 @@ sub renRotProcess {
 
 	dbgmsg (1, "renRotProcess(): Initializing tags ...\n");
 	foreach my $key (sort (keys %tags)) {
-		$exifTool->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
+		$exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
 	}
 
 	procmsg ("RENAMING / ROTATING\n");
@@ -648,19 +653,19 @@ sub renRotProcess {
 		procmsg ("Processing file: $file ...\n");
 
 		# Setup defaults
-		$info = $exifTool->ImageInfo($file);
+		$info = $exifToolObj->ImageInfo($file);
 
 		# analyzing whether to rotate
-		$angleSuffix = rotateFile($exifTool, $info, $file, $trimStr);
+		my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
 
 		# analyzing whether and how to rename file
-		$newFileName = renameFile($exifTool, $info, $file, $fileCounter);
+		$newFileName = renameFile($exifToolObj, $info, $file, $fileCounter, $counterSize, $angleSuffix);
 
 		# Writing tags.
-		tagWriter($exifTool, $newFileName) if ($noTags == 0);
+		tagWriter($exifToolObj, $newFileName) if ($noTags == 0);
 
 		# seting mtime for the file if been asked for
-		mtimeSet($exifTool, $info, $newFileName);
+		mtimeSet($exifToolObj, $info, $newFileName);
 
 		procmsg ("\n");
 
@@ -726,6 +731,8 @@ sub renameFile {
 	my $infoObj = shift;
 	my $file = shift;
 	my $fileCounter = shift;
+	my $counterSize = shift;
+	my $angleSuffix = shift;
 
 	my $newFileName;
 	my $unixTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
@@ -738,9 +745,11 @@ sub renameFile {
 		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
 		if (not defined $fileNameOriginal) {
 			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
-			$exifTool->SetNewValue("RenRotFileNameOriginal",
-					$tags{'RenRotFileNameOriginal'}{value},
-					Group => $tags{'RenRotFileNameOriginal'}{group});
+			$exifToolObj->SetNewValue(
+						  "RenRotFileNameOriginal",
+						  $tags{'RenRotFileNameOriginal'}{value},
+						  Group => $tags{'RenRotFileNameOriginal'}{group}
+						 );
 			dbgmsg (2, "renameFile(): set RenRotFileNameOriginal to $file.\n");
 		} else {
 			dbgmsg (2, "renameFile(): RenRotFileNameOriginal: $fileNameOriginal.\n");
@@ -753,7 +762,9 @@ sub renameFile {
 					     $infoObj,
 					     $cfgOpts{'name template'},
 					     $fileCounter,
-				     	     $file);
+				     	     $file,
+					     $counterSize,
+					     $angleSuffix);
 		if ($filenameshash{$newFileName . $ext}) {
 			$newFileName .= "." . sprintf($counterSize, $fileCounter) . $ext;
 		} else {
@@ -869,6 +880,8 @@ sub exifWriter {
 sub aggregationProcess {
 	return if ($cfgOpts{'aggregation mode'} eq "none");
 
+	my $exifToolObj = shift;
+	my $counterSize = shift;
 	my $file;
 	my $info;
 	my $NewDir;
@@ -882,12 +895,14 @@ sub aggregationProcess {
 
 		foreach $file (sort (keys %filenameshash)) {
 			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
-			$info = $exifTool->ImageInfo($file);
-			$NewDir = template2name($exifTool,
+			$info = $exifToolObj->ImageInfo($file);
+			$NewDir = template2name($exifToolObj,
 						$info,
 						$cfgOpts{'aggregation template'},
 						$fileCounter,
-						$file);
+						$file,
+						$counterSize,
+						"0cw");
 			aggregateFile($file, $NewDir) if ($dryRun == 0);
 
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
@@ -1269,6 +1284,8 @@ sub template2name {
 	my $template = shift;	# the template to be used
 	my $fileNo = shift;	# counter for %c
 	my $fileName = shift;	# file name for %n and %e
+	my $counterSize = shift;
+	my $angleSuffix = shift;# suffix to add to the end of the rotated files
 	my ($base, $ext);	# file name %n and extension %e
 
 	if ($fileName =~ m/^(.*)\.([^\.]+)$/) {
@@ -1390,11 +1407,11 @@ $cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $cfgOpts{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
 $cfgOpts{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
 $cfgOpts{'keywordize'}		= $keywordize if (defined $keywordize);
-$cfgOpts{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
+$cfgOpts{'keywords file'}	= $keywordsFile if (defined $keywordsFile);
 $cfgOpts{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
-$cfgOpts{'mtime'}			= $mtime if (defined $mtime);
-$cfgOpts{'name template'}		= $nameTemplate if (defined $nameTemplate);
-$cfgOpts{'trim'}			= $trim if (defined $trim);
+$cfgOpts{'mtime'}		= $mtime if (defined $mtime);
+$cfgOpts{'name template'}	= $nameTemplate if (defined $nameTemplate);
+$cfgOpts{'trim'}		= $trim if (defined $trim);
 $cfgOpts{'use color'}		= $useColor if (defined $useColor);
 $cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
 
@@ -1420,13 +1437,6 @@ my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
-my $file;		# file in the directory
-my @files;		# array of the sorted filenames to process
-my @filenames;		# array of the filenames to process
-my $angleSuffix;	# suffix to add to the end of the rotated files
-my $counterSize;
-my %filenameshash;	# hash for old file names
-
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
 # All things in ARGV will be treated as file names to process
@@ -1435,16 +1445,19 @@ chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 # if no file is given
 if (scalar(@files) == 0) {
 	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
+	my $file;
 	while ( defined ( $file = readdir DIR )) {
-		next if (! -f $file);			# skip absent file or not a file
+		next if (not -f $file);			# skip absent file or not a file
 		push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
 	}
 	closedir(DIR);
 }
 
 # independently of @files initialization doing this
-foreach $file ( @files ) {
-	next if (! -f $file);				# skip absent file or not a file
+my @filenames;
+
+foreach my $file ( @files ) {
+	next if (not -f $file);				# skip absent file or not a file
 	next if (grep {/^$file$/} @excludeList);	# skip excluded file
 	push (@filenames, $file);
 }
@@ -1484,15 +1497,6 @@ foreach my $key (sort (keys %tags)) {
 }
 dbgmsg (4, "Tags:\n", join("\n", @dbgTags), "\n") if (scalar(@dbgTags) > 0);
 
-# Preparing the variable, which contains the format of the counter output
-if ($countFF != 0) {
-	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
-	$counterSize = "%." . $size . "d";
-	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
-} else {
-	$counterSize = "%d";
-}
-
 # Validate angle value
 if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
     (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
@@ -1503,8 +1507,19 @@ if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
 @files = sort @filenames;
 dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
 
-renRotProcess();
-aggregationProcess();
+# Preparing the variable, which contains the format of the counter output
+my $counterSize;
+
+if ($countFF != 0) {
+	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
+	$counterSize = "%." . $size . "d";
+	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
+} else {
+	$counterSize = "%d";
+}
+
+renRotProcess($exifTool, $counterSize);
+aggregationProcess($exifTool, $counterSize);
 
 __END__
 
