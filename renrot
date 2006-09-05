@@ -70,6 +70,7 @@ my %configOptions = (
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
+			'use color' => 0,
 			'use ipc' => 0,
 		    );
 
@@ -84,7 +85,6 @@ my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrVirtual;	# flag to do links instead real file moving while aggregation
 my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
-my %colorsFromCli;	# colors are got from CLI
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $countFF = 1;	# use fixed field for counter
@@ -203,7 +203,7 @@ my %colors = (
 sub printColored {
 	my $facility = shift;
 
-	if (defined $useColor and $useColor != 0) {
+	if ($configOptions{'use color'} != 0) {
 		if (defined $facility and defined $colors{$facility}) {
 			print STDERR colored [$colors{$facility}{value}], @_;
 			return;
@@ -217,7 +217,7 @@ sub printColored {
 sub procmsg {
 	return if ($quiet != 0);
 
-	if (defined $useColor and $useColor != 0) {
+	if ($configOptions{'use color'} != 0) {
 		if (defined $colors{'process'}) {
 			print colored [$colors{'process'}{value}], @_;
 			return;
@@ -289,7 +289,6 @@ sub boolConverter {
 sub getOptions {
 	my $showVersion = 0;	# need version
 	my $showHelp = 0;	# need help
-	my @tmpColors;
 	my @tmpTags;
 	my $getOptions = GetOptions (
 					"aggr-delta=i" => \$aggrDelta,
@@ -299,7 +298,6 @@ sub getOptions {
 					"aggr-virtual!" => \$aggrVirtual,
 					"aggr-virtual-directory=s" => \$aggrVirtDir,
 					"backup!" => \$backup,
-					"color=s" => \@tmpColors,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"counter-fixed-field!" => \$countFF,
@@ -340,7 +338,6 @@ sub getOptions {
 	dbgmsg (3, "   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
 	dbgmsg (3, "   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
 	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
-	dbgmsg (3, "   --color:\n", join("\n", @tmpColors), "\n") if (scalar(@tmpColors) > 0);
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
 	dbgmsg (3, "   --counter-start: $countStart",
@@ -395,20 +392,10 @@ sub getOptions {
 	$extToProcess =~ s/^\*?\.?/\./ if ($fileCount == 0);
 	dbgmsg (1, "getOptions(): Process with '$extToProcess' extension.\n");
 
-	# Convert multiple color parameters to colors hash
-	foreach my $colorStr (@tmpColors) {
-		my %color = strToHash($colorStr, 'reset');
-		foreach my $key (keys %color) {
-			$colorsFromCli{$key} = $color{$key};
-		}
-	}
-
 	# Convert multiple tag parameters to tags hash
 	foreach my $tagStr (@tmpTags) {
 		my %tag = strToHash($tagStr);
-		foreach my $key (keys %tag) {
-			$tagsFromCli{$key} = $tag{$key};
-		}
+		map { $tagsFromCli{$_} = $tag{$_} } keys %tag;
 	}
 }
 
@@ -519,9 +506,7 @@ sub parseConfigFile {
 	my %hConfig = @_;
 	if (-f $file) {
 		my %tmpConfig = getConfig($fc + 1, $file);
-		foreach my $key (keys %tmpConfig) {
-			$hConfig{$key} = $tmpConfig{$key};
-		}
+		map { $hConfig{$_} = $tmpConfig{$_} } keys %tmpConfig;
 	}
 	return %hConfig;
 }
@@ -593,19 +578,14 @@ sub dirValidator {
 # switchColor() switches to user defined color scheme
 #
 sub switchColor {
-	dbgmsg (1, "Switch to user defined color scheme.\n");
-
 	# Parse configuration file color set
 	foreach my $cKey (keys %configOptions) {
 		next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
 		my %color = strToHash($configOptions{$cKey}, 'reset');
-		foreach my $key (keys %color) {
-			$colors{$key} = $color{$key};
-		}
+		map { $colors{$_} = $color{$_} } keys %color;
 	}
 
-	# Merge colors from configuration file with command line arguments
-	map { $colors{$_} = $colorsFromCli{$_} } keys %colorsFromCli;
+	dbgmsg (1, "Switch to user defined color scheme.\n");
 }
 
 ########################################################################################
@@ -613,11 +593,8 @@ sub switchColor {
 # MAIN() renames and rotates given files
 #
 
-# parse command line options
 getOptions();
-
 parseConfig($configFile);
-
 switchColor();
 
 # redefining options set in configuration file with set via CLI ones
@@ -633,6 +610,7 @@ $configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsRepla
 $configOptions{'mtime'}			= $mtime if (defined $mtime);
 $configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
 $configOptions{'trim'}			= $trim if (defined $trim);
+$configOptions{'use color'}		= $useColor if (defined $useColor);
 $configOptions{'use ipc'}		= $useIPC if (defined $useIPC);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
@@ -710,9 +688,7 @@ $tags{'Comment'} = {value => getFileData($comfile)} if (defined $comfile);
 $tags{'UserComment'} = {value => $userComment} if (defined $userComment);
 
 # Merge tags from configuration file with command line arguments
-foreach my $key (keys %tagsFromCli) {
-	$tags{$key} = $tagsFromCli{$key};
-}
+map { $tags{$_} = $tagsFromCli{$_} } keys %tagsFromCli;
 
 # Print parsed tags at debug level
 my @dbgTags;
@@ -1406,7 +1382,6 @@ Tag writing options:
 
 Colorizing options:
       --use-color (*)		colorized output
-      --color <COLOR> ...	setup color(s)
 
 Misc options:
       --dry-run			show what would have been happened
@@ -1785,10 +1760,6 @@ no tags will be written. Default is to write tags.
 =item B<--use-color>, B<--no-use-color>
 
 colorized output. This NOT works under Win32.
-
-=item B<--color> I<COLOR>
-
-setup color for choosen facility
 
 =item B<--dry-run>
 

@@ -1,4 +1,7 @@
 $Log$
+Revision 1.163  2006/09/05 05:07:47  andy
+Remove --color. Add 'use color' to configuration file.
+
 Revision 1.162  2006/09/02 18:29:20  andy
 Optimize hash parser.
 
@@ -638,3 +641,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
