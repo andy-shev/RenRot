@@ -57,7 +57,7 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 #
 # Parsed configuration file in hash
 #
-my %configOptions = (
+my %cfgOpts = (
 			'aggregation delta' => 900,
 			'aggregation directory' => 'Images',
 			'aggregation mode' => 'none',
@@ -72,7 +72,7 @@ my %configOptions = (
 			'trim' => 1,
 			'use color' => 0,
 			'use ipc' => 0,
-		    );
+	      );
 
 ########################################################################################
 #
@@ -203,7 +203,7 @@ my %colors = (
 sub printColored {
 	my $facility = shift;
 
-	if ($configOptions{'use color'} != 0) {
+	if ($cfgOpts{'use color'} != 0) {
 		if (defined $facility and defined $colors{$facility}) {
 			print STDERR colored [$colors{$facility}{value}], @_;
 			return;
@@ -217,7 +217,7 @@ sub printColored {
 sub procmsg {
 	return if ($quiet != 0);
 
-	if ($configOptions{'use color'} != 0) {
+	if ($cfgOpts{'use color'} != 0) {
 		if (defined $colors{'process'}) {
 			print colored [$colors{'process'}{value}], @_;
 			return;
@@ -541,9 +541,7 @@ sub parseConfig {
 
 	@rcFiles = ($file) if (defined $file);
 
-	foreach my $rcfile (@rcFiles) {
-		 %configOptions = parseConfigFile(0, $rcfile, %configOptions);
-	}
+	map { %cfgOpts = parseConfigFile(0, $_, %cfgOpts) } @rcFiles;
 }
 
 ########################################################################################
@@ -579,147 +577,14 @@ sub dirValidator {
 #
 sub switchColor {
 	# Parse configuration file color set
-	foreach my $cKey (keys %configOptions) {
+	foreach my $cKey (keys %cfgOpts) {
 		next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
-		my %color = strToHash($configOptions{$cKey}, 'reset');
+		my %color = strToHash($cfgOpts{$cKey}, 'reset');
 		map { $colors{$_} = $color{$_} } keys %color;
 	}
 
 	dbgmsg (1, "Switch to user defined color scheme.\n");
 }
-
-########################################################################################
-#
-# MAIN() renames and rotates given files
-#
-
-getOptions();
-parseConfig($configFile);
-switchColor();
-
-# redefining options set in configuration file with set via CLI ones
-$configOptions{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
-$configOptions{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
-$configOptions{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
-$configOptions{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
-$configOptions{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
-$configOptions{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
-$configOptions{'keywordize'}		= $keywordize if (defined $keywordize);
-$configOptions{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
-$configOptions{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
-$configOptions{'mtime'}			= $mtime if (defined $mtime);
-$configOptions{'name template'}		= $nameTemplate if (defined $nameTemplate);
-$configOptions{'trim'}			= $trim if (defined $trim);
-$configOptions{'use color'}		= $useColor if (defined $useColor);
-$configOptions{'use ipc'}		= $useIPC if (defined $useIPC);
-
-dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
-
-# Validate aggregation mode possible values
-if (not grep (/^$configOptions{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
-	warnmsg ("Aggregation mode isn't correct!\n");
-}
-
-$configOptions{'aggregation directory'} = dirConv($configOptions{'aggregation directory'});
-$configOptions{'aggregation virtual directory'} = dirConv($configOptions{'aggregation virtual directory'});
-
-fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
-    if ($configOptions{'aggregation mode'} ne "none" and
-	(dirValidator($configOptions{'aggregation directory'}) == 0 or
-	 dirValidator($configOptions{'aggregation virtual directory'}) == 0));
-
-# Calculate ExifTool's verbosity
-my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
-
-# ExifTool object configuration
-my $exifTool = new Image::ExifTool;
-$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
-
-my $file;		# file in the directory
-my @files;		# array of the sorted filenames to process
-my @filenames;		# array of the filenames to process
-my $angleSuffix;	# suffix to add to the end of the rotated files
-my $counterSize;
-my %filenameshash;	# hash for old file names
-
-chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
-
-# All things in ARGV will be treated as file names to process
-@files = @ARGV;
-
-# if no file is given
-if (scalar(@files) == 0) {
-	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
-	while ( defined ( $file = readdir DIR )) {
-		next if (! -f $file);			# skip absent file or not a file
-		push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
-	}
-	closedir(DIR);
-}
-
-# independently of @files initialization doing this
-foreach $file ( @files ) {
-	next if (! -f $file);				# skip absent file or not a file
-	next if (grep {/^$file$/} @excludeList);	# skip excluded file
-	push (@filenames, $file);
-}
-
-# No file to process?
-if (scalar(@filenames) == 0) {
-	fatalmsg ("No files to process!\n");
-	exit 1;
-}
-
-# Parse configuration file tag set
-foreach my $cKey (keys %configOptions) {
-	next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
-	my %tag = strToHash($configOptions{$cKey});
-	foreach my $key (keys %tag) {
-		$tags{$key} = $tag{$key};
-		if ($cKey =~ m/^tagfile/) {
-			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'\n");
-			$tags{$key}{value} = getFileData($tags{$key}{value});
-		}
-	}
-}
-
-# Put command line arguments to appropriate tags
-$tags{'Comment'} = {value => getFileData($comfile)} if (defined $comfile);
-$tags{'UserComment'} = {value => $userComment} if (defined $userComment);
-
-# Merge tags from configuration file with command line arguments
-map { $tags{$_} = $tagsFromCli{$_} } keys %tagsFromCli;
-
-# Print parsed tags at debug level
-my @dbgTags;
-foreach my $key (sort (keys %tags)) {
-	my $group = defined $tags{$key}{group} ? $tags{$key}{group} : "";
-	my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
-	push (@dbgTags, "$key [$group] = $value");
-}
-dbgmsg (4, "Tags:\n", join("\n", @dbgTags), "\n") if (scalar(@dbgTags) > 0);
-
-# Preparing the variable, which contains the format of the counter output
-if ($countFF != 0) {
-	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
-	$counterSize = "%." . $size . "d";
-	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
-} else {
-	$counterSize = "%d";
-}
-
-# Validate angle value
-if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
-    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
-	fatalmsg ("Angle should be 90, 180 or 270!\n");
-	exit 1;
-}
-
-@files = sort @filenames;
-dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
-
-renRotProcess();
-aggregationProcess();
 
 ########################################################################################
 #
@@ -753,14 +618,14 @@ sub renRotProcess {
 
 	my @keywordArr;			# array for keywords
 
-	if ($configOptions{'keywordize'} != 0) {
-		@keywordArr = keywordizer ($configOptions{'keywords file'});
-		errmsg ("Keywords file doesn't exist!\n") if (not -e $configOptions{'keywords file'});
+	if ($cfgOpts{'keywordize'} != 0) {
+		@keywordArr = keywordizer ($cfgOpts{'keywords file'});
+		errmsg ("Keywords file doesn't exist!\n") if (not -e $cfgOpts{'keywords file'});
 	}
 
 	if (scalar(@keywordArr) > 0) {
 		dbgmsg (2, "Keywords count: ", scalar(@keywordArr), "\n");
-		if ($configOptions{'keywords replace'} != 0) {
+		if ($cfgOpts{'keywords replace'} != 0) {
 			$exifTool->SetNewValue(Keywords => \@keywordArr);
 		} else {
 			$exifTool->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
@@ -768,7 +633,7 @@ sub renRotProcess {
 	}
 
 	# Convert trim boolean value to string
-	my $trimStr = (not defined $configOptions{'trim'} or $configOptions{'trim'}) ? '-trim' : '';
+	my $trimStr = (not defined $cfgOpts{'trim'} or $cfgOpts{'trim'}) ? '-trim' : '';
 	dbgmsg (1, "renRotProcess(): Trim string: '$trimStr'\n");
 
 	dbgmsg (1, "renRotProcess(): Initializing tags ...\n");
@@ -886,7 +751,7 @@ sub renameFile {
 
 		$newFileName = template2name($exifToolObj,
 					     $infoObj,
-					     $configOptions{'name template'},
+					     $cfgOpts{'name template'},
 					     $fileCounter,
 				     	     $file);
 		if ($filenameshash{$newFileName . $ext}) {
@@ -953,7 +818,7 @@ sub mtimeSet {
 	my $exifToolObj = shift;
 	my $infoObj = shift;
 	my $file = shift;
-	if ($configOptions{'mtime'} != 0) {
+	if ($cfgOpts{'mtime'} != 0) {
 		my $mTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
 		if ($dryRun == 0) { utime $mTime, $mTime, $file; }
 		else { procmsg ("Setting mtime.\n"); }
@@ -1002,7 +867,7 @@ sub exifWriter {
 # aggregationProcess() aggregates files to separate directories by request
 #
 sub aggregationProcess {
-	return if ($configOptions{'aggregation mode'} eq "none");
+	return if ($cfgOpts{'aggregation mode'} eq "none");
 
 	my $file;
 	my $info;
@@ -1011,8 +876,8 @@ sub aggregationProcess {
 	procmsg ("AGGREGATION\n");
 	procmsg ("===========\n");
 
-	if ($configOptions{'aggregation mode'} eq "template") {
-		dbgmsg (1, "aggregationProcess(): Template: $configOptions{'aggregation template'}\n");
+	if ($cfgOpts{'aggregation mode'} eq "template") {
+		dbgmsg (1, "aggregationProcess(): Template: $cfgOpts{'aggregation template'}\n");
 		my $fileCounter = $countStart;
 
 		foreach $file (sort (keys %filenameshash)) {
@@ -1020,7 +885,7 @@ sub aggregationProcess {
 			$info = $exifTool->ImageInfo($file);
 			$NewDir = template2name($exifTool,
 						$info,
-						$configOptions{'aggregation template'},
+						$cfgOpts{'aggregation template'},
 						$fileCounter,
 						$file);
 			aggregateFile($file, $NewDir) if ($dryRun == 0);
@@ -1028,7 +893,7 @@ sub aggregationProcess {
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 			$fileCounter += $countStep;
 		}
-	} elsif ($configOptions{'aggregation mode'} eq "delta") {
+	} elsif ($cfgOpts{'aggregation mode'} eq "delta") {
 		my $DirCounter = 1;
 		my $timestampPrev;
 		my $filePrev;
@@ -1041,13 +906,13 @@ sub aggregationProcess {
 			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
 				$filePrev = $filetmp;
-				$NewDir = $configOptions{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+				$NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
 				$DirCounter++;
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
 			} else {
 				# Check for new direcroty creation
-				if (($filenameshash{$filetmp} - $timestampPrev) > $configOptions{'aggregation delta'}) {
-					$NewDir = $configOptions{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+				if (($filenameshash{$filetmp} - $timestampPrev) > $cfgOpts{'aggregation delta'}) {
+					$NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
 					$DirCounter++;
 				}
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
@@ -1056,7 +921,7 @@ sub aggregationProcess {
 			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
 		}
 	} else {
-		errmsg ("Aggregation mode $configOptions{'aggregation mode'} isn't implemented!\n");
+		errmsg ("Aggregation mode $cfgOpts{'aggregation mode'} isn't implemented!\n");
 	}
 }
 
@@ -1079,13 +944,13 @@ sub aggregateFile {
 	my $file = shift;
 	my $NewDir = shift;
 
-	if ($configOptions{'aggregation virtual'} == 0) {
+	if ($cfgOpts{'aggregation virtual'} == 0) {
 		makeDir($NewDir);
 		my $newfilename = $NewDir . "/" . $file;
 		rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
 	} else {
-		makeDir($configOptions{'aggregation virtual directory'});
-		$NewDir = $configOptions{'aggregation virtual directory'} . "/" . $NewDir;
+		makeDir($cfgOpts{'aggregation virtual directory'});
+		$NewDir = $cfgOpts{'aggregation virtual directory'} . "/" . $NewDir;
 		makeDir($NewDir);
 		my $newfilename = $NewDir . "/" . $file;
 		if (not -l $newfilename) {
@@ -1271,7 +1136,7 @@ sub rotateThumbnail {
 
 	my $origThumb = ${$$infoObj{ThumbnailImage}};
 
-	if ($configOptions{'use ipc'} == 0) {
+	if ($cfgOpts{'use ipc'} == 0) {
 		# extracting the thumbnail image
 		my $ThumbnailOriginal = $file . "_thumborig";
 		unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
@@ -1507,6 +1372,139 @@ sub template2name {
 
 	return $thename;
 }
+
+########################################################################################
+#
+# MAIN() renames and rotates given files
+#
+
+getOptions();
+parseConfig($configFile);
+switchColor();
+
+# redefining options set in configuration file with set via CLI ones
+$cfgOpts{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
+$cfgOpts{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
+$cfgOpts{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
+$cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
+$cfgOpts{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
+$cfgOpts{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
+$cfgOpts{'keywordize'}		= $keywordize if (defined $keywordize);
+$cfgOpts{'keywords file'}		= $keywordsFile if (defined $keywordsFile);
+$cfgOpts{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
+$cfgOpts{'mtime'}			= $mtime if (defined $mtime);
+$cfgOpts{'name template'}		= $nameTemplate if (defined $nameTemplate);
+$cfgOpts{'trim'}			= $trim if (defined $trim);
+$cfgOpts{'use color'}		= $useColor if (defined $useColor);
+$cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
+
+dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
+
+# Validate aggregation mode possible values
+if (not grep (/^$cfgOpts{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
+	warnmsg ("Aggregation mode isn't correct!\n");
+}
+
+$cfgOpts{'aggregation directory'} = dirConv($cfgOpts{'aggregation directory'});
+$cfgOpts{'aggregation virtual directory'} = dirConv($cfgOpts{'aggregation virtual directory'});
+
+fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
+    if ($cfgOpts{'aggregation mode'} ne "none" and
+	(dirValidator($cfgOpts{'aggregation directory'}) == 0 or
+	 dirValidator($cfgOpts{'aggregation virtual directory'}) == 0));
+
+# Calculate ExifTool's verbosity
+my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
+
+# ExifTool object configuration
+my $exifTool = new Image::ExifTool;
+$exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
+
+my $file;		# file in the directory
+my @files;		# array of the sorted filenames to process
+my @filenames;		# array of the filenames to process
+my $angleSuffix;	# suffix to add to the end of the rotated files
+my $counterSize;
+my %filenameshash;	# hash for old file names
+
+chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
+
+# All things in ARGV will be treated as file names to process
+@files = @ARGV;
+
+# if no file is given
+if (scalar(@files) == 0) {
+	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
+	while ( defined ( $file = readdir DIR )) {
+		next if (! -f $file);			# skip absent file or not a file
+		push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
+	}
+	closedir(DIR);
+}
+
+# independently of @files initialization doing this
+foreach $file ( @files ) {
+	next if (! -f $file);				# skip absent file or not a file
+	next if (grep {/^$file$/} @excludeList);	# skip excluded file
+	push (@filenames, $file);
+}
+
+# No file to process?
+if (scalar(@filenames) == 0) {
+	fatalmsg ("No files to process!\n");
+	exit 1;
+}
+
+# Parse configuration file tag set
+foreach my $cKey (keys %cfgOpts) {
+	next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
+	my %tag = strToHash($cfgOpts{$cKey});
+	foreach my $key (keys %tag) {
+		$tags{$key} = $tag{$key};
+		if ($cKey =~ m/^tagfile/) {
+			dbgmsg (4, "main(): Read data from '$tags{$key}{value}' for '$key'\n");
+			$tags{$key}{value} = getFileData($tags{$key}{value});
+		}
+	}
+}
+
+# Put command line arguments to appropriate tags
+$tags{'Comment'} = {value => getFileData($comfile)} if (defined $comfile);
+$tags{'UserComment'} = {value => $userComment} if (defined $userComment);
+
+# Merge tags from configuration file with command line arguments
+map { $tags{$_} = $tagsFromCli{$_} } keys %tagsFromCli;
+
+# Print parsed tags at debug level
+my @dbgTags;
+foreach my $key (sort (keys %tags)) {
+	my $group = defined $tags{$key}{group} ? $tags{$key}{group} : "";
+	my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
+	push (@dbgTags, "$key [$group] = $value");
+}
+dbgmsg (4, "Tags:\n", join("\n", @dbgTags), "\n") if (scalar(@dbgTags) > 0);
+
+# Preparing the variable, which contains the format of the counter output
+if ($countFF != 0) {
+	my $size = length((scalar(@filenames) - 1) * $countStep + $countStart);
+	$counterSize = "%." . $size . "d";
+	dbgmsg (1, "main(): Counter size: $size (amount files in cache: ", scalar(@filenames), ")\n");
+} else {
+	$counterSize = "%d";
+}
+
+# Validate angle value
+if ((defined $rotateAngle and not grep(/^$rotateAngle$/, keys %rotangles)) or
+    (defined $rotateThumbnail and not grep(/^$rotateThumbnail$/, keys %rotangles))) {
+	fatalmsg ("Angle should be 90, 180 or 270!\n");
+	exit 1;
+}
+
+@files = sort @filenames;
+dbgmsg (4, "main(): Pushed files(", scalar(@files), "):\n", join("\n", @files), "\n");
+
+renRotProcess();
+aggregationProcess();
 
 __END__
 

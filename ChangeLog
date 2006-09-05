@@ -1,4 +1,7 @@
 $Log$
+Revision 1.164  2006/09/05 05:41:11  andy
+Move main() to the end of file. Refactoring: configOptions -> cfgOpts.
+
 Revision 1.163  2006/09/05 05:07:47  andy
 Remove --color. Add 'use color' to configuration file.
 
@@ -641,4 +644,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-
