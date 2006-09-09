@@ -649,8 +649,11 @@ sub renRotProcess {
 	procmsg ("RENAMING / ROTATING\n");
 	procmsg ("===================\n");
 
+	my $file_num = scalar(@files);
+	my $file_rem = 0;
 	foreach my $file (@files) {
-		procmsg ("Processing file: $file ...\n");
+		$file_rem++;
+		procmsg ("Processing file: ($file_rem of $file_num) $file ...\n");
 
 		# Setup defaults
 		$info = $exifToolObj->ImageInfo($file);
@@ -885,6 +888,8 @@ sub aggregationProcess {
 	my $file;
 	my $info;
 	my $NewDir;
+	my $file_num = scalar(keys(%filenameshash));
+	my $file_rem = 0;
 
 	procmsg ("AGGREGATION\n");
 	procmsg ("===========\n");
@@ -894,7 +899,8 @@ sub aggregationProcess {
 		my $fileCounter = $countStart;
 
 		foreach $file (sort (keys %filenameshash)) {
-			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
+			$file_rem++;
+			dbgmsg (4, "aggregationProcess(): Processing ($file_rem of $file_num) file: $file\n");
 			$info = $exifToolObj->ImageInfo($file);
 			$NewDir = template2name($exifToolObj,
 						$info,
@@ -905,7 +911,7 @@ sub aggregationProcess {
 						"0cw");
 			aggregateFile($file, $NewDir) if ($dryRun == 0);
 
-			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
+			procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
 			$fileCounter += $countStep;
 		}
 	} elsif ($cfgOpts{'aggregation mode'} eq "delta") {
@@ -916,7 +922,8 @@ sub aggregationProcess {
 
 		foreach $file (sort (keys %filenameshash)) {
 			$filetmp = $file;
-			dbgmsg (4, "aggregationProcess(): Processing file: $file\n");
+			$file_rem++;
+			dbgmsg (4, "aggregationProcess(): Processing ($file_rem of $file_num) file: $file\n");
 
 			if ($DirCounter == 1) {
 				$timestampPrev = $filenameshash{$filetmp};
@@ -933,7 +940,7 @@ sub aggregationProcess {
 				aggregateFile($file, $NewDir) if ($dryRun == 0);
 				$timestampPrev = $filenameshash{$filetmp};
 			}
-			procmsg ("Aggregate: $file -> $NewDir\n", "\n");
+			procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
 		}
 	} else {
 		errmsg ("Aggregation mode $cfgOpts{'aggregation mode'} isn't implemented!\n");
