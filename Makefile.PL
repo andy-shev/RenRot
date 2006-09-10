@@ -22,7 +22,7 @@ rpm : tardist
 
 # CVS tagging
 tag :
-	cvs tag "renrot_$(shell date +'%Y%m%d%H%M%S')"
+	cvs tag "renrot_$(SHELL date +'%Y%m%d%H%M%S')"
 END
     return $postamble;
 }
