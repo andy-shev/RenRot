@@ -22,7 +22,7 @@ rpm : tardist
 
 # CVS tagging
 tag :
-	cvs tag "renrot_$(SHELL date +'%Y%m%d%H%M%S')"
+	$(PERLRUN) -e 'use POSIX qw(strftime); $$date = strftime("%Y%m%d%H%M%S", localtime()); system("cvs tag $(NAME)_$$date");'
 END
     return $postamble;
 }
