@@ -96,24 +96,39 @@ the script:
 	renrot --no-mtime *.jpg
 
 
-RESTRICTIONS
-------------
+RESTRICTIONS AND BUGS
+------------ --- ----
 
-RenRot has some restrictions at runtime. First off, script handles a whole
-directory without recursion and only with one extension of files. Second,
-algorithm treat each file with given extension as the image. Otherwise, file
-will be renamed to the current time stamp when --no-rename option is omitted.
-Third, rename operation is not permited between different partitions due to
-hard link technology used (this will be avoided in future). Rotation process
-is available only on JPEG files.
+RenRot has some restrictions and known bugs at runtime. 
 
-It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug, which
-cause crash of the renrot, exists. In case when total amount of the files size
-to process is bigger than RAM amount, the renrot falls with error:
+1. Script handles a whole directory without recursion and only with one
+extension of files.
+
+2. Algorithm treat each file with given extension as the image. Otherwise,
+file will be renamed to the current time stamp when --no-rename option is
+omitted.
+
+3. Rename operation is not permited between different partitions due to hard
+link technology used (this will be avoided in future).
+
+4. Rotation process is available only on JPEG files.
+
+5. It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug,
+which cause crash of the renrot, exists. In case when total amount of the
+files size to process is bigger than RAM amount, the renrot falls with error:
 
 	Out of memory during "large" request for XXXX bytes ...
 
 This doesn't occure for Perl v.5.6.1.
+
+6. Still no way to set the tags with the same name but located in the
+different groups.
+
+7. The colorization is started after the configuration files were parsed.
+While that is not happened the messages will be colorized by default color
+scheme.
+
+8. The colorization is not working under Windows platform.
 
 
 DEBUGGING
