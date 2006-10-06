@@ -1109,16 +1109,16 @@ sub rotateImg {
 	dbgmsg (3, "rotateImg(): $cmd\n");
 	system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die );
 
+	# preparing to write tags to the just rotated file
+	my $exifAfterRot = new Image::ExifTool;
+	$exifAfterRot->Options(Binary => 1);
+	$exifAfterRot->SetNewValuesFromFile($oldfile, '*:*');
+	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
+
 	if ($backup != 0) {
 		rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
 	}
 	rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
-
-	# preparing to write Orientation tag to the just rotated file
-	my $exifAfterRot = new Image::ExifTool;
-	$exifAfterRot->Options(Binary => 1);
-	$exifAfterRot->SetNewValuesFromFile($origfile, '*:*');
-	$exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
 
 	# writing the changes to the EXIFs
 	exifWriter($exifAfterRot, $oldfile);

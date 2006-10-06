@@ -1,4 +1,7 @@
 $Log$
+Revision 1.167  2006/10/06 11:50:36  andy
+Possible fix bug with clearing EXIFs when --no-backup is given
+
 Revision 1.166  2006/09/09 20:23:43  zeus
 Now "use color = Yes" is default.
 
@@ -650,3 +653,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+
