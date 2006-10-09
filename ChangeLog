@@ -1,4 +1,7 @@
 $Log$
+Revision 1.169  2006/10/09 12:35:16  andy
+Modify TODO according to conference.osdn.org.ua 2006 visitor wishes.
+
 Revision 1.168  2006/10/09 12:25:01  andy
 sync with 0.25
 
@@ -656,3 +659,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

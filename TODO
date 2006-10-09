@@ -21,6 +21,9 @@ q  to write to some tag the options passed to renrot
 +- to implement %t in name template, where the array of desired tags will be
    inited
 
+-  print some text on image (i.e. date and timestamp) [guess perl-GD will be
+   optional requrement]
+
 
 Disk I/O
 
@@ -54,6 +57,8 @@ User interface
 
 -  to implement help output by topics (sole -h outputs list of topics like
    rename,rotate,keyword e.t.c. and -h keyword outputs help for keyword related
+
+q  integration with gallery
 
 
 File naming
