@@ -10,6 +10,7 @@ README.Windows                           Installation instructions for windows u
 renrot                                   RenRot script
 renrot.spec                              RPM spec file
 TODO
+etc/colors.conf                          Colorization scheme
 etc/copyright.tag                        Text to put to Copyright tag
 etc/renrot.conf                          Sample of configuration file
 etc/tags.conf                            Strings to fill appropriate tags

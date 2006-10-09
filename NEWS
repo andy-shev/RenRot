@@ -1,3 +1,21 @@
+* 0.25 *
+
+Several bugs were fixed after the last release. The "tag" target in the
+Makefile works properly now. The bug with clearing all EXIF tags (when
+--no-backup option is given) was possibly fixed as well. The configuration
+parameter "use color" has been added with the default value set to "yes".
+However, the --color option was dropped and should not be used anyway. The
+processing message look has been tuned: now it shows "(m of n)" files
+processed.
+
+
+* 0.24 *
+
+The colorization for output has been implemented. The options --use-color and
+--color were added. A new configuration file with a user's color scheme called
+colors.conf would be placed in the /etc/renrot or in a similar directory.
+
+
 * 0.23 *
 
 The additional template sequences %C, %O, and %o had been added. They

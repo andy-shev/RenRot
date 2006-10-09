@@ -1,4 +1,7 @@
 $Log$
+Revision 1.168  2006/10/09 12:25:01  andy
+sync with 0.25
+
 Revision 1.167  2006/10/06 11:50:36  andy
 Possible fix bug with clearing EXIFs when --no-backup is given
 
@@ -653,4 +656,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

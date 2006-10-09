@@ -99,7 +99,7 @@ the script:
 RESTRICTIONS AND BUGS
 ------------ --- ----
 
-RenRot has some restrictions and known bugs at runtime. 
+RenRot has some restrictions and known bugs at runtime.
 
 1. Script handles a whole directory without recursion and only with one
 extension of files.
