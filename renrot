@@ -105,6 +105,7 @@ my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
+my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
 my %tagsFromCli;	# tags are got from CLI
 my $trim;		# jpegtran -trim
 my $useColor;		# colorized output
@@ -322,6 +323,7 @@ sub getOptions {
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
 					"rotate-thumb=i" => \$rotateThumbnail,
+					"sub-fileset=s" => \$subFileSet,
 					"tag|t=s" => \@tmpTags,
 					"trim!" => \$trim,
 					"use-color!" => \$useColor,
@@ -360,6 +362,7 @@ sub getOptions {
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "   --sub-fileset: $subFileSet\n") if ($subFileSet ne "");
 	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
 	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
 	dbgmsg (3, "   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
@@ -377,7 +380,7 @@ sub getOptions {
 		exit 0;
 	}
 
-	if ($extToProcess eq "" and ($fileCount == 0)) {
+	if ($extToProcess eq "" and ($fileCount == 0) and $subFileSet eq "") {
 		fatalmsg ("Extension of files is required!\n");
 		exit 1;
 	}
@@ -1231,6 +1234,7 @@ Options:
   -c, --config-file <FILE>	configuration file to use
   -d, --work-directory <DIR>	working directory
       --exclude <FILE> ...	files to not process. No wildcards.
+      --sub-fileset <FILE>	file with file names to be processed
   -e, --extension <EXTENSION>	extension of files to process: JPG, jpeg, ...
 
 Renaming options:
@@ -1272,7 +1276,7 @@ Colorizing options:
 
 Misc options:
       --dry-run			show what would have been happened
-      --use-ipc (*)		thumbnail rotation via pipe, rather than via file
+      --use-ipc (*)		rotate thumbnail via pipe, rather than via file
   -v				number of these options defines debug level
   -h, --help			display this help and exit
       --version			output version and exit
@@ -1446,8 +1450,14 @@ $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verb
 
 chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die );
 
-# All things in ARGV will be treated as file names to process
-@files = @ARGV;
+if ($subFileSet eq "") {
+	# All things in ARGV will be treated as file names to process
+	@files = @ARGV;
+} else {
+	dbgmsg (2, "Reading file names for processing from file: $subFileSet\n");
+	@files =  getFileDataLines($subFileSet);
+	chomp(@files);
+}
 
 # if no file is given
 if (scalar(@files) == 0) {
@@ -1588,6 +1598,13 @@ define the working directory
 
 specify files to exclude. No wildcards are available. For set of files option
 must be occured same times as files given.
+
+=item B<--sub-fileset> F<FILE>
+
+file with file names to be processed. Each file name on separate string.
+Useful when you need process only set of X files among whole Y ones in the
+directory. If specified, all files passed to renrot via command line are
+ignored.
 
 =item B<-e> or B<--extension> I<EXTENSION>
 
