@@ -21,9 +21,31 @@ q  to write to some tag the options passed to renrot
 +- to implement %t in name template, where the array of desired tags will be
    inited
 
+
+PLUGINS
+
+-  plugin interface implementation (EXIF data transfer variant)
+
 -  print some text on image (i.e. date and timestamp) [guess perl-GD will be
    optional requrement]
 
+-  speceffects (thumbnail layering over the image e.t.c.)
+
+-  jpgfromraw
+
+-  index page (from thumbnailimages)
+
+-  shrinking e.t.c.
+
+-  image hystogramm creation
+
+q  split EXIF -> xml, to extract EXIF data from file original to the separate
+   files and to clear EXIF data from files originals
+
+
+Performance
+
+-  to implement --no-rename option ...
 
 Disk I/O
 
