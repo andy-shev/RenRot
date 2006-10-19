@@ -47,8 +47,6 @@ Performance
 
 -  to implement --no-rename option ...
 
-Disk I/O
-
 -  decrease disk IO operations as possible
 
 -  to implement possibility to work with other formats, which use EXIF
