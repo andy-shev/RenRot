@@ -1,4 +1,7 @@
 $Log$
+Revision 1.172  2006/10/29 17:03:08  andy
+Changing/fixing/adding URLs across README.
+
 Revision 1.171  2006/10/12 09:53:35  zeus
 TODO edited on account of plugins.
 
@@ -665,4 +668,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

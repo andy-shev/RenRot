@@ -30,11 +30,14 @@ Furthermore, the script put a comment to:
 
 Personal data could be specified via XMP tags defined in configuration file.
 
+Starting from the version 0.21rc1 RenRot can write any EXIF tag given by
+command line option or configuration file.
+
 In addition RenRot can aggregate all files in directories according the given
 date/time pattern template, set with --aggr-template.
 
-WHY RenRot?
---- -------
+WHY RenRot
+--- ------
 
 Several projects like RenRot are available in the net, but why to choose
 namely RenRot? Because:
@@ -53,13 +56,12 @@ namely RenRot? Because:
 GETTING
 -------
 
-RenRot home page is an ftp site for now. You can download script package from
-the following sites:
+RenRot's home page is the http://freshmeat.net/projects/renrot/ for now. You
+can download script package from the following sites:
  ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
- ftp://andriy.asplinux.com.ua/pub/people/andy/renrot/ (mirror)
- ftp://ftp.asplinux.ru/ (looking for renrot package in RPM)
- Fedora Extras repository on any mirror (use yum or yumex utility to install
- package)
+ http://www.smile.org.ua/~andy/prj/renrot/ (mirror)
+ Fedora Extras repository on any its mirror (use yum, pirut or yumex utility
+ to install package)
 
 
 RUNNING
@@ -104,12 +106,12 @@ RenRot has some restrictions and known bugs at runtime.
 1. Script handles a whole directory without recursion and only with one
 extension of files.
 
-2. Algorithm treat each file with given extension as the image. Otherwise,
+2. Algorithm treats each file with given extension as the image. Otherwise,
 file will be renamed to the current time stamp when --no-rename option is
 omitted.
 
 3. Rename operation is not permited between different partitions due to hard
-link technology used (this will be avoided in future).
+link technology used (this will be avoided in the future).
 
 4. Rotation process is available only on JPEG files.
 
@@ -173,7 +175,7 @@ Requires Perl version 5.6.0 or later. No other special libraries are required,
 except:
     Image::ExifTool		http://www.sno.phy.queensu.ca/~phil/exiftool/
     Getopt::Long 		cpan:Getopt::Long (usually, it's included in
-    				perl distribution)
+    				the perl distribution)
     jpegtran (libjpeg6)		http://www.ijg.org/
 
 
@@ -193,7 +195,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-For more information, please, consult with the full license text.
+For more information, please, consult with the full license text placed on
+http://opensource.org/licenses/.
 
 
 THANKS
