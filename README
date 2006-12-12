@@ -22,7 +22,7 @@ manual.
 
 RenRot rotates file and its thumbnail, according to EXIF tag Orientation. If
 the tag is absent or miss set, than the script allows to rotate the file as
-well as it's thumbnail "by hands".
+well as its thumbnail "by hands".
 
 Furthermore, the script put a comment to:
     - Comment tag from comment file;

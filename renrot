@@ -681,7 +681,7 @@ sub renRotProcess {
 
 ########################################################################################
 #
-# rotateFile() rotates file and it's thumbnail if needed, changes Orientation tag
+# rotateFile() rotates file and its thumbnail if needed, changes Orientation tag
 #
 sub rotateFile {
 	my $exifToolObj = shift;
@@ -1563,7 +1563,7 @@ YYYYmmddHHMMSS.
 
 Additionally, it rotates files and their thumbnails, accordingly Orientation
 EXIF tag. When the tag is absent or miss set, the program allows to rotate the
-file as well as it's thumbnail via B<--rotate-angle> and B<--rotate-thumb>
+file as well as its thumbnail via B<--rotate-angle> and B<--rotate-thumb>
 options. Now implemented only for JPEG format.
 
 The script, also, can place the commentary into:
