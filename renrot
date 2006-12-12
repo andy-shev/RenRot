@@ -1872,7 +1872,7 @@ will be put to the directory F<20040131>.
 =head1 CONFIG
 
 Configuration file could be used to set some variables. Configuration file is
-just set of case-insensivity keys and its values separated by equal sign.
+just set of case-insensivity keys and their values separated by equal sign.
 Boolean variables can be defined via following keywords: 0, No, False, Off for
 false, and 1, Yes, True, On for true. B<RenRot> looks for file named
 F<renrot.conf> in system directories such as F</etc/renrot> and
