@@ -666,7 +666,25 @@ sub renRotProcess {
 
 		# analyzing whether and how to rename file
 		$newFileName = renameFile($exifToolObj, $info, $file, $fileCounter, $counterSize, $angleSuffix);
+		
+		# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
+		if (not defined $fileNameOriginal) {
+			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
+			dbgmsg (2, "renameFile(): set RenRotFileNameOriginal to $file.\n");
+		} else {
 
+			$tags{'RenRotFileNameOriginal'} = {
+						value => $info->{"RenRotFileNameOriginal"},
+						group => 'RenRot' 
+					};
+			dbgmsg (2, "renameFile(): RenRotFileNameOriginal: $fileNameOriginal.\n");
+		}
+		$exifToolObj->SetNewValue(
+					"RenRotFileNameOriginal",
+					$tags{'RenRotFileNameOriginal'}{value},
+					Group => $tags{'RenRotFileNameOriginal'}{group}
+				);
 		# Writing tags.
 		tagWriter($exifToolObj, $newFileName) if ($noTags == 0);
 
@@ -748,19 +766,6 @@ sub renameFile {
 		$newFileName = $file;
 		$filenameshash{$newFileName} = $unixTime;
 	} else {
-		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
-		if (not defined $fileNameOriginal) {
-			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
-			$exifToolObj->SetNewValue(
-						  "RenRotFileNameOriginal",
-						  $tags{'RenRotFileNameOriginal'}{value},
-						  Group => $tags{'RenRotFileNameOriginal'}{group}
-						 );
-			dbgmsg (2, "renameFile(): set RenRotFileNameOriginal to $file.\n");
-		} else {
-			dbgmsg (2, "renameFile(): RenRotFileNameOriginal: $fileNameOriginal.\n");
-		}
-
 		my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
 		my $extLen = length($ext);
 
@@ -1122,7 +1127,7 @@ sub rotateImg {
 		rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
 	}
 	rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
-
+	
 	# writing the changes to the EXIFs
 	exifWriter($exifAfterRot, $oldfile);
 }
