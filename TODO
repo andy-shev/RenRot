@@ -9,6 +9,9 @@ q	optional feature
 
 BUGS
 
+-  fix cleaning RenRotFileNameOriginal while rotating file, previously renroted 
+   (reported by Alex Zasypkin)
+
 -  fix cleaning EXIFs when --no-backup is given
 
 -  make possible to use same EXIF tags in different groups
