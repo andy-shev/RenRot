@@ -39,7 +39,7 @@ make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
 # Fix renrot permissions
 chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
 
-# install sample confuration files
+# install sample configuration files
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 install -m644 etc/colors.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 install -m644 etc/copyright.tag $RPM_BUILD_ROOT%{_sysconfdir}/%{name}

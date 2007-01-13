@@ -666,25 +666,10 @@ sub renRotProcess {
 
 		# analyzing whether and how to rename file
 		$newFileName = renameFile($exifToolObj, $info, $file, $fileCounter, $counterSize, $angleSuffix);
-		
-		# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
-		my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
-		if (not defined $fileNameOriginal) {
-			$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
-			dbgmsg (2, "renameFile(): set RenRotFileNameOriginal to $file.\n");
-		} else {
 
-			$tags{'RenRotFileNameOriginal'} = {
-						value => $info->{"RenRotFileNameOriginal"},
-						group => 'RenRot' 
-					};
-			dbgmsg (2, "renameFile(): RenRotFileNameOriginal: $fileNameOriginal.\n");
-		}
-		$exifToolObj->SetNewValue(
-					"RenRotFileNameOriginal",
-					$tags{'RenRotFileNameOriginal'}{value},
-					Group => $tags{'RenRotFileNameOriginal'}{group}
-				);
+		# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+		saveOurHdrs($exifToolObj, $info, $file);
+
 		# Writing tags.
 		tagWriter($exifToolObj, $newFileName) if ($noTags == 0);
 
@@ -695,6 +680,35 @@ sub renRotProcess {
 
 		$fileCounter += $countStep;
 	}
+}
+
+########################################################################################
+#
+# saveOurHdrs() saves our defined tags to file
+#
+sub saveOurHdrs {
+	my $exifToolObj = shift;
+	my $infoObj = shift;
+	my $file = shift;
+
+	my $fileNameOriginal = $exifToolObj->GetValue("RenRotFileNameOriginal");
+
+	if (not defined $fileNameOriginal) {
+		$tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
+		dbgmsg (2, "saveOurHdrs(): set RenRotFileNameOriginal to $file.\n");
+	} else {
+		$tags{'RenRotFileNameOriginal'} = {
+				value => $infoObj->{"RenRotFileNameOriginal"},
+				group => 'RenRot'
+		};
+		dbgmsg (2, "saveOurHdrs(): RenRotFileNameOriginal: $fileNameOriginal.\n");
+	}
+
+	$exifToolObj->SetNewValue(
+			"RenRotFileNameOriginal",
+			$tags{'RenRotFileNameOriginal'}{value},
+			Group => $tags{'RenRotFileNameOriginal'}{group}
+	);
 }
 
 ########################################################################################
@@ -1127,7 +1141,7 @@ sub rotateImg {
 		rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die );
 	}
 	rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die );
-	
+
 	# writing the changes to the EXIFs
 	exifWriter($exifAfterRot, $oldfile);
 }
