@@ -1,4 +1,8 @@
 $Log$
+Revision 1.176  2007/06/25 18:55:51  zeus
+Default behaviour changed to --no-use-color.
+contactSheetGenerator() added, POD for it added.
+
 Revision 1.175  2007/01/13 16:01:46  andy
 Split our tag writting to separate function.
 
@@ -678,4 +682,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

@@ -70,7 +70,7 @@ my %cfgOpts = (
 			'mtime' => 1,
 			'name template' => '%Y%m%d%H%M%S',
 			'trim' => 1,
-			'use color' => 1,
+			'use color' => 0,
 			'use ipc' => 0,
 	      );
 
@@ -87,6 +87,12 @@ my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
+my $contactSheet = 0;
+my $contactSheetTile = "7x5";	# tile in montage
+my $contactSheetTitle = "Montage Test Via Image::Magick";
+my $contactSheetFile = "montage.jpg";
+my $contactSheetDir = "CS.TMP";
+my $contactSheetThm = 0;	# is $extToProcess files are the thumbnails?
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -304,6 +310,12 @@ sub getOptions {
 					"backup!" => \$backup,
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
+					"contact-sheet-tile=s" => \$contactSheetTile,
+					"contact-sheet" => \$contactSheet,
+					"contact-sheet-title=s" => \$contactSheetTitle,
+					"contact-sheet-file=s" => \$contactSheetFile,
+					"contact-sheet-dir=s" => \$contactSheetDir,
+					"contact-sheet-thm" => \$contactSheetThm,
 					"counter-fixed-field!" => \$countFF,
 					"counter-start=i" => \$countStart,
 					"counter-step=i" => \$countStep,
@@ -345,6 +357,12 @@ sub getOptions {
 	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "   --contact-sheet: ", boolConv($contactSheet),"\n");
+	dbgmsg (3, "   --contact-sheet-tile: $contactSheetTile\n") if (defined $contactSheetTile);
+	dbgmsg (3, "   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
+	dbgmsg (3, "   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
+	dbgmsg (3, "   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
+	dbgmsg (3, "   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
 	dbgmsg (3, "   --counter-start: $countStart",
 		   "   --counter-step: $countStep",
 		   "   --counter-fixed-field: ", boolConv($countFF), "\n");
@@ -971,6 +989,146 @@ sub aggregationProcess {
 
 ########################################################################################
 #
+# contactSheetGenerator(): requires -e
+#
+sub contactSheetGenerator {
+	return if (not $contactSheet);
+	my $exifToolObj = shift;
+	my $title = $contactSheetTitle;
+	my $workdir = $contactSheetDir . "/";
+	my $m = $contactSheetFile;
+	my $file;
+	my $info;
+	my $infothm;
+	my $ThumbnailOriginal;
+	my $width;
+	my $height;
+	my $size = 0;
+	my @thumbnailes;
+	my @thumbnailes_sorted;
+	my $orientation;
+	my $filefull;
+
+	my $exifToolObjThm = new Image::ExifTool;
+
+	use Image::Magick;
+	my $image = Image::Magick->new;
+
+	if ( not -d $workdir ) {
+		mkdir $workdir;
+	}
+
+	use File::Copy;
+
+	procmsg ("CONTACT SHEET GENERATION\n");
+	procmsg ("========================\n");
+
+	foreach $file (keys %filenameshash) {	# no sort since it'll be sorted below
+		$info = $exifToolObj->ImageInfo($file);
+		$orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
+		$filefull = $file;
+
+		if ( $contactSheetThm != 0
+		     and defined $orientation and $orientation > 1 ) {
+			$filefull = rotmont ( $file, $rotorient{$orientation}, $workdir );
+		}
+		elsif ( $contactSheetThm != 0
+		     and defined $orientation and $orientation == 1 ) {		# we need this since rotated img'll be @ $workdir, but others in current
+	     		$ThumbnailOriginal = $workdir . $file;
+	     		copy($file, $ThumbnailOriginal) or die "copy failed: $!";
+			$filefull = $ThumbnailOriginal;
+		}
+		elsif ( $contactSheetThm == 0 and defined ${$$info{ThumbnailImage}} ) {
+			$ThumbnailOriginal = $workdir . $file;
+			unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
+				die "$ThumbnailOriginal wasn't opened!\n";
+			}
+			binmode OLDTHUMBNAIL;
+			print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+			unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
+
+			if ( not defined $orientation ) {
+				$orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
+			}
+
+			if ( defined $orientation and $orientation > 1 ) {
+				$filefull = rotmont ( $ThumbnailOriginal , $orientation, "" );
+			}
+			else {
+				$filefull = $ThumbnailOriginal;
+			}
+		}
+		elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
+			warn "WARNING: $filefull has no ThumbnailImage tag, skiping.\n";
+			next;
+		}
+
+		$infothm = $exifToolObjThm->ImageInfo($filefull);
+		$width = $exifToolObjThm->GetValue("ImageWidth");
+		$height = $exifToolObjThm->GetValue("ImageHeight");
+		if ( $width > $size ) { $size = $width; }
+		if ( $height > $size ) { $size = $height; }
+
+		push (@thumbnailes, $filefull);
+	}
+	@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
+
+	foreach $file ( @thumbnailes_sorted ) {
+		$image->Read("jpg:".$file);
+	}
+
+	my $montage = $image->Montage(background=>'#FFF',
+		bordercolor=>'#DDD',
+		mattecolor=>'#CCC',
+		label=>'%t',
+		frame=>'5',
+		geometry=>$size . "x" . $size . "+4+4",
+		pointsize=>'11',
+		shadow=>'True',
+		title=>$title,
+		tile=>$contactSheetTile);
+
+	warn "$montage" if !ref($montage);  # print the error message
+
+	undef $image;
+
+	procmsg ("Montage is started, wait a bit please ...\n");
+
+	#my $wnum = $montage->Write(filename=>$m, quality=>85, compression=>'JPEG2000', interlace=>'Partition');
+	$montage->Set(filename=>$m, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+	my $wnum = $montage->Write();
+
+	if ( not $wnum ) {
+		procmsg ("Montage've finished successfully!\n\n");
+	}
+	else {
+		errmsg ("$wnum\n\n");
+	}
+
+	chdir $workdir;
+	unlink <*>;
+	chdir "..";
+	rmdir $workdir;
+}
+
+# rotmont() rotates thumbnails for montage
+sub rotmont {
+	my $fileorig = shift;	# pathless filename of the rotated file
+	my $angle = shift;
+	my $theworkdir = shift;
+	my $rotate = Image::Magick->new;
+	my $res = $theworkdir.$fileorig;
+
+	$rotate->Read("JPEG:".$fileorig);
+	$rotate->Rotate(degrees=>$angle);
+	$rotate->Write(filename=>"JPEG:".$res, quality=>95, compression=>'JPEG2000');
+	undef $rotate;
+
+	return $res;
+}
+
+########################################################################################
+#
 # makeDir() makes one level directory
 #
 sub makeDir {
@@ -1284,6 +1442,14 @@ Aggregating options:
       --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
       --aggr-virtual-directory <DIR> root directory for virtual aggregation
 
+Contact Sheet options:
+	--contact-sheet		to create the contact sheet
+	--contact-sheet-tile	tile in montage, MxN
+	--contact-sheet-title	the title of the montage
+	--contact-sheet-file <FILE>	name of the montage file/s
+	--contact-sheet-dir <DIR>	the temporary montage dir
+	--contact-sheet-thm	files for the montage are thumbnails already
+
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
       --user-comment <COMMENT>	file with text to put into UserComment tag
@@ -1556,6 +1722,7 @@ if ($countFF != 0) {
 
 renRotProcess($exifTool, $counterSize);
 aggregationProcess($exifTool, $counterSize);
+contactSheetGenerator($exifTool);
 
 __END__
 
@@ -1840,6 +2007,36 @@ output version information and exit
 
 =back
 
+=head1 B<CONTACT SHEET GENERATOR>
+
+=item B<--contact-sheet>
+
+to create the contact sheet. This time it works with ThumbnailImage EXIFs
+and the files defined as thumbnails (see option B<--contact-sheet-thm> below)
+
+=item B<--contact-sheet-tile> I<STRING>
+
+tile in montage, MxN
+
+=item B<--contact-sheet-title> I<STRING>
+
+the title of the montage
+
+=item B<--contact-sheet-file> F<FILE>
+
+name of the montage file/s
+
+=item B<--contact-sheet-dir> F<DIR>
+
+the temporary montage dir (created in the begining and deleted at the
+end of the process)
+
+=item B<--contact-sheet-thm>
+
+files for the montage are thumbnails already
+
+=over
+
 =head1 B<TEMPLATE EXAMPLES>
 
 The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following
@@ -2066,13 +2263,13 @@ This doesn't occure for Perl v.5.6.1.
 
 =head1 AUTHORS
 
-Copyright 2005-2006, Zeus Panchenko, Andy Shevchenko.
+Copyright 2005-2007, Zeus Panchenko, Andy Shevchenko.
 
 This library is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Image::ExifTool(3pm)|Image::ExifTool>,L<exiftool(1)>,L<jpegtran(1)>
+L<Image::ExifTool(3pm)|Image::ExifTool>,L<exiftool(1)>,L<jpegtran(1)>,L<Image::Magick(3pm)|Image::Magick>
 
 =cut
