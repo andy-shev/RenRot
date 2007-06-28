@@ -1,4 +1,9 @@
 $Log$
+Revision 1.177  2007/06/28 12:18:31  zeus
+thmgen() -  thumbnail stub generator function added. If the image has no
+thumbnailimage, than thmbgen() generates stub image to place instead of
+the absent one.
+
 Revision 1.176  2007/06/25 18:55:51  zeus
 Default behaviour changed to --no-use-color.
 contactSheetGenerator() added, POD for it added.
@@ -682,3 +687,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

@@ -1059,8 +1059,13 @@ sub contactSheetGenerator {
 			}
 		}
 		elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
-			warn "WARNING: $filefull has no ThumbnailImage tag, skiping.\n";
-			next;
+			procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+			if ( not -f $workdir."thmbstub.jpg" ) {
+				thmbgen($workdir,"thmbstub.jpg");
+				procmsg ( "Stub thumbnail image've been created.\n" );
+			}
+			copy($workdir."thmbstub.jpg",$workdir.$file);
+			$filefull = $workdir.$file;
 		}
 
 		$infothm = $exifToolObjThm->ImageInfo($filefull);
@@ -1109,6 +1114,30 @@ sub contactSheetGenerator {
 	unlink <*>;
 	chdir "..";
 	rmdir $workdir;
+}
+
+# thumbnail stub generator
+sub thmbgen {
+	my $wrkdir = shift;
+	my $thmbname = shift;
+	$thmbname = $wrkdir.$thmbname;
+	my $size = "160x120";
+	my $text = "thumbnail\n\nNA";
+
+	my $thmb = Image::Magick->new;
+
+	$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
+	$thmb->ReadImage('xc:white');
+	$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text,gravity=>'Center');
+	my $thmbnum = $thmb->Write();
+
+	if ( $thmbnum ) {
+		errmsg ("$thmbnum\n\n");
+	}
+
+
+	undef $thmb;
+
 }
 
 # rotmont() rotates thumbnails for montage
