@@ -1,4 +1,9 @@
 $Log$
+Revision 1.178  2007/07/04 20:05:41  zeus
+check for availability of Image::Magick was added.
+EXIF writing to the montage files was added.
+some debug and error messages were added.
+
 Revision 1.177  2007/06/28 12:18:31  zeus
 thmgen() -  thumbnail stub generator function added. If the image has no
 thumbnailimage, than thmbgen() generates stub image to place instead of
@@ -687,4 +692,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

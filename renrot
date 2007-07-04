@@ -119,6 +119,7 @@ my $useIPC;		# rotate thumbnail via pipe
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
+my $isThereIM = 0;	# is there Image::Magick package?
 
 ########################################################################################
 #
@@ -294,6 +295,15 @@ sub boolConverter {
 
 ########################################################################################
 #
+# isTherePackage() checks availability of some package renrot could be dependent of
+#
+sub isTherePackage {
+	my $pkg = shift;
+	return undef unless eval "require $pkg";
+}
+
+########################################################################################
+#
 # getOptions() parses command line arguments
 #
 sub getOptions {
@@ -410,6 +420,15 @@ sub getOptions {
 	if ($getOptions == 0) {
 		usage();
 		exit 1;
+	}
+
+	if ($contactSheet == 1 and defined isTherePackage("Image::Magick")) {
+		$isThereIM = 1;
+		dbgmsg (1, "We have Image::Magick package and are willing to proceed with --contact-sheet related functionality.\n");
+	}
+	else {
+		errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
+		errmsg ("Contact Sheet generation disabled.\n\n");
 	}
 
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
@@ -991,169 +1010,199 @@ sub aggregationProcess {
 #
 # contactSheetGenerator(): requires -e
 #
-sub contactSheetGenerator {
-	return if (not $contactSheet);
-	my $exifToolObj = shift;
-	my $title = $contactSheetTitle;
-	my $workdir = $contactSheetDir . "/";
-	my $m = $contactSheetFile;
-	my $file;
-	my $info;
-	my $infothm;
-	my $ThumbnailOriginal;
-	my $width;
-	my $height;
-	my $size = 0;
-	my @thumbnailes;
-	my @thumbnailes_sorted;
-	my $orientation;
-	my $filefull;
+if ($isThereIM) {
+	sub contactSheetGenerator {
+		return if (not $contactSheet);
+		my $exifToolObj = shift;
+		my $title = $contactSheetTitle;
+		my $workdir = $contactSheetDir . "/";
+		my $m = $contactSheetFile;
+		my $file;
+		my $info;
+		my $infothm;
+		my $ThumbnailOriginal;
+		my $width;
+		my $height;
+		my $size = 0;
+		my @thumbnailes;
+		my @thumbnailes_sorted;
+		my $orientation;
+		my $filefull;
 
-	my $exifToolObjThm = new Image::ExifTool;
+		use Image::Magick;
+		my $image = Image::Magick->new;
 
-	use Image::Magick;
-	my $image = Image::Magick->new;
-
-	if ( not -d $workdir ) {
-		mkdir $workdir;
-	}
-
-	use File::Copy;
-
-	procmsg ("CONTACT SHEET GENERATION\n");
-	procmsg ("========================\n");
-
-	foreach $file (keys %filenameshash) {	# no sort since it'll be sorted below
-		$info = $exifToolObj->ImageInfo($file);
-		$orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
-		$filefull = $file;
-
-		if ( $contactSheetThm != 0
-		     and defined $orientation and $orientation > 1 ) {
-			$filefull = rotmont ( $file, $rotorient{$orientation}, $workdir );
+		if ( not -d $workdir ) {
+			mkdir $workdir;
 		}
-		elsif ( $contactSheetThm != 0
-		     and defined $orientation and $orientation == 1 ) {		# we need this since rotated img'll be @ $workdir, but others in current
-	     		$ThumbnailOriginal = $workdir . $file;
-	     		copy($file, $ThumbnailOriginal) or die "copy failed: $!";
-			$filefull = $ThumbnailOriginal;
-		}
-		elsif ( $contactSheetThm == 0 and defined ${$$info{ThumbnailImage}} ) {
-			$ThumbnailOriginal = $workdir . $file;
-			unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
-				die "$ThumbnailOriginal wasn't opened!\n";
-			}
-			binmode OLDTHUMBNAIL;
-			print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-			unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
 
-			if ( not defined $orientation ) {
-				$orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
-			}
+		use File::Copy;
 
-			if ( defined $orientation and $orientation > 1 ) {
-				$filefull = rotmont ( $ThumbnailOriginal , $orientation, "" );
+		procmsg ("CONTACT SHEET GENERATION\n");
+		procmsg ("========================\n");
+
+		foreach $file (keys %filenameshash) {	# no sort since it'll be sorted below
+			$info = $exifToolObj->ImageInfo($file);
+			$orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
+			$filefull = $file;
+
+			if ( $contactSheetThm != 0
+			     and defined $orientation and $orientation > 1 ) {
+				$filefull = rotmont ( $file, $rotorient{$orientation}, $workdir );
 			}
-			else {
+			elsif ( $contactSheetThm != 0
+			     and defined $orientation and $orientation == 1 ) {		# we need this since rotated img'll be @ $workdir, but others in current
+		     		$ThumbnailOriginal = $workdir . $file;
+		     		copy($file, $ThumbnailOriginal) or die "copy failed: $!";
 				$filefull = $ThumbnailOriginal;
 			}
-		}
-		elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
-			procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
-			if ( not -f $workdir."thmbstub.jpg" ) {
-				thmbgen($workdir,"thmbstub.jpg");
-				procmsg ( "Stub thumbnail image've been created.\n" );
+			elsif ( $contactSheetThm == 0 and defined ${$$info{ThumbnailImage}} ) {
+				$ThumbnailOriginal = $workdir . $file;
+				unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
+					die "$ThumbnailOriginal wasn't opened!\n";
+				}
+				binmode OLDTHUMBNAIL;
+				print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+				unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
+
+				if ( not defined $orientation ) {
+					$orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
+				}
+
+				if ( defined $orientation and $orientation > 1 ) {
+					$filefull = rotmont ( $ThumbnailOriginal , $orientation, "" );
+				}
+				else {
+					$filefull = $ThumbnailOriginal;
+				}
 			}
-			copy($workdir."thmbstub.jpg",$workdir.$file);
-			$filefull = $workdir.$file;
+			elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
+				procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+				if ( not -f $workdir."thmbstub.jpg" ) {
+					thmbgen($workdir,"thmbstub.jpg");
+					procmsg ( "Stub thumbnail image've been created.\n" );
+				}
+				copy($workdir."thmbstub.jpg",$workdir.$file);
+				$filefull = $workdir.$file;
+			}
+
+			$infothm = $exifToolObj->ImageInfo($filefull);
+			$width = $exifToolObj->GetValue("ImageWidth");
+			$height = $exifToolObj->GetValue("ImageHeight");
+			if ( $width > $size ) { $size = $width; }
+			if ( $height > $size ) { $size = $height; }
+
+			push (@thumbnailes, $filefull);
+		}
+		@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
+
+		my $readres;
+		foreach $file ( @thumbnailes_sorted ) {
+			$readres = $image->Read("jpg:".$file);
+			if ( not $readres ) {
+				dbgmsg (4,"$file was successfully red.\n");
+			}
+			else {
+				errmsg ("Image::Magick error: $readres\n\n");
+			}
 		}
 
-		$infothm = $exifToolObjThm->ImageInfo($filefull);
-		$width = $exifToolObjThm->GetValue("ImageWidth");
-		$height = $exifToolObjThm->GetValue("ImageHeight");
-		if ( $width > $size ) { $size = $width; }
-		if ( $height > $size ) { $size = $height; }
+		dbgmsg (1,"Montage is started, wait a bit please ...\n");
 
-		push (@thumbnailes, $filefull);
+		my $montage = $image->Montage(background=>'#FFF',
+			bordercolor=>'#DDD',
+			mattecolor=>'#CCC',
+			label=>'%t',
+			frame=>'5',
+			geometry=>$size . "x" . $size . "+4+4",
+			pointsize=>'11',
+			shadow=>'True',
+			title=>$title,
+			tile=>$contactSheetTile);
+
+		if ( not ref($montage) ) {
+			errmsg ("Image::Magick error: $montage\n\n");
+		}
+		else {
+			dbgmsg (1,"Montage've finished successfully.\n");
+		}
+
+		undef $image;
+
+		$montage->Set(filename=>'jpg:'.$m, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+		my $writeres = $montage->Write();
+
+		my $montagenum = scalar @$montage;
+		if ( not $writeres ) {
+			dbgmsg (1,"Write've finished successfully, written $montagenum images.\n\n");
+		}
+		else {
+			errmsg ("Image::Magick error: $writeres\n\n");
+		}
+
+		chdir $workdir;
+		unlink <*>;
+		chdir "..";
+		rmdir $workdir;
+
+		my $infoMontage;
+		my ($mbase,$mext) = split(/\./, $m);
+		my $monfilename;
+		for ( my $monit = 0 ; $monit < $montagenum ; $monit++) {
+			if ( $montagenum == 1 ) {
+				$monfilename = $m;
+			}
+			else {
+				$monfilename = $mbase . "-" . $monit . "." . $mext;
+			}
+			dbgmsg (4, "Montage was put to $monfilename \n");
+
+			$infoMontage = $exifToolObj->ImageInfo($monfilename);
+			# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+			saveOurHdrs($exifToolObj, $infoMontage, $monfilename);
+
+			# Writing tags.
+			tagWriter($exifToolObj, $monfilename);
 	}
-	@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
-
-	foreach $file ( @thumbnailes_sorted ) {
-		$image->Read("jpg:".$file);
-	}
-
-	my $montage = $image->Montage(background=>'#FFF',
-		bordercolor=>'#DDD',
-		mattecolor=>'#CCC',
-		label=>'%t',
-		frame=>'5',
-		geometry=>$size . "x" . $size . "+4+4",
-		pointsize=>'11',
-		shadow=>'True',
-		title=>$title,
-		tile=>$contactSheetTile);
-
-	warn "$montage" if !ref($montage);  # print the error message
-
-	undef $image;
-
-	procmsg ("Montage is started, wait a bit please ...\n");
-
-	#my $wnum = $montage->Write(filename=>$m, quality=>85, compression=>'JPEG2000', interlace=>'Partition');
-	$montage->Set(filename=>$m, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-	my $wnum = $montage->Write();
-
-	if ( not $wnum ) {
-		procmsg ("Montage've finished successfully!\n\n");
-	}
-	else {
-		errmsg ("$wnum\n\n");
-	}
-
-	chdir $workdir;
-	unlink <*>;
-	chdir "..";
-	rmdir $workdir;
-}
-
-# thumbnail stub generator
-sub thmbgen {
-	my $wrkdir = shift;
-	my $thmbname = shift;
-	$thmbname = $wrkdir.$thmbname;
-	my $size = "160x120";
-	my $text = "thumbnail\n\nNA";
-
-	my $thmb = Image::Magick->new;
-
-	$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-	$thmb->ReadImage('xc:white');
-	$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text,gravity=>'Center');
-	my $thmbnum = $thmb->Write();
-
-	if ( $thmbnum ) {
-		errmsg ("$thmbnum\n\n");
 	}
 
+	# thumbnail stub generator
+	sub thmbgen {
+		my $wrkdir = shift;
+		my $thmbname = shift;
+		$thmbname = $wrkdir.$thmbname;
+		my $size = "160x120";
+		my $text = "thumbnail\n\nNA";
 
-	undef $thmb;
+		my $thmb = Image::Magick->new;
 
-}
+		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
+		$thmb->ReadImage('xc:white');
+		$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
+		my $thmbnum = $thmb->Write();
 
-# rotmont() rotates thumbnails for montage
-sub rotmont {
-	my $fileorig = shift;	# pathless filename of the rotated file
-	my $angle = shift;
-	my $theworkdir = shift;
-	my $rotate = Image::Magick->new;
-	my $res = $theworkdir.$fileorig;
+		if ( $thmbnum ) {
+			errmsg ("$thmbnum\n\n");
+		}
 
-	$rotate->Read("JPEG:".$fileorig);
-	$rotate->Rotate(degrees=>$angle);
-	$rotate->Write(filename=>"JPEG:".$res, quality=>95, compression=>'JPEG2000');
-	undef $rotate;
+		undef $thmb;
+	}
 
-	return $res;
+	# rotmont() rotates thumbnails for montage
+	sub rotmont {
+		my $fileorig = shift;	# pathless filename of the rotated file
+		my $angle = shift;
+		my $theworkdir = shift;
+		my $rotate = Image::Magick->new;
+		my $res = $theworkdir.$fileorig;
+
+		$rotate->Read("JPEG:".$fileorig);
+		$rotate->Rotate(degrees=>$angle);
+		$rotate->Write(filename=>"JPEG:".$res, quality=>95, compression=>'JPEG2000');
+		undef $rotate;
+
+		return $res;
+	}
 }
 
 ########################################################################################
@@ -1751,7 +1800,10 @@ if ($countFF != 0) {
 
 renRotProcess($exifTool, $counterSize);
 aggregationProcess($exifTool, $counterSize);
-contactSheetGenerator($exifTool);
+
+if ($isThereIM) {
+	contactSheetGenerator($exifTool);
+}
 
 __END__
 
