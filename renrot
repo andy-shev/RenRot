@@ -1030,18 +1030,15 @@ if ($isThereIM) {
 		my $filefull;
 
 		use Image::Magick;
-		my $image = Image::Magick->new;
 
-		if ( not -d $workdir ) {
-			mkdir $workdir;
-		}
+		if ( not -d $workdir ) { mkdir $workdir; }
 
 		use File::Copy;
 
 		procmsg ("CONTACT SHEET GENERATION\n");
 		procmsg ("========================\n");
 
-		foreach $file (keys %filenameshash) {	# no sort since it'll be sorted below
+		foreach $file (keys %filenameshash) { # no sort since it'll be sorted below
 			$info = $exifToolObj->ImageInfo($file);
 			$orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
 			$filefull = $file;
@@ -1051,7 +1048,7 @@ if ($isThereIM) {
 				$filefull = rotmont ( $file, $rotorient{$orientation}, $workdir );
 			}
 			elsif ( $contactSheetThm != 0
-			     and defined $orientation and $orientation == 1 ) {		# we need this since rotated img'll be @ $workdir, but others in current
+			     and defined $orientation and $orientation == 1 ) {	# we need this since rotated img'll be @ $workdir, but others in current
 		     		$ThumbnailOriginal = $workdir . $file;
 		     		copy($file, $ThumbnailOriginal) or die "copy failed: $!";
 				$filefull = $ThumbnailOriginal;
@@ -1096,74 +1093,99 @@ if ($isThereIM) {
 		}
 		@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
 
+		# here it's iteration by tile
+		my ($tileX, $tileY) = split ("x",$contactSheetTile);
+		my $tileMul = $tileX * $tileY;
+		my $csIterationNumber = $#thumbnailes_sorted + 1;
+		my $csFullIterations = int($csIterationNumber/$tileMul);
+		my $csIteration = 0;
+		my $csIterator = 0;
+		my $csIter = 0;
 		my $readres;
-		foreach $file ( @thumbnailes_sorted ) {
-			$readres = $image->Read("jpg:".$file);
-			if ( not $readres ) {
-				dbgmsg (4,"$file was successfully red.\n");
+		my $image;
+		my $writeres;
+		my $montage;
+		my $montagename;
+		my $infoMontage;
+		if ( $csIterationNumber >= $tileX * $tileY ) {
+			for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
+				$image = Image::Magick->new;
+				$montagename = $m . "-" . $csIterator . ".jpg";
+				for ($csIter = $csIterator * $tileMul ; $csIter < ($csIterator * $tileMul + $tileMul) ; $csIter++) {
+					$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
+					if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIter] was successfully red.\n"); }
+					else { errmsg ("Image::Magick error: $readres\n\n"); }
+				}
+				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
+				$montage = $image->Montage(background=>'#FFF',
+							bordercolor=>'#DDD',
+							mattecolor=>'#CCC',
+							label=>'%t',
+							frame=>'5',
+							geometry=>$size . "x" . $size . "+4+4",
+							pointsize=>'11',
+							shadow=>'True',
+							title=>$title,
+							tile=>$contactSheetTile);
+			
+				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
+				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
+				$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+				$writeres = $montage->Write();
+				if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
+				else { errmsg ("Image::Magick error: $writeres\n\n"); }
+				undef $image;
+				$infoMontage = $exifToolObj->ImageInfo($montagename);
+				# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+				saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+				# Writing tags.
+				tagWriter($exifToolObj, $montagename);
+
 			}
-			else {
-				errmsg ("Image::Magick error: $readres\n\n");
-			}
 		}
 
-		dbgmsg (1,"Montage is started, wait a bit please ...\n");
-
-		my $montage = $image->Montage(background=>'#FFF',
-			bordercolor=>'#DDD',
-			mattecolor=>'#CCC',
-			label=>'%t',
-			frame=>'5',
-			geometry=>$size . "x" . $size . "+4+4",
-			pointsize=>'11',
-			shadow=>'True',
-			title=>$title,
-			tile=>$contactSheetTile);
-
-		if ( not ref($montage) ) {
-			errmsg ("Image::Magick error: $montage\n\n");
+		$image = Image::Magick->new;
+		$montagename = $m . "-" . $csIterator . ".jpg";
+		for ($csIteration = $csIterator-- * $tileMul; $csIteration < $csIterationNumber ; $csIteration++) {
+			$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
+			if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
+			else { errmsg ("Image::Magick error: $readres\n\n"); }
 		}
-		else {
-			dbgmsg (1,"Montage've finished successfully.\n");
-		}
+
+		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
+	
+		$montage = $image->Montage(background=>'#FFF',
+					bordercolor=>'#DDD',
+					mattecolor=>'#CCC',
+					label=>'%t',
+					frame=>'5',
+					geometry=>$size . "x" . $size . "+4+4",
+					pointsize=>'11',
+					shadow=>'True',
+					title=>$title,
+					tile=>$contactSheetTile);
+	
+		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
+		else { dbgmsg (1,"Montage've finished successfully.\n"); }
 
 		undef $image;
+		$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+		$writeres = $montage->Write();
 
-		$montage->Set(filename=>'jpg:'.$m, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-		my $writeres = $montage->Write();
+		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
+		else { errmsg ("Image::Magick error: $writeres\n\n"); }
 
-		my $montagenum = scalar @$montage;
-		if ( not $writeres ) {
-			dbgmsg (1,"Write've finished successfully, written $montagenum images.\n\n");
-		}
-		else {
-			errmsg ("Image::Magick error: $writeres\n\n");
-		}
+		$infoMontage = $exifToolObj->ImageInfo($montagename);
+		# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+		saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+		# Writing tags.
+		tagWriter($exifToolObj, $montagename);
 
 		chdir $workdir;
 		unlink <*>;
 		chdir "..";
 		rmdir $workdir;
 
-		my $infoMontage;
-		my ($mbase,$mext) = split(/\./, $m);
-		my $monfilename;
-		for ( my $monit = 0 ; $monit < $montagenum ; $monit++) {
-			if ( $montagenum == 1 ) {
-				$monfilename = $m;
-			}
-			else {
-				$monfilename = $mbase . "-" . $monit . "." . $mext;
-			}
-			dbgmsg (4, "Montage was put to $monfilename \n");
-
-			$infoMontage = $exifToolObj->ImageInfo($monfilename);
-			# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
-			saveOurHdrs($exifToolObj, $infoMontage, $monfilename);
-
-			# Writing tags.
-			tagWriter($exifToolObj, $monfilename);
-	}
 	}
 
 	# thumbnail stub generator
@@ -1181,9 +1203,7 @@ if ($isThereIM) {
 		$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
-		if ( $thmbnum ) {
-			errmsg ("$thmbnum\n\n");
-		}
+		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
 
 		undef $thmb;
 	}
