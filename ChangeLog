@@ -1,4 +1,9 @@
 $Log$
+Revision 1.181  2007/07/22 17:23:21  zeus
+version number changed.
+gradient fill added to the thmbgen().
+watermark added to the top left corner of each contact sheet file.
+
 Revision 1.180  2007/07/22 09:56:38  zeus
 written own contact sheet files numeration engine, instead of ImageMagick
 native engine.
@@ -699,3 +704,4 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
+

@@ -17,7 +17,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070704231250";		# the version of this script
+our $VERSION = "0.25.20070722201725";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -90,7 +90,7 @@ my $configFile;		# configuration file
 my $contactSheet = 0;
 my $contactSheetTile = "7x5";	# tile in montage
 my $contactSheetTitle = "Montage Test Via Image::Magick";
-my $contactSheetFile = "montage.jpg";
+my $contactSheetFile = "montage";
 my $contactSheetDir = "CS.TMP";
 my $contactSheetThm = 0;	# is $extToProcess files are the thumbnails?
 my $countFF = 1;	# use fixed field for counter
@@ -1131,6 +1131,7 @@ if ($isThereIM) {
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
 				$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+				$montage->Annotate(pointsize=>8, fill=>'lightgray', text=>'RenRot (c)', geometry=>'0x0+1+10');
 				$writeres = $montage->Write();
 				if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 				else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1170,6 +1171,7 @@ if ($isThereIM) {
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+		$montage->Annotate(pointsize=>8, fill=>'lightgray', text=>'RenRot (c)', geometry=>'0x0+1+10');
 		$writeres = $montage->Write();
 
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
@@ -1199,8 +1201,10 @@ if ($isThereIM) {
 		my $thmb = Image::Magick->new;
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-		$thmb->ReadImage('xc:white');
-		$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
+		#$thmb->ReadImage('xc:white');
+		$thmb->ReadImage('gradient:#ffffff-#909090');
+		#$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
+		$thmb->Annotate(pointsize=>25, fill=>'#888888', text=>$text, gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
@@ -2125,7 +2129,7 @@ the title of the montage
 
 =item B<--contact-sheet-file> F<FILE>
 
-name of the montage file/s
+extentionless name base of the montage file/s
 
 =item B<--contact-sheet-dir> F<DIR>
 
