@@ -1,4 +1,7 @@
 $Log$
+Revision 1.182  2007/07/22 17:48:03  zeus
+renrot URL added to the watermark of contact sheet generated.
+
 Revision 1.181  2007/07/22 17:23:21  zeus
 version number changed.
 gradient fill added to the thmbgen().
@@ -704,4 +707,3 @@ Id keyword is added to renrot file.
 
 Revision 1.1  2005/10/17 13:39:38  zeus
 ChangeLog file is added. Its the very begining.
-

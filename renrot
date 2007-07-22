@@ -17,7 +17,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070722201725";		# the version of this script
+our $VERSION = "0.25.20070722204045";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -1131,7 +1131,8 @@ if ($isThereIM) {
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
 				$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-				$montage->Annotate(pointsize=>8, fill=>'lightgray', text=>'RenRot (c)', geometry=>'0x0+1+10');
+				$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'RenRot (c)', x=>1, y=>10);
+				$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'http://freshmeat.net/projects/renrot/', x=>1, y=>20);
 				$writeres = $montage->Write();
 				if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 				else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1171,7 +1172,8 @@ if ($isThereIM) {
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-		$montage->Annotate(pointsize=>8, fill=>'lightgray', text=>'RenRot (c)', geometry=>'0x0+1+10');
+		$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'RenRot (c)', x=>1, y=>10);
+		$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'http://freshmeat.net/projects/renrot/', x=>1, y=>20);
 		$writeres = $montage->Write();
 
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
