@@ -1207,7 +1207,7 @@ if ($isThereIM) {
 		#$thmb->ReadImage('xc:white');
 		$thmb->ReadImage('gradient:#ffffff-#909090');
 		#$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
-		$thmb->Annotate(pointsize=>25, fill=>'#888888', text=>$text, gravity=>'Center');
+		$thmb->Annotate(pointsize=>25, fill=>'#888888', font=>'Helvetica', text=>$text, gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
