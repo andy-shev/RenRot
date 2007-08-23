@@ -1750,13 +1750,15 @@ if ($subFileSet eq "") {
 
 # if no file is given
 if (scalar(@files) == 0) {
-	opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
-	my $file;
-	while ( defined ( $file = readdir DIR )) {
-		next if (not -f $file);			# skip absent file or not a file
-		push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
-	}
-	closedir(DIR);
+	# opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
+	# my $file;
+	# while ( defined ( $file = readdir DIR )) {
+	# 	next if (not -f $file);			# skip absent file or not a file
+	# 	push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
+	# }
+	# closedir(DIR);
+	my $fileMask = "*" . $extToProcess;
+	@files = grep { -f } glob( $fileMask );
 }
 
 # independently of @files initialization doing this
