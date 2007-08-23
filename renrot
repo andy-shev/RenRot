@@ -18,7 +18,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070727";		# the version of this script
+our $VERSION = "0.25.20070810";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -127,10 +127,6 @@ my $isThereIM = 0;	# is there Image::Magick package?
 # Tags hash for injecting to EXIF when renaming
 #
 my %tags = (
-		'Software' => {
-			value => sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION),
-			group => 'EXIF',
-		},
 		'RenRotProcessingTimestamp' => {
 			value => timeNow(),
 			group => 'RenRot',
@@ -423,13 +419,27 @@ sub getOptions {
 		exit 1;
 	}
 
-	if ($contactSheet == 1 and defined isTherePackage("Image::Magick")) {
+	# is there ImageMagick
+	if (defined isTherePackage("Image::Magick")) {
 		$isThereIM = 1;
-		dbgmsg (1, "We have Image::Magick package and are willing to proceed with --contact-sheet related functionality.\n");
+		dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
 	}
-	else {
+	elsif ($contactSheet == 1 and not defined isTherePackage("Image::Magick")) {
 		errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
 		errmsg ("Contact Sheet generation disabled.\n\n");
+	}
+
+	# preparing Software tag according the usage or not of ImageMagick
+	if ($isThereIM == 1) {
+		my $imverobj = Image::Magick->new;
+		my ($IMName, $IMVer, $IMrest) = split(/ /, $imverobj->Get('version'));
+		$tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s", $VERSION, $Image::ExifTool::VERSION, $IMName, $IMVer);
+		$tags{'Software'}{'group'} = 'EXIF';
+		undef $imverobj;
+	}
+	else {
+		$tags{'Software'}{'value'} = sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION);
+		$tags{'Software'}{'group'} = 'EXIF';
 	}
 
 	# Change user's parameter '*.ext' or 'ext' to '.ext'
@@ -1118,16 +1128,17 @@ if ($isThereIM) {
 					else { errmsg ("Image::Magick error: $readres\n\n"); }
 				}
 				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
-				$montage = $image->Montage(background=>'#FFF',
-							bordercolor=>'#DDD',
-							mattecolor=>'#CCC',
-							label=>'%t',
-							frame=>'5',
-							geometry=>$size . "x" . $size . "+4+4",
-							pointsize=>'11',
-							shadow=>'True',
-							title=>$title,
-							tile=>$contactSheetTile);
+				$montage = $image->Montage(background => '#FFF',
+							bordercolor => '#DDD',
+							mattecolor => '#CCC',
+							font => 'Helvetica',
+							label => '%t',
+							frame => '5',
+							geometry => $size . "x" . $size . "+4+4",
+							pointsize => '11',
+							shadow => 'True',
+							title => $title,
+							tile => $contactSheetTile);
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
@@ -1157,16 +1168,17 @@ if ($isThereIM) {
 
 		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
 	
-		$montage = $image->Montage(background=>'#FFF',
-					bordercolor=>'#DDD',
-					mattecolor=>'#CCC',
-					label=>'%t',
-					frame=>'5',
-					geometry=>$size . "x" . $size . "+4+4",
-					pointsize=>'11',
-					shadow=>'True',
-					title=>$title,
-					tile=>$contactSheetTile);
+		$montage = $image->Montage(background => '#FFF',
+					bordercolor => '#DDD',
+					mattecolor => '#CCC',
+					font => 'Helvetica',
+					label => '%t',
+					frame => '5',
+					geometry => $size . "x" . $size . "+4+4",
+					pointsize => '11',
+					shadow => 'True',
+					title => $title,
+					tile => $contactSheetTile);
 	
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
