@@ -17,7 +17,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070722204045";		# the version of this script
+our $VERSION = "0.25.20070725";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
@@ -1848,11 +1848,10 @@ containing EXIF data and can do two things with them - rename and rotate. It
 runs in batch mode in current or set with B<--work-directory> directory, as
 well as selective mode for separate files given as arguments in command line.
 
-RenRot renames files according the DateTimeOriginal and FileModifyDate EXIF
-tags, if they exists. Otherwise, the name will be set according to the current
-time stamp and will look as YYYYmmddHHMMSS.XXXX.ext, where XXXX is whether
-file ID, if exists in EXIF (as for Canon) or incremental suffix to the name
-YYYYmmddHHMMSS.
+B<Renrot> renames files according the flexible name template (allowing DateTimeOriginal 
+and FileModifyDate EXIF tags, if they exist, otherwise, the name will be set 
+according to the current timestamp). Further, renrot can aggregate files according 
+shooting time period or given template.
 
 Additionally, it rotates files and their thumbnails, accordingly Orientation
 EXIF tag. When the tag is absent or miss set, the program allows to rotate the
@@ -2366,7 +2365,7 @@ Out of memory during "large" request for XXXX bytes ...
 
 =back
 
-This doesn't occure for Perl v.5.6.1.
+This doesn't occure for Perl v.5.6.x
 
 =head1 AUTHORS
 
