@@ -6,6 +6,7 @@
 
 use strict;
 use warnings;
+use diagnostics;
 require 5.006;
 use Time::localtime;
 use Time::Local;
@@ -17,7 +18,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070725";		# the version of this script
+our $VERSION = "0.25.20070727";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
 
 ########################################################################################
