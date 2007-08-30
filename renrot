@@ -73,6 +73,7 @@ my %cfgOpts = (
 			'trim' => 1,
 			'use color' => 0,
 			'use ipc' => 0,
+			'contact sheet' => 0,
 	      );
 
 ########################################################################################
@@ -424,7 +425,7 @@ sub getOptions {
 		$isThereIM = 1;
 		dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
 	}
-	elsif ($contactSheet == 1 and not defined isTherePackage("Image::Magick")) {
+	elsif ($cfgOpts{'contact sheet'} == 1 and not defined isTherePackage("Image::Magick")) {
 		errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
 		errmsg ("Contact Sheet generation disabled.\n\n");
 	}
@@ -1023,7 +1024,7 @@ sub aggregationProcess {
 #
 if ($isThereIM) {
 	sub contactSheetGenerator {
-		return if (not $contactSheet);
+		return if (not $cfgOpts{'contact sheet'});
 		my $exifToolObj = shift;
 		my $title = $contactSheetTitle;
 		my $workdir = $contactSheetDir . "/";
@@ -1727,6 +1728,7 @@ $cfgOpts{'name template'}	= $nameTemplate if (defined $nameTemplate);
 $cfgOpts{'trim'}		= $trim if (defined $trim);
 $cfgOpts{'use color'}		= $useColor if (defined $useColor);
 $cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
+$cfgOpts{'contact sheet'}	= $contactSheet if (defined $contactSheet);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
