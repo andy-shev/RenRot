@@ -74,6 +74,7 @@ my %cfgOpts = (
 			'use color' => 0,
 			'use ipc' => 0,
 			'contact sheet' => 0,
+			'contact sheet tile' => '7x5', 
 	      );
 
 ########################################################################################
@@ -90,7 +91,7 @@ my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $contactSheet = 0;
-my $contactSheetTile = "7x5";	# tile in montage
+my $contactSheetTile;	# tile in montage
 my $contactSheetTitle = "Montage Test Via Image::Magick";
 my $contactSheetFile = "montage";
 my $contactSheetDir = "CS.TMP";
@@ -1106,7 +1107,7 @@ if ($isThereIM) {
 		@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
 
 		# here it's iteration by tile
-		my ($tileX, $tileY) = split ("x",$contactSheetTile);
+		my ($tileX, $tileY) = split ("x",$cfgOpts{'contact sheet tile'});
 		my $tileMul = $tileX * $tileY;
 		my $csIterationNumber = $#thumbnailes_sorted + 1;
 		my $csFullIterations = int($csIterationNumber/$tileMul);
@@ -1139,7 +1140,7 @@ if ($isThereIM) {
 							pointsize => '11',
 							shadow => 'True',
 							title => $title,
-							tile => $contactSheetTile);
+							tile => $cfgOpts{'contact sheet tile'});
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
@@ -1179,7 +1180,7 @@ if ($isThereIM) {
 					pointsize => '11',
 					shadow => 'True',
 					title => $title,
-					tile => $contactSheetTile);
+					tile => $cfgOpts{'contact sheet tile'});
 	
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
@@ -1729,6 +1730,7 @@ $cfgOpts{'trim'}		= $trim if (defined $trim);
 $cfgOpts{'use color'}		= $useColor if (defined $useColor);
 $cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
 $cfgOpts{'contact sheet'}	= $contactSheet if (defined $contactSheet);
+$cfgOpts{'contact sheet tile'}	= $contactSheetTile if (defined $contactSheetTile);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
