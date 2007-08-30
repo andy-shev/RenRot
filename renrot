@@ -74,7 +74,9 @@ my %cfgOpts = (
 			'use color' => 0,
 			'use ipc' => 0,
 			'contact sheet' => 0,
-			'contact sheet tile' => '7x5', 
+			'contact sheet tile' => '7x5',
+			'contact sheet title' => 'Contact Sheet Title',
+			'contact sheet file' => 'cs',
 	      );
 
 ########################################################################################
@@ -91,9 +93,9 @@ my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
 my $contactSheet = 0;
-my $contactSheetTile;	# tile in montage
-my $contactSheetTitle = "Montage Test Via Image::Magick";
-my $contactSheetFile = "montage";
+my $contactSheetTile;	# tile in the montage
+my $contactSheetTitle;	# title for the montage
+my $contactSheetFile;	# file name for the montage
 my $contactSheetDir = "CS.TMP";
 my $contactSheetThm = 0;	# is $extToProcess files are the thumbnails?
 my $countFF = 1;	# use fixed field for counter
@@ -1027,9 +1029,7 @@ if ($isThereIM) {
 	sub contactSheetGenerator {
 		return if (not $cfgOpts{'contact sheet'});
 		my $exifToolObj = shift;
-		my $title = $contactSheetTitle;
 		my $workdir = $contactSheetDir . "/";
-		my $m = $contactSheetFile;
 		my $file;
 		my $info;
 		my $infothm;
@@ -1123,7 +1123,7 @@ if ($isThereIM) {
 		if ( $csIterationNumber >= $tileX * $tileY ) {
 			for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
 				$image = Image::Magick->new;
-				$montagename = $m . "-" . $csIterator . ".jpg";
+				$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
 				for ($csIter = $csIterator * $tileMul ; $csIter < ($csIterator * $tileMul + $tileMul) ; $csIter++) {
 					$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
 					if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIter] was successfully red.\n"); }
@@ -1139,7 +1139,7 @@ if ($isThereIM) {
 							geometry => $size . "x" . $size . "+4+4",
 							pointsize => '11',
 							shadow => 'True',
-							title => $title,
+							title => $cfgOpts{'contact sheet title'},
 							tile => $cfgOpts{'contact sheet tile'});
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
@@ -1161,7 +1161,7 @@ if ($isThereIM) {
 		}
 
 		$image = Image::Magick->new;
-		$montagename = $m . "-" . $csIterator . ".jpg";
+		$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
 		for ($csIteration = $csIterator-- * $tileMul; $csIteration < $csIterationNumber ; $csIteration++) {
 			$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
 			if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
@@ -1179,7 +1179,7 @@ if ($isThereIM) {
 					geometry => $size . "x" . $size . "+4+4",
 					pointsize => '11',
 					shadow => 'True',
-					title => $title,
+					title => $cfgOpts{'contact sheet title'},
 					tile => $cfgOpts{'contact sheet tile'});
 	
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
@@ -1731,6 +1731,8 @@ $cfgOpts{'use color'}		= $useColor if (defined $useColor);
 $cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
 $cfgOpts{'contact sheet'}	= $contactSheet if (defined $contactSheet);
 $cfgOpts{'contact sheet tile'}	= $contactSheetTile if (defined $contactSheetTile);
+$cfgOpts{'contact sheet title'}	= $contactSheetTitle if (defined $contactSheetTitle);
+$cfgOpts{'contact sheet file'}	= $contactSheetFile if (defined $contactSheetFile);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
