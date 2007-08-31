@@ -77,6 +77,7 @@ my %cfgOpts = (
 			'contact sheet tile' => '7x5',
 			'contact sheet title' => 'Contact Sheet Title',
 			'contact sheet file' => 'cs',
+			'contact sheet dir' => 'CS.TMP',
 	      );
 
 ########################################################################################
@@ -96,7 +97,7 @@ my $contactSheet = 0;
 my $contactSheetTile;	# tile in the montage
 my $contactSheetTitle;	# title for the montage
 my $contactSheetFile;	# file name for the montage
-my $contactSheetDir = "CS.TMP";
+my $contactSheetDir;	# tmp directory for the montage operations
 my $contactSheetThm = 0;	# is $extToProcess files are the thumbnails?
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
@@ -1029,7 +1030,7 @@ if ($isThereIM) {
 	sub contactSheetGenerator {
 		return if (not $cfgOpts{'contact sheet'});
 		my $exifToolObj = shift;
-		my $workdir = $contactSheetDir . "/";
+		my $workdir = $cfgOpts{'contact sheet dir'} . "/";
 		my $file;
 		my $info;
 		my $infothm;
@@ -1733,6 +1734,7 @@ $cfgOpts{'contact sheet'}	= $contactSheet if (defined $contactSheet);
 $cfgOpts{'contact sheet tile'}	= $contactSheetTile if (defined $contactSheetTile);
 $cfgOpts{'contact sheet title'}	= $contactSheetTitle if (defined $contactSheetTitle);
 $cfgOpts{'contact sheet file'}	= $contactSheetFile if (defined $contactSheetFile);
+$cfgOpts{'contact sheet dir'}	= $contactSheetDir if (defined $contactSheetDir);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
