@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# $Id$
+# $Id: renrot 299 2007-09-01 08:50:11Z zeus $
 #
 
 use strict;

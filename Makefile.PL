@@ -4,17 +4,25 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'renrot',
     'AUTHOR'		=> 'Zeus Panchenko <zeus@dn.farlep.net>',
-    'VERSION_FROM'	=> 'renrot', # finds $VERSION
+    'VERSION_FROM'	=> 'renrot.pl', # finds $VERSION
     'PREREQ_PM'		=> { 'Image::ExifTool' => 5.72, 'Getopt::Long' => 2.34 },
     'PREREQ_FATAL'	=> 'true',
     'EXE_FILES'		=> [ 'renrot' ],
     'dist'		=> { COMPRESS => 'gzip', SUFFIX => 'gz' },
+    'clean'		=> { FILES => 'renrot' }
 );
 
 package MY;
 
 sub postamble {
     my $postamble = << 'END';
+
+
+renrot: renrot.pl
+	sed "s|PERL_BINARY|$(FULLPERL)|" renrot.pl > renrot
+	chmod +x renrot
+
+
 # Build rpm
 rpm : tardist
 	rpmbuild -ta $(DISTVNAME).tar.$(SUFFIX)
