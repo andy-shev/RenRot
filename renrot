@@ -1,5 +1,4 @@
 #!/usr/local/bin/perl -w
-
 #
 # $Id$
 #
@@ -93,7 +92,7 @@ my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
-my $contactSheet = 0;
+my $contactSheet;       # contact sheet generation
 my $contactSheetTile;	# tile in the montage
 my $contactSheetTitle;	# title for the montage
 my $contactSheetFile;	# file name for the montage
@@ -369,7 +368,7 @@ sub getOptions {
 	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
 	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
 	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
-	dbgmsg (3, "   --contact-sheet: ", boolConv($contactSheet),"\n");
+	dbgmsg (3, "   --contact-sheet: ", boolConv($contactSheet),"\n") if (defined $contactSheet);
 	dbgmsg (3, "   --contact-sheet-tile: $contactSheetTile\n") if (defined $contactSheetTile);
 	dbgmsg (3, "   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
 	dbgmsg (3, "   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
