@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#! PERL_BINARY -w
 #
 # $Id: renrot 299 2007-09-01 08:50:11Z zeus $
 #
@@ -1528,30 +1528,36 @@ infomsg (
 
 Options:
   -c, --config-file <FILE>	configuration file to use
-  -d, --work-directory <DIR>	working directory
-      --exclude <FILE> ...	files to not process. No wildcards.
-      --sub-fileset <FILE>	file with file names to be processed
+  -d, --work-directory <DIR>	set working directory
+      --exclude <FILE> ...	files exclude from processing; no wildcards
+      --sub-fileset <FILE>	read names of the files to be processed from
+                                FILE
   -e, --extension <EXTENSION>	extension of files to process: JPG, jpeg, ...
 
 Renaming options:
   -n, --name-template <TPL>	filename template (see manual for details)
-      --no-rename		no rename needed, default is to rename
-      --counter-fixed-field (*)	set fixed field for counter (used in templates)
-      --counter-start <NUMBER>	start to count files to be renamed from
-      --counter-step <NUMBER>	step for files to be renamed counter
+      --no-rename		do not rename files (default is to rename)
+      --counter-fixed-field (*)	set fixed field width for counter (used in
+                                templates)
+      --counter-start <NUMBER>	start value for the counter of renamed files
+      --counter-step <NUMBER>	increment value for the counter of renamed
+                                files
 
 Rotating options:
-  -r, --rotate-angle <ANGLE>	angle to rotate file and thumbnail by 90, 180, 270
-      --rotate-thumb <ANGLE>	rotate only thumbnail by 90, 180, 270
-      --only-orientation	changing Orientation tag (no real rotation)
-      --no-rotate		no rotation needed, default is to rotate
+  -r, --rotate-angle <ANGLE>	angle to rotate files and thumbnails by 90,
+                                180, 270
+      --rotate-thumb <ANGLE>	rotate only thumbnails by 90, 180, 270
+      --only-orientation	change Orientation tag (no real rotation)
+      --no-rotate		do not rotate (default is to rotate)
       --trim (*)		pass -trim to jpegtran
-      --mtime (*)		set file mtime according to DateTimeOriginal tag
+      --mtime (*)		set file mtime according to DateTimeOriginal
+                                tag
 
 Keywordizing options:
       --keywordize (*)		set Keywords tag
-      --keywords-replace (*)	replace Keywords tag rather than add value to it
-  -k, --keywords-file <FILE>	file with keywords
+      --keywords-replace (*)	replace Keywords tag rather than add values to
+                                it
+  -k, --keywords-file <FILE>	read keywords from FILE
 
 Aggregating options:
       --aggr-mode <MODE>	run aggregation (MODE: none, delta, template)
@@ -1562,30 +1568,34 @@ Aggregating options:
       --aggr-virtual-directory <DIR> root directory for virtual aggregation
 
 Contact Sheet options:
-	--contact-sheet		to create the contact sheet
+	--contact-sheet		create the contact sheet
 	--contact-sheet-tile	tile in montage, MxN
-	--contact-sheet-title	the title of the montage
-	--contact-sheet-file <FILE>	name of the montage file/s
-	--contact-sheet-dir <DIR>	the temporary montage dir
-	--contact-sheet-thm	files for the montage are thumbnails already
+	--contact-sheet-title	set title of the montage
+	--contact-sheet-file <FILE>
+                                name of the montage files
+	--contact-sheet-dir <DIR>
+                                temporary montage dir
+	--contact-sheet-thm	files for montage are already thumbnails
 
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
       --user-comment <COMMENT>	file with text to put into UserComment tag
-  -t, --tag <TAG> ...		existent EXIF tag to set in renamed files
-      --no-tags			no tags writing, default is to write tags
+  -t, --tag <TAG> ...		existing EXIF tag to set in renamed files
+      --no-tags			do not write tags
 
 Colorizing options:
       --use-color (*)		colorized output
 
 Misc options:
-      --dry-run			show what would have been happened
+      --dry-run			do nothing, only print would have been done
       --use-ipc (*)		rotate thumbnail via pipe, rather than via file
-  -v				number of these options defines debug level
+  -v				increment debugging level by 1
   -h, --help			display this help and exit
       --version			output version and exit
 
-(*) The option does not take an argument and may be negated, i.e. prefixed by 'no'. E.g. 'mtime' will allow '--mtime' (positive value will be assigned) and '--nomtime' or '--no-mtime' (negative value will be assigned).
+(*) The options marked with this sign do not take arguments and can be negated,
+i.e. prefixed by 'no'. E.g. '--mtime' sets file mtime value, while '--nomtime'
+or '--no-mtime' disables setting it.
 ");
 }
 
@@ -1865,22 +1875,25 @@ renrot [OPTIONS] [[B<-->] FILE1 FILE2 ...]
 
 =head1 DESCRIPTION
 
-B<RenRot> is intended to work with files of B<--extension> extension,
-containing EXIF data and can do two things with them - rename and rotate. It
-runs in batch mode in current or set with B<--work-directory> directory, as
-well as selective mode for separate files given as arguments in command line.
+B<Renrot> is intended to work with a set of files containing EXIF data and
+can do two things to them -- rename and rotate. A set of files can be given
+either explicitly or using the B<--extension> option, which select the files
+with the given suffix. B<Renrot> operates on files in current working
+directory, unless given the B<--work-directory> option, which changes this
+default.
 
-B<Renrot> renames files according the flexible name template (allowing DateTimeOriginal 
-and FileModifyDate EXIF tags, if they exist, otherwise, the name will be set 
-according to the current timestamp). Further, renrot can aggregate files according 
-shooting time period or given template.
+B<Renrot> renames input files using a flexible name template (which,
+among others, uses DateTimeOriginal and FileModifyDate EXIF tags, if they
+exist, otherwise names the file according to the current timestamp). Further,
+B<renrot> can aggregate files according to the shooting time period or to a
+given template.
 
-Additionally, it rotates files and their thumbnails, accordingly Orientation
-EXIF tag. When the tag is absent or miss set, the program allows to rotate the
-file as well as its thumbnail via B<--rotate-angle> and B<--rotate-thumb>
-options. Now implemented only for JPEG format.
+Additionally, it rotates files and their thumbnails, as per Orientation EXIF
+tag. If that tag is absent, the program allows to set rotation parameters
+using B<--rotate-angle> and B<--rotate-thumb> command line options. This is
+currently implemented only for JPEG format.
 
-The script, also, can place the commentary into:
+The program can also place commentaries into the following locations:
 
 =over
 
@@ -1890,11 +1903,11 @@ The script, also, can place the commentary into:
 
 =back
 
-Personal details could be specified via XMP tags defined in a configuration
+Personal details may be specified via XMP tags defined in a configuration
 file, see L</TAGS> section.
 
-In addition, RenRot can aggregate all files in directories according the given
-date/time pattern template, set with B<--aggr-template>.
+In addition, B<renrot> can aggregate all files in different directories,
+according to a given date/time pattern template, set with B<--aggr-template>.
 
 =head1 OPTIONS
 
@@ -1902,34 +1915,36 @@ date/time pattern template, set with B<--aggr-template>.
 
 =item B<-c> or B<--config-file> F<FILE>
 
-path to the configuration file
+Path to the configuration file.
 
 =item B<-d> or B<--work-directory> F<DIR>
 
-define the working directory
+Define the working directory.
 
 =item B<--exclude> F<FILE>
 
-specify files to exclude. No wildcards are available. For set of files option
-must be occured same times as files given.
+Specify files to exclude. Wildcards are not allowed. If a set of files is
+given, there must be as many occurrences of this option as there are files in
+the set.
 
 =item B<--sub-fileset> F<FILE>
 
-file with file names to be processed. Each file name on separate string.
-Useful when you need process only set of X files among whole Y ones in the
-directory. If specified, all files passed to renrot via command line are
-ignored.
+Get names of files to operate upon from F<FILE>. The file must contain a
+file name per line. This option is useful when you need to process only a
+set of X from Y files in the directory. If specified, the rest of files
+given in the command line is ignored.
 
 =item B<-e> or B<--extension> I<EXTENSION>
 
-extension of files to be processed, JPG, jpeg, CRW, crw, or any other you need.
-The given extension is case-sensivity in related filesystems.
+Process the files with given I<EXTENSION> (JPG, jpeg, CRW, crw, etc).
+Depending on the operating system, the extension search might or might not be
+case-sensitive. 
 
 =item B<-n> or B<--name-template> I<TEMPLATE>
 
-template, which is used for file name building while renaming. It could be
-defined in configuration file (the variable Name Template). The default is
-I<%Y%m%d%H%M%S>. For practical results see L</TEMPLATE EXAMPLES> section.
+A template to use for creating new file names while renaming. It can also be
+defined in the configuration file (variable Name Template). The default is
+I<%Y%m%d%H%M%S>. For practical uses, see L</TEMPLATE EXAMPLES> section.
 
 Interpreted sequences are:
 
@@ -1937,201 +1952,204 @@ Interpreted sequences are:
 
 B<%%>	a literal %
 
-B<%C>	the numeric part of the original file name. Implemented for the sake
-of the cameras, where no FileNumber EXIF tag is present (currently all except
-Canon). Filename would started by letters and ended by digits. No other
-symbols are not allowed, except C<->, C<.> and C<_>.
+B<%C>	Numeric part of the original file name. Implemented for the sake
+of cameras, that do not supply FileNumber EXIF tag (currently all makes,
+except I<Canon>). Such cameras generate file names starting with letters
+and ended with digits. No other symbols are allowed in file names, except
+C<->, C<.> and C<_>.
 
-B<%c>	file order number in the processed file set (also see
-B<--counter-fixed-field> option)
+B<%c>	Ordinal number of file in the processed file set (see also 
+B<--counter-fixed-field> option).
 
-B<%d>	day of the month (01-31)
+B<%d>	Day of month (01-31).
 
-B<%E>	ExposureTime tag value if defined
+B<%E>	The value of ExposureTime tag, if defined.
 
-B<%e>	old file extension
+B<%e>	Old file extension
 
-B<%F>	FNumber tag value if defined
+B<%F>	The value of FNumber tag, if defined.
 
-B<%H>	hour (00-23)
+B<%H>	Hour (00-23).
 
-B<%I>	ISO tag value if defined
+B<%I>	The value of ISO tag, if defined.
 
-B<%i>	FileNumber tag if exists (otherwise, it'll be replaced by string
-C<NA>)
+B<%i>	FileNumber tag if exists (otherwise, it is replaced by string
+C<NA>).
 
-B<%M>	minute (00-59)
+B<%M>	Minute (00-59).
 
-B<%m>	month (01-12)
+B<%m>	Month (01-12).
 
-B<%n>	previous filename (the one before the current processing with renrot)
+B<%n>	Previous filename (the one before B<renrot> started processing).
 
-B<%O>	base part of the original filename (see B<%o>). In other words the
-first part from the begin to the last dot symbol.
+B<%O>	Base part of the original filename (see B<%o>). In other words, the
+first part from the beginning to the last dot character.
 
-B<%o>	the name, file had before first processing with renrot. If the file
-was processed with renrot if only once, the tag RenRotFileNameOriginal written
-with the file name.
+B<%o>	The name file had before it was processed by B<renrot> for the
+first time. If the file was processed only once, the tag
+RenRotFileNameOriginal is set to the original file name.
 
-B<%S>	second (00-59)
+B<%S>	Second (00-59)
 
-B<%W>	WhiteBalance tag value if defined
+B<%W>	The value of WhiteBalance tag, if defined.
 
-B<%Y>	year (1900, 1901, and so on)
+B<%Y>	Year with the century (1900, 1901, and so on)
 
-B<%y>	last two digits of year (00..99)
+B<%y>	Year without a century (00..99)
 
 =back
 
 =item B<--no-rename>
 
-no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
+Do not rename files (default is to rename them to YYYYmmddHHMMSS.ext)
 
 =item B<--counter-fixed-field>, B<--no-counter-fixed-field>
 
-set fixed length for file counter (corresponding to B<%c>), where it is used
-in templates. It's enabled by default. Use B<--no-counter-fixed-field> to set
-dynamic width of field.
+Set fixed length for file counter, used in file name templates (see B<%c>).
+It is enabled by default. Use B<--no-counter-fixed-field> to undo its effect.
 
 =item B<--counter-start> I<NUMBER>
 
-the number to start count the files, to be renamed, from (default is I<1>)
+Initial value for the file counter (default is I<1>)
 
 =item B<--counter-step> I<NUMBER>
 
-the step for the counter of the files to be renamed (default is I<1>)
+Step to increment file counter with (default is I<1>)
 
 =item B<-r> or B<--rotate-angle> I<ANGLE>
 
-define the angle to rotate file and the thumbnail on 90, 180 or 270. It's for
-the files where no Orientation tag is set right way.
+Define the angle to rotate files and thumbnails. Allowed values for I<ANGLE>
+are 90, 180 or 270. It is useful for files not having Orientation tag.
 
 =item B<--rotate-thumb> I<ANGLE>
 
-rotate only thumbnail by 90, 180 or 270 degree. It's for the files which were
-rotated, but thumbnail wasn't.
+Rotate only thumbnails. Allowed values for I<ANGLE> are 90, 180 or 270 degrees.
+Use if the files which were already rotated, but their thumbnails were not.
 
 =item B<--only-orientation>
 
-rotate by changing Orientation tag, no real rotation will be made. The
-sequence of values when rotating image from normal (0 degrees) by 90cw is: 0
--> 90 -> 180 -> 270 -> 0. It means set Orientation tag to 90cw after first
-usage of rotation by 90cw and so on. For 270cw rotation algorithm uses
-reversed sequence. Rotation by 180cw triggers values in two pairs: 0 <-> 180
-and 90 <-> 270. This option can't be applied to mirror values of Orientation
+Rotate by changing the value of Orientation tag, no real rotation will be
+made. The sequence of values to rotate an image from normal (0 degrees) by
+90 degrees clockwise is: 0 -> 90 -> 180 -> 270 -> 0. It means. set Orientation
+tag to 90cw after the first rotation, and increase that value by 90 each time
+the rotation is applied. For 270cw the rotation algorithm uses the reverted
+sequence. Rotation by 180cw triggers values in two pairs: 0 <-> 180
+and 90 <-> 270. This option cannot be applied to mirror values of Orientation
 tag.
 
 =item B<--trim>, B<--no-trim>
 
-pass option C<-trim> to L<jpegtran(1)> to trim if needed. By default trimming
-is on. Use B<--no-trim> to negate described behaviour.
+Pass the C<-trim> option to L<jpegtran(1)>, to trim if needed. By default,
+trimming is enabled. Use B<--no-trim> to disable it.
 
 =item B<--no-rotate>
 
-no rotation needed, default is to rotate according EXIF data
+Do not rotate images (default is to rotate according to EXIF data).
 
 =item B<--mtime>, B<--no-mtime>
 
-defines, whether to set mtime of the file, using DateTimeOriginal tag value.
+Defines whether to set the file's mtime, using DateTimeOriginal tag value.
 Use B<--no-mtime> to set it to current time stamp after processing.
 
 =item B<--keywordize>, B<--no-keywordize>
 
-whether to keywordize. Default is to not. Be careful, since this option when
-on, rewrites existing keywords, not adds. The keywords are taken from
+Whether to keywordize. Default is to not. Be careful, since with this option
+enabled, the existing keywords are rewriten. The keywords are taken from
 F<.keywords> file or file specified with option B<--keywords-file>.
 
 =item B<-k> or B<--keywords-file> F<FILE>
 
-path to the file with keywords (format is each keyword per line). The CR and
-LF symbols are removed. The empty (only whitespace) lines are skiped. The lead
-and tail whitespaces are also removed. For example, line C<  _Test_  CRLF>
-will be transformed to C<_Test_>.
+Path to the file with keywords. Its format is a keyword per line. The CR and
+LF symbols are removed. Empty (only whitespace) lines are ignored. Any leading
+and trailing whitespace is removed. For example, the line C<  _Test_  CRLF> is
+read as C<_Test_>.
 
 =item B<--keywords-replace>, B<--no-keywords-replace>
 
-Replace existing tag Keywords list rather than add the values to it. Default
-is to not replace.
+Replace existing Keywords tag list rather than add new values to it. Default
+is not to replace.
 
 =item B<--aggr-mode> I<MODE>
 
-run aggregation process in given I<MODE>. Possible values are: none, delta or
+Run aggregation process in given I<MODE>. Possible values are: none, delta or
 template.
 
 =item B<--aggr-delta> I<NUMBER>
 
-aggregation time delta in seconds (file with DateTimeOriginal and the one of
-the previous file delta, greater than B<--aggr-delta> is placed to the
-B<--aggr-directory> followed by directory name counter).
+Aggregation time delta, in seconds. Files with DateTimeOriginal and ones of
+the previous file delta, greater than B<--aggr-delta> are placed in the
+directory, with the name constructed by concatenating the value of the
+B<--aggr-directory> option and the directory name counter.
 
 =item B<--aggr-directory> F<DIR>
 
-counterless aggregation directory name (default is I<Images>)
+Aggregation directory name prefix (default is I<Images>)
 
 =item B<-a> or B<--aggr-template> I<TEMPLATE>
 
-template, which is used for file aggregation. Aggregation fulfils according
+File name template to use for file aggregation. Images are aggregated by
 date/time patterns. You may use combination of B<%d>, B<%H>, B<%M>, B<%m>,
-B<%S>, B<%Y>, and/or B<%y> keys. It could be defined in configuration file
-(the variable Aggregation Template). The default is I<%Y%m%d>. For detailed
-description, please, turn to B<--name-template> option. For practical results
-see L</TEMPLATE EXAMPLES> section.
+B<%S>, B<%Y>, and B<%y> meta-characters. The template can also be defined
+in the configuration file (see Aggregation Template variable). The default
+is I<%Y%m%d>. For the detailed description, refer to B<--name-template>
+option. For practical uses, see L</TEMPLATE EXAMPLES> section.
 
 =item B<--aggr-virtual>, B<--no-aggr-virtual>
 
-defines virtualization for existent aggregation modes. If set, than results of
-the aggregation are placed into the directory defined with command line option
+Defines virtualization for existent aggregation modes. If set, resulting files
+are placed into the directory given by the command line option
 B<--aggr-virtual-directory> or configuration file option B<aggregation virtual
-directory> and further occures the things, which have to occure with the
-choosen aggregation mode but without this option. The difference is that the
-files to be aggregated are remains untouched in their places, and symlinks are
-placed to the directory tree created instead. Use B<--no-aggr-virtual> to
+directory> then any changes required by the current aggregation mode are
+applied. The main effect of B<--aggr-virtual> is that any files to be
+aggregated remain untouched in their places, and symlinks pointing to them
+are stored in the directory tree created. Use B<--no-aggr-virtual> to
 prevent virtualization.
 
 =item B<--aggr-virtual-directory> F<DIR>
 
-defines the directory, the results of the virtual aggregation to be placed to
+Store virtual aggregation files in F<DIR>
 
 =item B<--comment-file> F<FILE>
 
-file with commentary. The low priority alias to I<TagFile = Comment: FILE>.
+File with commentaries. It is a low priority alias to I<TagFile = Comment: FILE>.
 
 =item B<--user-comment> I<STRING>
 
-low priority alias to I<--tag UserComment: STRING>
+A low priority alias to I<--tag UserComment: STRING>
 
 =item B<-t> or B<--tag> I<TAG>
 
-look L</TAGS> section for the detailed description
+See the section L</TAGS>, for the detailed description
 
 =item B<--no-tags>
 
-no tags will be written. Default is to write tags.
+No tags will be written. This is the default.
 
 =item B<--use-color>, B<--no-use-color>
 
-colorized output. This NOT works under Win32.
+Colorize output. This does NOT work under Win32.
 
 =item B<--dry-run>
 
-show what would have been happened (no real actions)
+Do not do anything, only print would have been done.
 
 =item B<--use-ipc>, B<--no-use-ipc>
 
-thumbnail rotation via pipe, rather than via file. This NOT works under Win32.
+Rotate thumbnails using pipe, rather than files. This does NOT work under Win32.
 
 =item B<-v>
 
-one or more C<-v> sets debug level. From 1 to 4 - internal levels, 5 till 9 -
-equal to 1-5 levels for ExifTool plus maximum verbosity for renrot.
+Increase debugging level by 1. Debugging levels from 1 to 4 are internal
+levels, the levels from 5 till 9 are equivalent to levels 1-5 levels ExifTool
+with the maximum verbosity for B<renrot>.
 
 =item B<-?> or B<--help>
 
-display quick help and exit
+Display short usage summary and exit.
 
 =item B<--version>
 
-output version information and exit
+Output version information and exit.
 
 =back
 
@@ -2139,36 +2157,38 @@ output version information and exit
 
 =item B<--contact-sheet>
 
-to create the contact sheet. This time it works with ThumbnailImage EXIFs
-and the files defined as thumbnails (see option B<--contact-sheet-thm> below)
+Create the contact sheet. Currently it works with ThumbnailImage EXIFs
+and the files defined as thumbnails (see the option B<--contact-sheet-thm>,
+below)
 
 =item B<--contact-sheet-tile> I<STRING>
 
-tile in montage, MxN
+Tile in montage, MxN
 
 =item B<--contact-sheet-title> I<STRING>
 
-the title of the montage
+Set the title of the montage
 
 =item B<--contact-sheet-file> F<FILE>
 
-extentionless name base of the montage file/s
+Base file name for montage files.
 
 =item B<--contact-sheet-dir> F<DIR>
 
-the temporary montage dir (created in the begining and deleted at the
+Temporary directory for montage (created in the begining and deleted at the
 end of the process)
 
 =item B<--contact-sheet-thm>
 
-files for the montage are thumbnails already
+Files for the montage are already thumbnails
 
 =over
 
 =head1 B<TEMPLATE EXAMPLES>
 
-The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> may produces following
-names:
+The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> (where I<F> stays for
+FNumber, I<E> for ExposureTime, I<I> for ISO and I<W> for WhiteBalance)
+can produce the following names:
 
 =over
 
@@ -2180,10 +2200,7 @@ names:
 
 =back
 
-where I<F> stays for FNumber, I<E> for ExposureTime, I<I> for ISO and
-I<W> for WhiteBalance.
-
-The aggregation template C<%Y%m%d> produces following aggregation:
+The aggregation template C<%Y%m%d> produces the following aggregation:
 
 these three files
 
@@ -2197,7 +2214,7 @@ these three files
 
 =back
 
-will be put to the directory I<20030414>, and
+will be stored in the directory I<20030414>, and
 
 =over
 
@@ -2211,70 +2228,73 @@ will be put to the directory I<20030414>, and
 
 =back
 
-will be put to the directory F<20040131>.
+will be stored in the directory F<20040131>.
 
 =head1 CONFIG
 
-Configuration file could be used to set some variables. Configuration file is
-just set of case-insensivity keys and their values separated by equal sign.
-Boolean variables can be defined via following keywords: 0, No, False, Off for
-false, and 1, Yes, True, On for true. B<RenRot> looks for file named
-F<renrot.conf> in system directories such as F</etc/renrot> and
-F</usr/local/etc/renrot>, and in home directory of the user in subdirectory
-F<.renrot>. User defined configuration file can be given via B<--config-file>
-option. In the last case the given file is used only.
+A configuration file can be used to set some variables. B<Renrot> looks for
+its configuration file, named F<renrot.conf>, in system configuration
+directories F</etc/renrot> and </usr/local/etc/renrot>, and in subdirectory
+F<.renrot>. of the current user home directory. An alternate configuration
+file can also be explicitly given using the B<--config-file> option. 
 
-These variables could be set via configuration file:
+The configuration file consists of a set of case-insensive keywords and their
+values separated by equal sign. Each such keyword/value pair occupies a
+separate line. Boolean variables can have one of the following values: 0, No,
+False, Off for false, and 1, Yes, True, On for true.
+
+The variables defined for use in configuration file are:
 
 =over
 
 =item B<mtime>
 
-set to C<Yes> for synchronize mtime with tags, otherwise set it to C<No>
+Set to C<Yes> for synchronize mtime with tags, otherwise set it to C<No>.
 
 =item B<name template>
 
-name template, which defines the file name look (see B<--name-template>)
+File name template (see B<--name-template>, for the description).
 
 =item B<trim>
 
-set to C<Yes> to trim rotated images when using L<jpegtran(1)>
+Set to C<Yes> to trim rotated images when using L<jpegtran(1)>.
 
 =item B<aggregation mode>
 
-aggregation mode, possible values are: none, delta or template
+Aggregation mode, possible values are: none, delta or template.
 
 =item B<aggregation template>
 
-aggregation template, which defines the file aggregation (see
-B<--aggr-template>)
+Aggregation template, which defines the file aggregation (see
+B<--aggr-template>, for the description).
 
 =item B<aggregation virtual>
 
-defines virtualization for existent aggregation modes (see B<--aggr-virtual> option)
+Defines virtualization for the existing aggregation modes
+(see the B<--aggr-virtual> option).
 
 =item B<aggregation virtual directory>
 
-defines the directory for virtual aggregation (see B<--aggr-virtual-directory> option>
+Defines a directory for virtual aggregation (see the
+B<--aggr-virtual-directory> option>).
 
 =item B<Tag>, B<TagFile>
 
-look L</TAGS> section for the detailed description
+Refer to the section L</TAGS>, for the detailed description
 
 =item B<include>
 
-defines the file that would be included in place as part of configuration
+Include the named file.
 
 =back
 
 =head1 TAGS
 
-I<TAG> is defined by the next combination: I<TagName [Group]: 'value'>.
+A I<TAG> is defined by the following combination: I<TagName [Group]: 'value'>.
+The defined tags are selected to be set and writen to the EXIF tree using
+the command line option B<--tag> and/or configuration file options B<Tag>.
 
-Using command line option B<--tag> and/or configuration file options B<Tag>
-it's possible to choose defined tags to be set and writen to the EXIF tree.
-
-The syntax of the command line option B<--tag>:
+The syntax of the command line option B<--tag> is:
 
 =over
 
@@ -2290,12 +2310,11 @@ B<Tag> = I<TagName [Group]: 'value'>
 
 =back
 
-Parameters I<TagName> and I<Group> are passed to ExifTool as is. Name of the
-group have to be enclosed in square brackets. The I<value> (after semicolon)
-of the tag could be enclosed in tics.
+The parameters I<TagName> and I<Group> are passed to ExifTool as is. The
+name of the group must be enclosed in square brackets. Its I<value> (after
+the semicolon) can be enclosed in single quotes.
 
-Also the option TagFile was defined to give posibility to fill value of some
-tags with multi line content from the file. The syntax as follows:
+The TagFile keyword allows to set multi-line tags from a file. Its syntax is:
 
 =over
 
@@ -2303,62 +2322,64 @@ B<TagFile> = I<TagName [Group]:> F<FILE>
 
 =back
 
-Bellow are the tags to make sense to use with the options B<--tag> and B<Tag>:
+The following table summarizes the tags that can be used with the B<--tag>
+option and B<Tag> keyword:
 
 =over
 
 =item B<Copyright>
 
-copyright notes
+Copyright notes.
 
 =item B<Comment>
 
-general commentary
+General comment.
 
 =item B<UserComment>
 
-anything you'd wanna put as commentary
+Anything you would like to put as a comment.
 
 =item B<CreatorContactInfoCiAdrCity>
 
-city tag
+A city tag.
 
 =item B<CreatorContactInfoCiAdrCtry>
 
-country tag
+A country tag.
 
 =item B<CreatorContactInfoCiAdrExtadr>
 
-extended address (usually street and apartments)
+Extended address (usually includes street and apartment number).
 
 =item B<CreatorContactInfoCiAdrPcode>
 
-zip code
+Zip code.
 
 =item B<CreatorContactInfoCiAdrRegion>
 
-region
+Region.
 
 =item B<CreatorContactInfoCiEmailWork>
 
-email
+Email.
 
 =item B<CreatorContactInfoCiTelWork>
 
-phone
+Phone number.
 
 =item B<CreatorContactInfoCiUrlWork>
 
-URL
+URL.
 
 =back
 
-Additionally you can add any known tag here to be passed by B<Tag> or
-B<TagFile> options in the format described above.
+Additionally, you can add any known tag here, using B<Tag> or
+B<TagFile> options as described above.
 
 =head1 FILES
 
-Configuration file placement (with high priority first):
+The configuration file is searched in the following locations
+(in the order of their appearence):
 
 =over
 
@@ -2372,14 +2393,14 @@ Configuration file placement (with high priority first):
 
 =head1 BUGS
 
-If you found some bug or have nice proposition, you are welcome. Additionally,
-please, read RESTRICTIONS section in README.
+If you found some bug or have some nice propositions, you are welcome.
+Additionally, please, read the section RESTRICTIONS in file README.
 
-It seems that for Perl v.5.8.7 and 5.8.8, at least on FreeBSD 6 the bug, which
-cause crash of the renrot, exists.
+It seems that on FreeBSD 6, Perl versions 5.8.7 and 5.8.8, exhibit a bug
+that causes B<renrot> to crash.
 
-In case when total amount of the files size to process is bigger than RAM
-amount, the renrot falls with error:
+If the sizes of files to be processed sum up to a value greater than your RAM
+amount, B<renrot> aborts with the error message:
 
 =over
 
@@ -2387,13 +2408,13 @@ Out of memory during "large" request for XXXX bytes ...
 
 =back
 
-This doesn't occure for Perl v.5.6.x
+This, however, does not happen with Perl v.5.6.x
 
 =head1 AUTHORS
 
 Copyright 2005-2007, Zeus Panchenko, Andy Shevchenko.
 
-This library is free software; you can redistribute it and/or modify it under
+This program is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
 
 =head1 SEE ALSO
