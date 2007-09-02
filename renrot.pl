@@ -1168,7 +1168,7 @@ if ($isThereIM) {
 		my $infoMontage;
 		my @left_up_row = ('RenRot (c)',$homeURL);
 
-		if ( $csIterationNumber >= $tileX * $tileY ) {
+		if ( $csIterationNumber > $tileX * $tileY ) {
 			for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
 				$image = Image::Magick->new;
 				$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
@@ -1194,7 +1194,7 @@ if ($isThereIM) {
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
-				$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+				$montage->Set(filename=>'jpg:'.$montagename, quality=>95, interlace=>'Partition',gravity=>'Center',stroke=>'none');
 				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
 				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
 				$writeres = $montage->Write();
@@ -1219,7 +1219,9 @@ if ($isThereIM) {
 		}
 
 		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
-	
+		
+		# the final invocation of ->Montage() method for the the rest of files didn't fit previous loop	->Montage() calls
+		# when  $csIterationNumber < $tileX * $tileY 
 		$montage = $image->Montage(background => "#" . $cfgOpts{'contact sheet background'},
 					bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
 					mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
@@ -1238,11 +1240,10 @@ if ($isThereIM) {
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
 
 		undef $image;
-		$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
+		$montage->Set(filename=>'jpg:'.$montagename, quality=>95, interlace=>'Partition',gravity=>'Center',stroke=>'none');
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
 		$writeres = $montage->Write();
-
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 		else { errmsg ("Image::Magick error: $writeres\n\n"); }
 
@@ -1256,7 +1257,6 @@ if ($isThereIM) {
 		unlink <*>;
 		chdir "..";
 		rmdir $workdir;
-
 	}
 
 	# thumbnail stub generator
@@ -1270,10 +1270,8 @@ if ($isThereIM) {
 		my $thmb = Image::Magick->new;
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-		#$thmb->ReadImage('xc:white');
 		$thmb->ReadImage('gradient:#ffffff-#909090');
-		#$thmb->Annotate(pointsize=>25, fill=>'#AAA', text=>$text, gravity=>'Center');
-		$thmb->Annotate(pointsize=>25, fill=>'#888888', font=>'Helvetica', text=>$text, gravity=>'Center');
+		$thmb->Annotate(pointsize=>25, fill=>'#888888', font=>$cfgOpts{'contact sheet font'}, text=>$text, gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
