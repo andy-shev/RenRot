@@ -17,8 +17,9 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070810";		# the version of this script
-my $maxVerbosity = 4;		# our max verbosity level (internal)
+our $VERSION = "0.25.20070902";		# the version of this script
+my $maxVerbosity = 4;			# our max verbosity level (internal)
+my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
 
 ########################################################################################
 #
@@ -32,7 +33,7 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 
 %Image::ExifTool::UserDefined::RenRot = (
 	GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
-	NAMESPACE => [ 'RenRot' => 'http://freshmeat.net/projects/renrot/' ],
+	NAMESPACE => [ 'RenRot' => $homeURL ],
 	WRITABLE => 'string',
 	RenRotFileNameOriginal => { },
 	RenRotProcessingTimestamp => { },
@@ -74,9 +75,17 @@ my %cfgOpts = (
 			'use ipc' => 0,
 			'contact sheet' => 0,
 			'contact sheet tile' => '7x5',
-			'contact sheet title' => 'Contact Sheet Title',
+			'contact sheet title' => 'Default Contact Sheet Title',
 			'contact sheet file' => 'cs',
 			'contact sheet dir' => 'CS.TMP',
+			'contact sheet background' => 'FFF',
+			'contact sheet bordercolor' => 'DDD',
+			'contact sheet mattecolor' => 'CCC',
+			'contact sheet font' => 'Helvetica',
+			'contact sheet label' => '%t',
+			'contact sheet frame' => '3',
+			'contact sheet pointsize' => '11',
+			'contact sheet shadow' => 1,
 	      );
 
 ########################################################################################
@@ -97,7 +106,15 @@ my $contactSheetTile;	# tile in the montage
 my $contactSheetTitle;	# title for the montage
 my $contactSheetFile;	# file name for the montage
 my $contactSheetDir;	# tmp directory for the montage operations
-my $contactSheetThm = 0;	# is $extToProcess files are the thumbnails?
+my $contactSheetThm = 0;# is $extToProcess files are the thumbnails?
+my $contactSheetBg;	# background, look ImageMagick documentation for montage options
+my $contactSheetBd;	# bordercolor, look ImageMagick documentation for montage options
+my $contactSheetMt;	# mattecolor, look ImageMagick documentation for montage options
+my $contactSheetFn;	# font, look ImageMagick documentation for montage options
+my $contactSheetLb;	# label, look ImageMagick documentation for montage options
+my $contactSheetFr;	# frame, look ImageMagick documentation for montage options
+my $contactSheetPntSz;	# frame, look ImageMagick documentation for montage options
+my $contactSheetShadow;	# frame, look ImageMagick documentation for montage options
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -140,7 +157,7 @@ my %tags = (
 			group => 'RenRot',
 		},
 		'RenRotURL' => {
-			value => 'http://freshmeat.net/projects/renrot/',
+			value => $homeURL,
 			group => 'RenRot',
 		},
 	   );		# define tags for filling
@@ -327,6 +344,14 @@ sub getOptions {
 					"contact-sheet-file=s" => \$contactSheetFile,
 					"contact-sheet-dir=s" => \$contactSheetDir,
 					"contact-sheet-thm" => \$contactSheetThm,
+					"contact-sheet-bg=s" => \$contactSheetBg,
+					"contact-sheet-bd=s" => \$contactSheetBd,
+					"contact-sheet-mt=s" => \$contactSheetMt,
+					"contact-sheet-fn=s" => \$contactSheetFn,
+					"contact-sheet-lb=s" => \$contactSheetLb,
+					"contact-sheet-fr=s" => \$contactSheetFr,
+					"contact-sheet-pntsz=i" => \$contactSheetPntSz,
+					"contact-sheet-shadow" => \$contactSheetShadow,
 					"counter-fixed-field!" => \$countFF,
 					"counter-start=i" => \$countStart,
 					"counter-step=i" => \$countStep,
@@ -374,6 +399,12 @@ sub getOptions {
 	dbgmsg (3, "   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
 	dbgmsg (3, "   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
 	dbgmsg (3, "   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
+	dbgmsg (3, "   --contact-sheet-bg: $contactSheetBg\n") if (defined $contactSheetBg);
+	dbgmsg (3, "   --contact-sheet-bd: $contactSheetBd\n") if (defined $contactSheetBd);
+	dbgmsg (3, "   --contact-sheet-mt: $contactSheetMt\n") if (defined $contactSheetMt);
+	dbgmsg (3, "   --contact-sheet-fn: $contactSheetFn\n") if (defined $contactSheetFn);
+	dbgmsg (3, "   --contact-sheet-lb: $contactSheetLb\n") if (defined $contactSheetLb);
+	dbgmsg (3, "   --contact-sheet-fr: $contactSheetFr\n") if (defined $contactSheetFr);
 	dbgmsg (3, "   --counter-start: $countStart",
 		   "   --counter-step: $countStep",
 		   "   --counter-fixed-field: ", boolConv($countFF), "\n");
@@ -582,6 +613,7 @@ sub parseConfig {
 
 	if (defined $home and $home ne "") {
 		push (@homeRC, $home . "/" . ".renrotrc");
+		push (@homeRC, $home . "/" . ".renrot/.renrotrc");
 		push (@homeRC, $home . "/" . ".renrot/renrot.conf");
 	} else {
 		warnmsg ("User's home environment variable isn't defined or empty!\n");
@@ -1106,6 +1138,17 @@ if ($isThereIM) {
 		}
 		@thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
 
+		dbgmsg (3, "contactSheetGenerator(): contact sheet background = \"$cfgOpts{'contact sheet background'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet bordercolor = \"$cfgOpts{'contact sheet bordercolor'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet mattecolor = \"$cfgOpts{'contact sheet mattecolor'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet font = \"$cfgOpts{'contact sheet font'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet label = \"$cfgOpts{'contact sheet label'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet frame = \"$cfgOpts{'contact sheet frame'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet pointsize = \"$cfgOpts{'contact sheet pointsize'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): contact sheet shadow = \"$cfgOpts{'contact sheet shadow'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): title = \"$cfgOpts{'contact sheet title'}\"\n");
+		dbgmsg (3, "contactSheetGenerator(): tile = \"$cfgOpts{'contact sheet tile'}\"\n");
+
 		# here it's iteration by tile
 		my ($tileX, $tileY) = split ("x",$cfgOpts{'contact sheet tile'});
 		my $tileMul = $tileX * $tileY;
@@ -1120,6 +1163,8 @@ if ($isThereIM) {
 		my $montage;
 		my $montagename;
 		my $infoMontage;
+		my @left_up_row = ('RenRot (c)',$homeURL);
+
 		if ( $csIterationNumber >= $tileX * $tileY ) {
 			for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
 				$image = Image::Magick->new;
@@ -1130,23 +1175,23 @@ if ($isThereIM) {
 					else { errmsg ("Image::Magick error: $readres\n\n"); }
 				}
 				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
-				$montage = $image->Montage(background => '#FFF',
-							bordercolor => '#DDD',
-							mattecolor => '#CCC',
-							font => 'Helvetica',
-							label => '%t',
-							frame => '5',
+				$montage = $image->Montage(background => "#" . $cfgOpts{'contact sheet background'},
+							bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
+							mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
+							font => $cfgOpts{'contact sheet font'},
+							label => $cfgOpts{'contact sheet label'},
+							frame => $cfgOpts{'contact sheet frame'},
 							geometry => $size . "x" . $size . "+4+4",
-							pointsize => '11',
-							shadow => 'True',
+							pointsize => $cfgOpts{'contact sheet pointsize'},
+							shadow => $cfgOpts{'contact sheet shadow'},
 							title => $cfgOpts{'contact sheet title'},
 							tile => $cfgOpts{'contact sheet tile'});
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
 				$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-				$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'RenRot (c)', x=>1, y=>10);
-				$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'http://freshmeat.net/projects/renrot/', x=>1, y=>20);
+				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
+				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
 				$writeres = $montage->Write();
 				if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 				else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1170,15 +1215,15 @@ if ($isThereIM) {
 
 		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
 	
-		$montage = $image->Montage(background => '#FFF',
-					bordercolor => '#DDD',
-					mattecolor => '#CCC',
-					font => 'Helvetica',
-					label => '%t',
-					frame => '5',
+		$montage = $image->Montage(background => "#" . $cfgOpts{'contact sheet background'},
+					bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
+					mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
+					font => $cfgOpts{'contact sheet font'},
+					label => $cfgOpts{'contact sheet label'},
+					frame => $cfgOpts{'contact sheet frame'},
 					geometry => $size . "x" . $size . "+4+4",
-					pointsize => '11',
-					shadow => 'True',
+					pointsize => $cfgOpts{'contact sheet pointsize'},
+					shadow => $cfgOpts{'contact sheet shadow'},
 					title => $cfgOpts{'contact sheet title'},
 					tile => $cfgOpts{'contact sheet tile'});
 	
@@ -1187,8 +1232,8 @@ if ($isThereIM) {
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename, quality=>85, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-		$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'RenRot (c)', x=>1, y=>10);
-		$montage->Annotate(pointsize=>9, fill=>'lightgray', text=>'http://freshmeat.net/projects/renrot/', x=>1, y=>20);
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
 		$writeres = $montage->Write();
 
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
@@ -1744,6 +1789,14 @@ $cfgOpts{'contact sheet tile'}	= $contactSheetTile if (defined $contactSheetTile
 $cfgOpts{'contact sheet title'}	= $contactSheetTitle if (defined $contactSheetTitle);
 $cfgOpts{'contact sheet file'}	= $contactSheetFile if (defined $contactSheetFile);
 $cfgOpts{'contact sheet dir'}	= $contactSheetDir if (defined $contactSheetDir);
+$cfgOpts{'contact sheet background'}	= $contactSheetBg if (defined $contactSheetBg);
+$cfgOpts{'contact sheet bordercolor'}	= $contactSheetBd if (defined $contactSheetBd);
+$cfgOpts{'contact sheet mattecolor'}	= $contactSheetMt if (defined $contactSheetMt);
+$cfgOpts{'contact sheet font'}		= $contactSheetFn if (defined $contactSheetFn);
+$cfgOpts{'contact sheet label'}		= $contactSheetLb if (defined $contactSheetLb);
+$cfgOpts{'contact sheet frame'}		= $contactSheetFr if (defined $contactSheetFr);
+$cfgOpts{'contact sheet pointsize'}	= $contactSheetPntSz if (defined $contactSheetPntSz);
+$cfgOpts{'contact sheet shadow'}	= $contactSheetShadow if (defined $contactSheetShadow);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
@@ -2161,14 +2214,6 @@ Create the contact sheet. Currently it works with ThumbnailImage EXIFs
 and the files defined as thumbnails (see the option B<--contact-sheet-thm>,
 below)
 
-=item B<--contact-sheet-tile> I<STRING>
-
-Tile in montage, MxN
-
-=item B<--contact-sheet-title> I<STRING>
-
-Set the title of the montage
-
 =item B<--contact-sheet-file> F<FILE>
 
 Base file name for montage files.
@@ -2181,6 +2226,54 @@ end of the process)
 =item B<--contact-sheet-thm>
 
 Files for the montage are already thumbnails
+
+=back
+
+Options bellow are native ImageMagic montage options
+look ImageMagick documentation for montage options:
+I<montage --help> and I<http://www.imagemagick.org/>
+
+=over
+
+=item B<--contact-sheet-tile> I<GEOMETRY>
+
+Tile MxN (IM: -tile)
+
+=item B<--contact-sheet-title> I<STRING>
+
+Set the title of the contact sheet (IM: -title).
+
+=item B<--contact-sheet-bg> I<COLOR>
+
+Background color (IM: -background).
+
+=item B<--contact-sheet-bd> I<COLOR>
+
+Border color (IM: -bordercolor).
+
+=item B<--contact-sheet-mt> I<COLOR>
+
+Frame color (IM: -mattecolor).
+
+=item B<--contact-sheet-fn> I<STRING>
+
+Render text with this font (IM: -font).
+
+=item B<--contact-sheet-lb> I<STRING>
+
+Assign a label to an image (IM: -label).
+
+=item B<--contact-sheet-fr> I<GEOMETRY>
+
+Surround image with an ornamental border in N pixels (IM: -frame).
+
+=item B<--contact-sheet-pntsz> I<NUMBER>
+
+Font point size (IM: -pointsize).
+
+=item B<--contact-sheet-shadow>
+
+Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
 =over
 

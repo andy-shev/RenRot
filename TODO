@@ -9,7 +9,7 @@ q	optional feature
 
 BUGS
 
--  fix cleaning RenRotFileNameOriginal while rotating file, previously renroted
++  fix cleaning RenRotFileNameOriginal while rotating file, previously renroted
    (reported by Alex Zasypkin)
 
 +  fix cleaning EXIFs when --no-backup is given
@@ -36,7 +36,7 @@ PLUGINS
 
 -  jpgfromraw
 
--  index page (from thumbnailimages)
++-  index page (from thumbnailimages)
 
 -  shrinking e.t.c.
 
@@ -52,7 +52,7 @@ Performance
 
 -  decrease disk IO operations as possible
 
--  to implement possibility to work with other formats, which use EXIF
++-  to implement possibility to work with other formats, which use EXIF
    mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
 
 +- implement aggregation option (to aggregate large bundle of files according
@@ -98,7 +98,7 @@ Code
 
 +- to review the code to optimize it where it's possible.
 
--  to tune style look of comments, code, e.t.c.
++-  to tune style look of comments, code, e.t.c.
 
 
 Other
