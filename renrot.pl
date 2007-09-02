@@ -81,6 +81,7 @@ my %cfgOpts = (
 			'contact sheet background' => 'FFF',
 			'contact sheet bordercolor' => 'DDD',
 			'contact sheet mattecolor' => 'CCC',
+			'contact sheet fill' => '000',
 			'contact sheet font' => 'Helvetica',
 			'contact sheet label' => '%t',
 			'contact sheet frame' => '3',
@@ -112,9 +113,10 @@ my $contactSheetBd;	# bordercolor, look ImageMagick documentation for montage op
 my $contactSheetMt;	# mattecolor, look ImageMagick documentation for montage options
 my $contactSheetFn;	# font, look ImageMagick documentation for montage options
 my $contactSheetLb;	# label, look ImageMagick documentation for montage options
+my $contactSheetFl;	# fill, look ImageMagick documentation for montage options
 my $contactSheetFr;	# frame, look ImageMagick documentation for montage options
-my $contactSheetPntSz;	# frame, look ImageMagick documentation for montage options
-my $contactSheetShadow;	# frame, look ImageMagick documentation for montage options
+my $contactSheetPntSz;	# pointsize, look ImageMagick documentation for montage options
+my $contactSheetShadow;	# shadow, look ImageMagick documentation for montage options
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -347,6 +349,7 @@ sub getOptions {
 					"contact-sheet-bg=s" => \$contactSheetBg,
 					"contact-sheet-bd=s" => \$contactSheetBd,
 					"contact-sheet-mt=s" => \$contactSheetMt,
+					"contact-sheet-fl=s" => \$contactSheetFl,
 					"contact-sheet-fn=s" => \$contactSheetFn,
 					"contact-sheet-lb=s" => \$contactSheetLb,
 					"contact-sheet-fr=s" => \$contactSheetFr,
@@ -1179,13 +1182,15 @@ if ($isThereIM) {
 							bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
 							mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
 							font => $cfgOpts{'contact sheet font'},
+							fill => "#" . $cfgOpts{'contact sheet fill'},
 							label => $cfgOpts{'contact sheet label'},
 							frame => $cfgOpts{'contact sheet frame'},
 							geometry => $size . "x" . $size . "+4+4",
 							pointsize => $cfgOpts{'contact sheet pointsize'},
 							shadow => $cfgOpts{'contact sheet shadow'},
 							title => $cfgOpts{'contact sheet title'},
-							tile => $cfgOpts{'contact sheet tile'});
+							tile => $cfgOpts{'contact sheet tile'},
+							stroke => 'none');
 			
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
@@ -1219,13 +1224,15 @@ if ($isThereIM) {
 					bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
 					mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
 					font => $cfgOpts{'contact sheet font'},
+					fill => "#" . $cfgOpts{'contact sheet fill'},
 					label => $cfgOpts{'contact sheet label'},
 					frame => $cfgOpts{'contact sheet frame'},
 					geometry => $size . "x" . $size . "+4+4",
 					pointsize => $cfgOpts{'contact sheet pointsize'},
 					shadow => $cfgOpts{'contact sheet shadow'},
 					title => $cfgOpts{'contact sheet title'},
-					tile => $cfgOpts{'contact sheet tile'});
+					tile => $cfgOpts{'contact sheet tile'},
+					stroke => 'none');
 	
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
@@ -1792,6 +1799,7 @@ $cfgOpts{'contact sheet dir'}	= $contactSheetDir if (defined $contactSheetDir);
 $cfgOpts{'contact sheet background'}	= $contactSheetBg if (defined $contactSheetBg);
 $cfgOpts{'contact sheet bordercolor'}	= $contactSheetBd if (defined $contactSheetBd);
 $cfgOpts{'contact sheet mattecolor'}	= $contactSheetMt if (defined $contactSheetMt);
+$cfgOpts{'contact sheet fill'}		= $contactSheetFl if (defined $contactSheetFl);
 $cfgOpts{'contact sheet font'}		= $contactSheetFn if (defined $contactSheetFn);
 $cfgOpts{'contact sheet label'}		= $contactSheetLb if (defined $contactSheetLb);
 $cfgOpts{'contact sheet frame'}		= $contactSheetFr if (defined $contactSheetFr);
@@ -2227,13 +2235,16 @@ end of the process)
 
 Files for the montage are already thumbnails
 
-=back
+=over
 
 Options bellow are native ImageMagic montage options
 look ImageMagick documentation for montage options:
 I<montage --help> and I<http://www.imagemagick.org/>
 
-=over
+Note please, for I<COLOR> use RGB triplets only
+like I<000> for the I<black> or I<F00> for the I<red>.
+
+=back
 
 =item B<--contact-sheet-tile> I<GEOMETRY>
 
@@ -2258,6 +2269,10 @@ Frame color (IM: -mattecolor).
 =item B<--contact-sheet-fn> I<STRING>
 
 Render text with this font (IM: -font).
+
+=item B<--contact-sheet-fl> I<COLOR>
+
+Color to fill the text (IM: -fill).
 
 =item B<--contact-sheet-lb> I<STRING>
 
