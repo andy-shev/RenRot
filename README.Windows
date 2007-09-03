@@ -18,7 +18,7 @@ installed (it goes to C:\Perl by default), you can type
     perl --version
 to see installed version.
 
-STEP 2
+STEP 2.1
 
 Now you need make/nmake to continue. You can skip this step if you have
 installed MS Visual Studio. The next article
@@ -30,6 +30,18 @@ and download nmake
     http://download.microsoft.com/download/vc15/patch/1.52/w95/en-us/nmake15.exe
 Run the downloaded file to extract it and copy both the NMAKE.EXE and
 the NMAKE.ERR files to your Perl bin directory, normally C:\Perl\bin.
+
+STEP 2.2
+
+Now you need http://sourceforge.net/projects/unxutils
+Extract the tree somewhere in system path
+
+STEP 2.3
+
+In case to get functionality of Contact SHeet Generator, you'll need
+ImageMagick pakage. Download it from:
+http://www.imagemagick.org/script/binary-releases.php#windows
+In installation menu choose "With  PerlMagick"!!
 
 STEP 3
 
@@ -66,6 +78,8 @@ you must build it from source code yourself or download from this site
 4. Use double quotes instead of single in command line for disabling
    misinterpretation of arguments.
 
+5. Read contact sheet related section in renrot manual and renrot.conf 
+file for font choosing.
 
 INSTALL TO PDA (EXPERIMENTAL AND UNDER DEVELOPMENT, MAY NOT WORK)
 
