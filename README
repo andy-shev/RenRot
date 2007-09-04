@@ -182,7 +182,8 @@ except:
 LICENSING
 ---------
 
-RenRot is an Open Source project distributed under GPL or Artistic license.
+RenRot is an Open Source project distributed under Artistic 2.0 license
+You can find it here http://www.perlfoundation.org/artistic_license_2_0
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY
 EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
