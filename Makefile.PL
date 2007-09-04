@@ -17,11 +17,9 @@ package MY;
 sub postamble {
     my $postamble = << 'END';
 
-
 renrot: renrot.pl
-	sed "s|PERL_BINARY|$(FULLPERL)|" renrot.pl > renrot
-	chmod +x renrot
-
+	$(PERLRUN) -e 'use File::Copy; copy("renrot.pl","renrot"); chmod 0755, "renrot";'
+	$(PERLRUN) -pi -e 's|PERL_BINARY|$(FULLPERL)|' renrot
 
 # Build rpm
 rpm : tardist
