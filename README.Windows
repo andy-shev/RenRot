@@ -33,11 +33,6 @@ the NMAKE.ERR files to your Perl bin directory, normally C:\Perl\bin.
 
 STEP 2.2
 
-Now you need http://sourceforge.net/projects/unxutils
-Extract the tree somewhere in system path
-
-STEP 2.3
-
 In case to get functionality of Contact SHeet Generator, you'll need
 ImageMagick pakage. Download it from:
 http://www.imagemagick.org/script/binary-releases.php#windows
