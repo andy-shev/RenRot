@@ -1,4 +1,4 @@
-#! PERL_BINARY -w
+#!perl -w
 #
 # $Id: renrot 299 2007-09-01 08:50:11Z zeus $
 #
@@ -87,6 +87,11 @@ my %cfgOpts = (
 			'contact sheet frame' => '3',
 			'contact sheet pointsize' => '11',
 			'contact sheet shadow' => 1,
+			'contact sheet thm font' => 'Helvetica',
+			'contact sheet thm fill' => 'gray34',
+			'contact sheet thm grad fr' => 'FFFFFF',
+			'contact sheet thm grad to' => '909090',
+			'contact sheet thm text' => "thumbnail\n\nNA",
 	      );
 
 ########################################################################################
@@ -111,12 +116,17 @@ my $contactSheetThm = 0;# is $extToProcess files are the thumbnails?
 my $contactSheetBg;	# background, look ImageMagick documentation for montage options
 my $contactSheetBd;	# bordercolor, look ImageMagick documentation for montage options
 my $contactSheetMt;	# mattecolor, look ImageMagick documentation for montage options
-my $contactSheetFn;	# font, look ImageMagick documentation for montage options
 my $contactSheetLb;	# label, look ImageMagick documentation for montage options
+my $contactSheetFn;	# font, look ImageMagick documentation for montage options
 my $contactSheetFl;	# fill, look ImageMagick documentation for montage options
 my $contactSheetFr;	# frame, look ImageMagick documentation for montage options
 my $contactSheetPntSz;	# pointsize, look ImageMagick documentation for montage options
 my $contactSheetShadow;	# shadow, look ImageMagick documentation for montage options
+my $contactSheetThmFn;	# font, look ImageMagick documentation for montage options
+my $contactSheetThmFl;	# fill, look ImageMagick documentation for montage options
+my $contactSheetThmGrFr;# thumbnail background gradient from
+my $contactSheetThmGrTo;# thumbnail background gradient to
+my $contactSheetThmText;# thumbnail text
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -355,6 +365,11 @@ sub getOptions {
 					"contact-sheet-fr=s" => \$contactSheetFr,
 					"contact-sheet-pntsz=i" => \$contactSheetPntSz,
 					"contact-sheet-shadow" => \$contactSheetShadow,
+					"contact-sheet-thm-fl=s" => \$contactSheetThmFl,
+					"contact-sheet-thm-fn=s" => \$contactSheetThmFn,
+					"contact-sheet-thm-grfr=s" => \$contactSheetThmGrFr,
+					"contact-sheet-thm-grto=s" => \$contactSheetThmGrTo,
+					"contact-sheet-thm-text=s" => \$contactSheetThmText,
 					"counter-fixed-field!" => \$countFF,
 					"counter-start=i" => \$countStart,
 					"counter-step=i" => \$countStep,
@@ -1191,7 +1206,7 @@ if ($isThereIM) {
 							title => $cfgOpts{'contact sheet title'},
 							tile => $cfgOpts{'contact sheet tile'},
 							stroke => 'none');
-			
+
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
 				$montage->Set(filename=>'jpg:'.$montagename, quality=>95, interlace=>'Partition',gravity=>'Center',stroke=>'none');
@@ -1219,14 +1234,14 @@ if ($isThereIM) {
 		}
 
 		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
-		
+
 		# the final invocation of ->Montage() method for the the rest of files didn't fit previous loop	->Montage() calls
-		# when  $csIterationNumber < $tileX * $tileY 
-		$montage = $image->Montage(background => "#" . $cfgOpts{'contact sheet background'},
-					bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
-					mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
+		# when  $csIterationNumber < $tileX * $tileY
+		$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
+					bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+					mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
 					font => $cfgOpts{'contact sheet font'},
-					fill => "#" . $cfgOpts{'contact sheet fill'},
+					fill => colorValidator($cfgOpts{'contact sheet fill'}),
 					label => $cfgOpts{'contact sheet label'},
 					frame => $cfgOpts{'contact sheet frame'},
 					geometry => $size . "x" . $size . "+4+4",
@@ -1235,14 +1250,27 @@ if ($isThereIM) {
 					title => $cfgOpts{'contact sheet title'},
 					tile => $cfgOpts{'contact sheet tile'},
 					stroke => 'none');
-	
+
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
 
 		undef $image;
-		$montage->Set(filename=>'jpg:'.$montagename, quality=>95, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
-		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
+		$montage->Set(filename=>'jpg:'.$montagename,
+				quality=>95, 
+				interlace=>'Partition',
+				gravity=>'Center',
+				stroke=>'none');
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, 
+				pointsize=>9, 
+				fill=>'lightgray', 
+				text=>$left_up_row[0], 
+				x=>1, 
+				y=>10);
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, 
+				pointsize=>9, 
+				fill=>'lightgray', 
+				text=>$left_up_row[1], 
+				x=>1, y=>20);
 		$writeres = $montage->Write();
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 		else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1265,13 +1293,17 @@ if ($isThereIM) {
 		my $thmbname = shift;
 		$thmbname = $wrkdir.$thmbname;
 		my $size = "160x120";
-		my $text = "thumbnail\n\nNA";
 
 		my $thmb = Image::Magick->new;
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-		$thmb->ReadImage('gradient:#ffffff-#909090');
-		$thmb->Annotate(pointsize=>25, fill=>'#888888', font=>$cfgOpts{'contact sheet font'}, text=>$text, gravity=>'Center');
+		$thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . 
+					 "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+		$thmb->Annotate(pointsize => 25, 
+				fill => colorValidator($cfgOpts{'contact sheet thm fill'}), 
+				font => $cfgOpts{'contact sheet thm font'}, 
+				text => $cfgOpts{'contact sheet thm text'}, 
+				gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
@@ -1294,6 +1326,21 @@ if ($isThereIM) {
 
 		return $res;
 	}
+
+	# colorValidator() validates given string as color
+	sub colorValidator {
+		my $color = shift;
+		if ($color =~ /^#.*$/) {
+			errmsg("You have not use # in color index\n");
+		}
+		elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
+			return "#" . $color;
+		}
+		else {
+			return $color;
+		}
+	}
+
 }
 
 ########################################################################################
@@ -1803,6 +1850,11 @@ $cfgOpts{'contact sheet label'}		= $contactSheetLb if (defined $contactSheetLb);
 $cfgOpts{'contact sheet frame'}		= $contactSheetFr if (defined $contactSheetFr);
 $cfgOpts{'contact sheet pointsize'}	= $contactSheetPntSz if (defined $contactSheetPntSz);
 $cfgOpts{'contact sheet shadow'}	= $contactSheetShadow if (defined $contactSheetShadow);
+$cfgOpts{'contact sheet thm fill'}	= $contactSheetThmFl if (defined $contactSheetThmFl);
+$cfgOpts{'contact sheet thm font'}	= $contactSheetThmFn if (defined $contactSheetThmFn);
+$cfgOpts{'contact sheet thm grad fr'}	= $contactSheetThmGrFr if (defined $contactSheetThmGrFr);
+$cfgOpts{'contact sheet thm grad to'}	= $contactSheetThmGrTo if (defined $contactSheetThmGrTo);
+$cfgOpts{'contact sheet thm text'}	= $contactSheetThmText if (defined $contactSheetThmText);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
@@ -1997,7 +2049,7 @@ given in the command line is ignored.
 
 Process the files with given I<EXTENSION> (JPG, jpeg, CRW, crw, etc).
 Depending on the operating system, the extension search might or might not be
-case-sensitive. 
+case-sensitive.
 
 =item B<-n> or B<--name-template> I<TEMPLATE>
 
@@ -2017,7 +2069,7 @@ except I<Canon>). Such cameras generate file names starting with letters
 and ended with digits. No other symbols are allowed in file names, except
 C<->, C<.> and C<_>.
 
-B<%c>	Ordinal number of file in the processed file set (see also 
+B<%c>	Ordinal number of file in the processed file set (see also
 B<--counter-fixed-field> option).
 
 B<%d>	Day of month (01-31).
@@ -2342,7 +2394,7 @@ A configuration file can be used to set some variables. B<Renrot> looks for
 its configuration file, named F<renrot.conf>, in system configuration
 directories F</etc/renrot> and </usr/local/etc/renrot>, and in subdirectory
 F<.renrot>. of the current user home directory. An alternate configuration
-file can also be explicitly given using the B<--config-file> option. 
+file can also be explicitly given using the B<--config-file> option.
 
 The configuration file consists of a set of case-insensive keywords and their
 values separated by equal sign. Each such keyword/value pair occupies a
