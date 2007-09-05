@@ -7,7 +7,7 @@ NEWS                                     User friendly change log
 README
 README.russian                           Small description for russians users
 README.Windows                           Installation instructions for windows users
-renrot.pl                                Meta RenRot script
+renrot                                   RenRot script
 renrot.spec                              RPM spec file
 TODO
 etc/colors.conf                          Colorization scheme
