@@ -83,8 +83,8 @@ when you make installation. Using renrot and exiftool scripts on PDA is useful
 for device that has built-in camera such as FSC Pocket Loox 720.
 
 First, you need to install Perl and Image::ExifTool to Pocket PC or another
-PDA. Visit the following site and get last perl distribution according to
-platform (usually ARM for Pocket PC):
+PDA. Visit the following site and get the lastest perl distribution according 
+to platform (usually ARM for Pocket PC):
     http://perlce.sf.net
 There you can found detailed installation instructions for perl. Also we
 recommends to install the PerlIDE GUI that helps with scripting very much.
