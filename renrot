@@ -17,7 +17,7 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-our $VERSION = "0.25.20070902";		# the version of this script
+our $VERSION = "0.25.20070908";		# the version of this script
 my $maxVerbosity = 4;			# our max verbosity level (internal)
 my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
 
@@ -141,6 +141,7 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation = 0;	# no rotation needed, default is to rotate
 my $noTags = 0;		# no tags writing needed
+my $noRenRoTagMtm = 0;  # no rename, no rotate, no tag and no mtime have to be done
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
@@ -351,7 +352,7 @@ sub getOptions {
 					"comment-file=s" => \$comfile,
 					"config-file|c=s" => \$configFile,
 					"contact-sheet-tile=s" => \$contactSheetTile,
-					"contact-sheet" => \$contactSheet,
+					"contact-sheet!" => \$contactSheet,
 					"contact-sheet-title=s" => \$contactSheetTitle,
 					"contact-sheet-file=s" => \$contactSheetFile,
 					"contact-sheet-dir=s" => \$contactSheetDir,
@@ -385,6 +386,7 @@ sub getOptions {
 					"no-rename|norename" => \$noRename,
 					"no-rotate|norotate" => \$noRotation,
 					"no-tags|notags" => \$noTags,
+	                                "no-ren-rot-tag-mtm" => \$noRenRoTagMtm,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
@@ -436,7 +438,8 @@ sub getOptions {
 	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
 	dbgmsg (3, "   --no-rename: ", boolConv($noRename),
 		   "   --no-rotate: ", boolConv($noRotation),
-		   "   --no-tags: ", boolConv($noTags), "\n");
+		   "   --no-tags: ", boolConv($noTags),
+		   "   --no-ren-rot-tag-mtm: ", boolConv($noRenRoTagMtm),"\n");
 	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
 	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
 	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
@@ -472,7 +475,12 @@ sub getOptions {
 		exit 1;
 	}
 
-	# is there ImageMagick
+	if ($noRenRoTagMtm != 0) {
+	    $noRename = $noRotation = $noTags = 1;
+	    $mtime = 0;
+	}
+
+	# is there ImageMagick?
 	if (defined isTherePackage("Image::Magick")) {
 		$isThereIM = 1;
 		dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
@@ -2161,6 +2169,11 @@ Do not rotate images (default is to rotate according to EXIF data).
 
 Defines whether to set the file's mtime, using DateTimeOriginal tag value.
 Use B<--no-mtime> to set it to current time stamp after processing.
+
+=item B<--no-ren-rot-tag-mtm>
+
+Do not rename, rotate, tag and mtime images. It saves files from any changes 
+while allows to do aggregation, contact sheet generation e.t.c.
 
 =item B<--keywordize>, B<--no-keywordize>
 
