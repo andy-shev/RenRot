@@ -386,7 +386,7 @@ sub getOptions {
 					"no-rename|norename" => \$noRename,
 					"no-rotate|norotate" => \$noRotation,
 					"no-tags|notags" => \$noTags,
-	                                "no-ren-rot-tag-mtm" => \$noRenRoTagMtm,
+	                                "no-ren-rot-tag-mtm|nochg" => \$noRenRoTagMtm,
 					"only-orientation" => \$orientTag,
 					"quiet|q" => \$quiet,
 					"rotate-angle|r=i" => \$rotateAngle,
@@ -2170,7 +2170,7 @@ Do not rotate images (default is to rotate according to EXIF data).
 Defines whether to set the file's mtime, using DateTimeOriginal tag value.
 Use B<--no-mtime> to set it to current time stamp after processing.
 
-=item B<--no-ren-rot-tag-mtm>
+=item B<--no-ren-rot-tag-mtm> or B<--nochg>
 
 Do not rename, rotate, tag and mtime images. It saves files from any changes 
 while allows to do aggregation, contact sheet generation e.t.c.
