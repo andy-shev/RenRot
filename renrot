@@ -1201,11 +1201,11 @@ if ($isThereIM) {
 					else { errmsg ("Image::Magick error: $readres\n\n"); }
 				}
 				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
-				$montage = $image->Montage(background => "#" . $cfgOpts{'contact sheet background'},
-							bordercolor => "#" . $cfgOpts{'contact sheet bordercolor'},
-							mattecolor => "#" . $cfgOpts{'contact sheet mattecolor'},
+				$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
+							bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+							mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
 							font => $cfgOpts{'contact sheet font'},
-							fill => "#" . $cfgOpts{'contact sheet fill'},
+							fill => colorValidator($cfgOpts{'contact sheet fill'}),
 							label => $cfgOpts{'contact sheet label'},
 							frame => $cfgOpts{'contact sheet frame'},
 							geometry => $size . "x" . $size . "+4+4",
@@ -1264,20 +1264,20 @@ if ($isThereIM) {
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename,
-				quality=>95, 
+				quality=>95,
 				interlace=>'Partition',
 				gravity=>'Center',
 				stroke=>'none');
-		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, 
-				pointsize=>9, 
-				fill=>'lightgray', 
-				text=>$left_up_row[0], 
-				x=>1, 
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
+				pointsize=>9,
+				fill=>'lightgray',
+				text=>$left_up_row[0],
+				x=>1,
 				y=>10);
-		$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, 
-				pointsize=>9, 
-				fill=>'lightgray', 
-				text=>$left_up_row[1], 
+		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
+				pointsize=>9,
+				fill=>'lightgray',
+				text=>$left_up_row[1],
 				x=>1, y=>20);
 		$writeres = $montage->Write();
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
@@ -1305,12 +1305,12 @@ if ($isThereIM) {
 		my $thmb = Image::Magick->new;
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-		$thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . 
+		$thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) .
 					 "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
-		$thmb->Annotate(pointsize => 25, 
-				fill => colorValidator($cfgOpts{'contact sheet thm fill'}), 
-				font => $cfgOpts{'contact sheet thm font'}, 
-				text => $cfgOpts{'contact sheet thm text'}, 
+		$thmb->Annotate(pointsize => 25,
+				fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+				font => $cfgOpts{'contact sheet thm font'},
+				text => $cfgOpts{'contact sheet thm text'},
 				gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
@@ -2172,7 +2172,7 @@ Use B<--no-mtime> to set it to current time stamp after processing.
 
 =item B<--no-ren-rot-tag-mtm> or B<--nochg>
 
-Do not rename, rotate, tag and mtime images. It saves files from any changes 
+Do not rename, rotate, tag and mtime images. It saves files from any changes
 while allows to do aggregation, contact sheet generation e.t.c.
 
 =item B<--keywordize>, B<--no-keywordize>
