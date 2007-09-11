@@ -1319,12 +1319,12 @@ if ($isThereIM) {
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
 		$thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) .
-					 "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+			"-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
 		$thmb->Annotate(pointsize => 25,
-				fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
-				font => $cfgOpts{'contact sheet thm font'},
-				text => $cfgOpts{'contact sheet thm text'},
-				gravity=>'Center');
+			fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+			font => $cfgOpts{'contact sheet thm font'},
+			text => $cfgOpts{'contact sheet thm text'},
+			gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
@@ -1352,14 +1352,12 @@ if ($isThereIM) {
 	sub colorValidator {
 		my $color = shift;
 		if ($color =~ /^#.*$/) {
-			errmsg("You have not use # in color index\n");
+			errmsg("You have not use \"#\" in color index definition.\n");
 		}
 		elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
 			return "#" . $color;
 		}
-		else {
-			return $color;
-		}
+		else { return $color; }
 	}
 
 }
