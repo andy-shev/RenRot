@@ -1140,9 +1140,7 @@ if ($isThereIM) {
 				if ( defined $orientation and $orientation > 1 ) {
 					$filefull = rotmont ( $ThumbnailOriginal , $orientation, "" );
 				}
-				else {
-					$filefull = $ThumbnailOriginal;
-				}
+				else { $filefull = $ThumbnailOriginal; }
 			}
 			elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
 				procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
@@ -1202,24 +1200,38 @@ if ($isThereIM) {
 				}
 				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
 				$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-							bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-							mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
-							font => $cfgOpts{'contact sheet font'},
-							fill => colorValidator($cfgOpts{'contact sheet fill'}),
-							label => $cfgOpts{'contact sheet label'},
-							frame => $cfgOpts{'contact sheet frame'},
-							geometry => $size . "x" . $size . "+4+4",
-							pointsize => $cfgOpts{'contact sheet pointsize'},
-							shadow => $cfgOpts{'contact sheet shadow'},
-							title => $cfgOpts{'contact sheet title'},
-							tile => $cfgOpts{'contact sheet tile'},
-							stroke => 'none');
+					bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+					mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
+					font => $cfgOpts{'contact sheet font'},
+					fill => colorValidator($cfgOpts{'contact sheet fill'}),
+					label => $cfgOpts{'contact sheet label'},
+					frame => $cfgOpts{'contact sheet frame'},
+					geometry => $size . "x" . $size . "+4+4",
+					pointsize => $cfgOpts{'contact sheet pointsize'},
+					shadow => $cfgOpts{'contact sheet shadow'},
+					title => $cfgOpts{'contact sheet title'},
+					tile => $cfgOpts{'contact sheet tile'},
+					stroke => 'none');
 
 				if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 				else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
-				$montage->Set(filename=>'jpg:'.$montagename, quality=>95, interlace=>'Partition',gravity=>'Center',stroke=>'none');
-				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[0], x=>1, y=>10);
-				$montage->Annotate(font=>$cfgOpts{'contact sheet font'}, pointsize=>9, fill=>'lightgray', text=>$left_up_row[1], x=>1, y=>20);
+				$montage->Set(filename=>'jpg:'.$montagename,
+					quality=>95,
+					interlace=>'Partition',
+					gravity=>'Center',
+					stroke=>'none');
+				$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
+					pointsize=>9,
+					fill=>'lightgray',
+					text=>$left_up_row[0],
+					x=>1,
+					y=>10);
+				$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
+					pointsize=>9,
+					fill=>'lightgray',
+					text=>$left_up_row[1],
+					x=>1,
+					y=>20);
 				$writeres = $montage->Write();
 				if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 				else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1246,39 +1258,40 @@ if ($isThereIM) {
 		# the final invocation of ->Montage() method for the the rest of files didn't fit previous loop	->Montage() calls
 		# when  $csIterationNumber < $tileX * $tileY
 		$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-					bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-					mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
-					font => $cfgOpts{'contact sheet font'},
-					fill => colorValidator($cfgOpts{'contact sheet fill'}),
-					label => $cfgOpts{'contact sheet label'},
-					frame => $cfgOpts{'contact sheet frame'},
-					geometry => $size . "x" . $size . "+4+4",
-					pointsize => $cfgOpts{'contact sheet pointsize'},
-					shadow => $cfgOpts{'contact sheet shadow'},
-					title => $cfgOpts{'contact sheet title'},
-					tile => $cfgOpts{'contact sheet tile'},
-					stroke => 'none');
+			bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+			mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
+			font => $cfgOpts{'contact sheet font'},
+			fill => colorValidator($cfgOpts{'contact sheet fill'}),
+			label => $cfgOpts{'contact sheet label'},
+			frame => $cfgOpts{'contact sheet frame'},
+			geometry => $size . "x" . $size . "+4+4",
+			pointsize => $cfgOpts{'contact sheet pointsize'},
+			shadow => $cfgOpts{'contact sheet shadow'},
+			title => $cfgOpts{'contact sheet title'},
+			tile => $cfgOpts{'contact sheet tile'},
+			stroke => 'none');
 
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename,
-				quality=>95,
-				interlace=>'Partition',
-				gravity=>'Center',
-				stroke=>'none');
+			quality=>95,
+			interlace=>'Partition',
+			gravity=>'Center',
+			stroke=>'none');
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
-				pointsize=>9,
-				fill=>'lightgray',
-				text=>$left_up_row[0],
-				x=>1,
-				y=>10);
+			pointsize=>9,
+			fill=>'lightgray',
+			text=>$left_up_row[0],
+			x=>1,
+			y=>10);
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
-				pointsize=>9,
-				fill=>'lightgray',
-				text=>$left_up_row[1],
-				x=>1, y=>20);
+			pointsize=>9,
+			fill=>'lightgray',
+			text=>$left_up_row[1],
+			x=>1,
+			y=>20);
 		$writeres = $montage->Write();
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 		else { errmsg ("Image::Magick error: $writeres\n\n"); }
@@ -1749,20 +1762,20 @@ sub template2name {
 	}
 
 	if (defined $infoObj->{"ExposureTime"}) {
-		$ExposureTime = "E" . $infoObj->{"ExposureTime"};
+		$ExposureTime = $infoObj->{"ExposureTime"};
 		$ExposureTime =~ s/\//by/g;
 	}
 
 	if (defined $infoObj->{"FNumber"}) {
-		$FNumber = "F" . $infoObj->{"FNumber"};
+		$FNumber = $infoObj->{"FNumber"};
 	}
 
 	if (defined $infoObj->{"ISO"}) {
-		$ISO = "I" . $infoObj->{"ISO"};
+		$ISO = $infoObj->{"ISO"};
 	}
 
 	if (defined $infoObj->{"WhiteBalance"}) {
-		$WhiteBalance = "W" . $infoObj->{"WhiteBalance"};
+		$WhiteBalance = $infoObj->{"WhiteBalance"};
 		$WhiteBalance =~ s/[\s()]//g;
 	}
 
@@ -2357,15 +2370,15 @@ Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
 =head1 B<TEMPLATE EXAMPLES>
 
-The name template C<01.%c.%Y%m%d%H%M%S.%i.%E%F%W%I> (where I<F> stays for
+The name template C<01.%c.%Y%m%d%H%M%S.%i.shtr-%E.f-%F.wb-%W.iso-%I> (where I<F> stays for
 FNumber, I<E> for ExposureTime, I<I> for ISO and I<W> for WhiteBalance)
 can produce the following names:
 
 =over
 
-01.0021.20030414103656.NA.E1by40F2.8WAutoI160.jpg
+01.0021.20030414103656.NA.shtr-1by40.f-2.8.wb-Auto.iso-160.jpg
 
-01.0024.20040131230857.100-0078.E1by320F2.8WAutoI50.jpg
+01.0024.20040131230857.100-0078.shtr-1by320.f-2.8.wb-Auto.iso-50.jpg
 
 01.0022.20000820222108.NA.jpg
 
