@@ -516,6 +516,17 @@ sub getOptions {
 		my %tag = strToHash($tagStr);
 		map { $tagsFromCli{$_} = $tag{$_} } keys %tag;
 	}
+
+	# ranks file processing
+	if (defined $contactSheetRankFile) {
+	    $ranks = getFileDatLns($contactSheetRankFile);
+	    if ($ranks != 0) {
+		dbgmsg (3, "getOptions(): ranks successfully processed.\n");
+	    }
+	    else {
+		errmsg ("getOptions(): ranks processing failed.\n");
+	    }
+	}
 }
 
 ########################################################################################
