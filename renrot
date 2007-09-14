@@ -407,52 +407,53 @@ sub getOptions {
 
 	my $fileCount = scalar(@ARGV);
 
-	dbgmsg (3, "   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
-	dbgmsg (3, "   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
-	dbgmsg (3, "   --aggr-mode: $aggrMode\n") if (defined $aggrMode);
-	dbgmsg (3, "   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
-	dbgmsg (3, "   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
-	dbgmsg (3, "   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
-	dbgmsg (3, "   --backup: ", boolConv($backup), "\n");
-	dbgmsg (3, "   --comment-file: $comfile\n") if (defined $comfile);
-	dbgmsg (3, "   --config-file: $configFile\n") if (defined $configFile);
-	dbgmsg (3, "   --contact-sheet: ", boolConv($contactSheet),"\n") if (defined $contactSheet);
-	dbgmsg (3, "   --contact-sheet-tile: $contactSheetTile\n") if (defined $contactSheetTile);
-	dbgmsg (3, "   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
-	dbgmsg (3, "   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
-	dbgmsg (3, "   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
-	dbgmsg (3, "   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
-	dbgmsg (3, "   --contact-sheet-bg: $contactSheetBg\n") if (defined $contactSheetBg);
-	dbgmsg (3, "   --contact-sheet-bd: $contactSheetBd\n") if (defined $contactSheetBd);
-	dbgmsg (3, "   --contact-sheet-mt: $contactSheetMt\n") if (defined $contactSheetMt);
-	dbgmsg (3, "   --contact-sheet-fn: $contactSheetFn\n") if (defined $contactSheetFn);
-	dbgmsg (3, "   --contact-sheet-lb: $contactSheetLb\n") if (defined $contactSheetLb);
-	dbgmsg (3, "   --contact-sheet-fr: $contactSheetFr\n") if (defined $contactSheetFr);
-	dbgmsg (3, "   --counter-start: $countStart",
+	dbgmsg (3, "getOptions():   --aggr-delta: $aggrDelta\n") if (defined $aggrDelta);
+	dbgmsg (3, "getOptions():   --aggr-directory: $aggrDir\n") if (defined $aggrDir);
+	dbgmsg (3, "getOptions():   --aggr-mode: $aggrMode\n") if (defined $aggrMode);
+	dbgmsg (3, "getOptions():   --aggr-template: $aggrTemplate\n") if (defined $aggrTemplate);
+	dbgmsg (3, "getOptions():   --aggr-virtual: ", boolConv($aggrVirtual), "\n") if (defined $aggrVirtual);
+	dbgmsg (3, "getOptions():   --aggr-virtual-directory: $aggrVirtDir\n") if (defined $aggrVirtDir);
+	dbgmsg (3, "getOptions():   --backup: ", boolConv($backup), "\n");
+	dbgmsg (3, "getOptions():   --comment-file: $comfile\n") if (defined $comfile);
+	dbgmsg (3, "getOptions():   --config-file: $configFile\n") if (defined $configFile);
+	dbgmsg (3, "getOptions():   --contact-sheet: ", boolConv($contactSheet),"\n") if (defined $contactSheet);
+	dbgmsg (3, "getOptions():   --contact-sheet-tile: $contactSheetTile\n") if (defined $contactSheetTile);
+	dbgmsg (3, "getOptions():   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
+	dbgmsg (3, "getOptions():   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
+	dbgmsg (3, "getOptions():   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
+	dbgmsg (3, "getOptions():   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
+	dbgmsg (3, "getOptions():   --contact-sheet-bg: $contactSheetBg\n") if (defined $contactSheetBg);
+	dbgmsg (3, "getOptions():   --contact-sheet-bd: $contactSheetBd\n") if (defined $contactSheetBd);
+	dbgmsg (3, "getOptions():   --contact-sheet-mt: $contactSheetMt\n") if (defined $contactSheetMt);
+	dbgmsg (3, "getOptions():   --contact-sheet-fn: $contactSheetFn\n") if (defined $contactSheetFn);
+	dbgmsg (3, "getOptions():   --contact-sheet-lb: $contactSheetLb\n") if (defined $contactSheetLb);
+	dbgmsg (3, "getOptions():   --contact-sheet-fr: $contactSheetFr\n") if (defined $contactSheetFr);
+	dbgmsg (3, "getOptions():   --contact-sheet-rank-file: $contactSheetRankFile\n") if (defined $contactSheetRankFile);
+	dbgmsg (3, "getOptions():   --counter-start: $countStart",
 		   "   --counter-step: $countStep",
 		   "   --counter-fixed-field: ", boolConv($countFF), "\n");
-	dbgmsg (3, "   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
-	dbgmsg (3, "   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
-	dbgmsg (3, "   --extension: $extToProcess\n");
-	dbgmsg (3, "   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
-	dbgmsg (3, "   --keywords-replace: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
-	dbgmsg (3, "   --keywords-file: $keywordsFile\n") if (defined $keywordsFile);
-	dbgmsg (3, "   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
-	dbgmsg (3, "   --name-template: $nameTemplate\n") if (defined $nameTemplate);
-	dbgmsg (3, "   --no-rename: ", boolConv($noRename),
+	dbgmsg (3, "getOptions():   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
+	dbgmsg (3, "getOptions():   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
+	dbgmsg (3, "getOptions():   --extension: $extToProcess\n");
+	dbgmsg (3, "getOptions():   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
+	dbgmsg (3, "getOptions():   --keywords-replace: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
+	dbgmsg (3, "getOptions():   --keywords-file: $keywordsFile\n") if (defined $keywordsFile);
+	dbgmsg (3, "getOptions():   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
+	dbgmsg (3, "getOptions():   --name-template: $nameTemplate\n") if (defined $nameTemplate);
+	dbgmsg (3, "getOptions():   --no-rename: ", boolConv($noRename),
 		   "   --no-rotate: ", boolConv($noRotation),
 		   "   --no-tags: ", boolConv($noTags),
 		   "   --no-ren-rot-tag-mtm: ", boolConv($noRenRoTagMtm),"\n");
-	dbgmsg (3, "   --only-orientation: ", boolConv($orientTag), "\n");
-	dbgmsg (3, "   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
-	dbgmsg (3, "   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
-	dbgmsg (3, "   --sub-fileset: $subFileSet\n") if ($subFileSet ne "");
-	dbgmsg (3, "   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
-	dbgmsg (3, "   --trim: ", boolConv($trim), "\n") if (defined $trim);
-	dbgmsg (3, "   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
-	dbgmsg (3, "   --use-ipc: ", boolConv($useIPC), "\n") if (defined $useIPC);
-	dbgmsg (3, "   --work-directory: $workDir\n");
-	dbgmsg (3, "   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
+	dbgmsg (3, "getOptions():   --only-orientation: ", boolConv($orientTag), "\n");
+	dbgmsg (3, "getOptions():   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
+	dbgmsg (3, "getOptions():   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
+	dbgmsg (3, "getOptions():   --sub-fileset: $subFileSet\n") if ($subFileSet ne "");
+	dbgmsg (3, "getOptions():   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+	dbgmsg (3, "getOptions():   --trim: ", boolConv($trim), "\n") if (defined $trim);
+	dbgmsg (3, "getOptions():   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
+	dbgmsg (3, "getOptions():   --use-ipc: ", boolConv($useIPC), "\n") if (defined $useIPC);
+	dbgmsg (3, "getOptions():   --work-directory: $workDir\n");
+	dbgmsg (3, "getOptions():   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
 
 	if ($showHelp != 0) {
 		usage();
