@@ -483,7 +483,7 @@ sub getOptions {
 	# is there ImageMagick?
 	if (defined isTherePackage("Image::Magick")) {
 		$isThereIM = 1;
-		dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
+		dbgmsg (1, "getOptions(): We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
 	}
 	elsif ($cfgOpts{'contact sheet'} == 1 and not defined isTherePackage("Image::Magick")) {
 		errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
