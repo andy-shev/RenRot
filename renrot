@@ -1363,12 +1363,12 @@ if ($isThereIM) {
 
 		$thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
 		$thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) .
-			"-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+					 "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
 		$thmb->Annotate(pointsize => 25,
-			fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
-			font => $cfgOpts{'contact sheet thm font'},
-			text => $cfgOpts{'contact sheet thm text'},
-			gravity=>'Center');
+				fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+				font => $cfgOpts{'contact sheet thm font'},
+				text => $cfgOpts{'contact sheet thm text'},
+				gravity=>'Center');
 		my $thmbnum = $thmb->Write();
 
 		if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
