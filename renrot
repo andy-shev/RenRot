@@ -127,6 +127,8 @@ my $contactSheetThmFl;	# fill, look ImageMagick documentation for montage option
 my $contactSheetThmGrFr;# thumbnail background gradient from
 my $contactSheetThmGrTo;# thumbnail background gradient to
 my $contactSheetThmText;# thumbnail text
+my $contactSheetRankFile; # file with images ranks
+my $ranks;              # reference to the hash of files ranks
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
