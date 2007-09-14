@@ -1396,12 +1396,14 @@ if ($isThereIM) {
 	sub colorValidator {
 		my $color = shift;
 		if ($color =~ /^#.*$/) {
-			errmsg("You have not use \"#\" in color index definition.\n");
+			errmsg("You have not use # in color index\n");
 		}
 		elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
 			return "#" . $color;
 		}
-		else { return $color; }
+		else {
+			return $color;
+		}
 	}
 
 }
