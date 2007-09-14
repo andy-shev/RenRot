@@ -1199,7 +1199,9 @@ if ($isThereIM) {
 				if ( defined $orientation and $orientation > 1 ) {
 					$filefull = rotmont ( $ThumbnailOriginal , $orientation, "" );
 				}
-				else { $filefull = $ThumbnailOriginal; }
+				else {
+					$filefull = $ThumbnailOriginal;
+				}
 			}
 			elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
 				procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
