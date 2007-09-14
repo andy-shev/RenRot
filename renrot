@@ -957,6 +957,49 @@ sub getFileDataLines {
 	return;
 }
 
+
+########################################################################################
+#
+# getFileDatLns() gets data from a given file in array of lines. it returns hash
+#                 of format: $hash{'field1'}[0] => 1
+#                            ...
+#                            $hash{'field1'}[N] => fieldN
+#                 where N is the number of fields, starting from 1
+#
+sub getFileDatLns {
+    my $file = shift; # name of the file to be processed
+
+    if (not defined $file or $file eq "") {
+	warnmsg ("Can't read file with empty name!\n");
+	return;
+    }
+
+    if (open(XXXFILE, "<$file")) {
+	binmode XXXFILE;
+	# my @xxxData = <XXXFILE>;
+	my %xxxData; # splited line hash
+	my @chunks;  # arr, chunks to be placed to
+	my ($i,$j);
+
+	while (<XXXFILE>){
+	    chomp;
+	    @chunks = split(/\s/);
+	    $i = 0;
+	    $xxxData{$chunks[0]}[$i] = 1;
+	    for ( ++$i; $i < scalar @chunks; $i++){
+		$xxxData{$chunks[0]}[$i] = $chunks[$i];
+		dbgmsg (4, "\$xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
+	    }
+	    undef @chunks;
+	}
+	unless (close(XXXFILE)) { errmsg ("$file wasn't closed!\n"); }
+	return \%xxxData;
+    }
+
+    warnmsg ("Can't read file: $file!\n");
+    return;
+}
+
 ########################################################################################
 #
 # mtimeSet() sets mtime for the given file
