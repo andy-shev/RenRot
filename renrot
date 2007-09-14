@@ -927,12 +927,13 @@ sub renameFile {
 # getFileData() gets data from a given file in one-line string
 #
 sub getFileData {
-	my $file = shift;
-	my @result = getFileDataLines($file);
-	return join ("", @result) if (scalar(@result) > 0);
-	return undef;
+    my $file = shift;
+    my @result = getFileDataLines($file);
+    return join ("", @result) if (scalar(@result) > 0);
+    return undef;
 }
-
+ 
+ 
 ########################################################################################
 #
 # getFileDataLines() gets data from a given file in array of lines
