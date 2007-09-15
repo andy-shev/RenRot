@@ -1318,39 +1318,39 @@ if ($isThereIM) {
 		# the final invocation of ->Montage() method for the the rest of files didn't fit previous loop	->Montage() calls
 		# when  $csIterationNumber < $tileX * $tileY
 		$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-					bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-					#mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
-					font => $cfgOpts{'contact sheet font'},
-					fill => colorValidator($cfgOpts{'contact sheet fill'}),
-					label => $cfgOpts{'contact sheet label'},
-					frame => $cfgOpts{'contact sheet frame'},
-					geometry => $size . "x" . $size . "+4+4",
-					pointsize => $cfgOpts{'contact sheet pointsize'},
-					shadow => $cfgOpts{'contact sheet shadow'},
-					title => $cfgOpts{'contact sheet title'},
-					tile => $cfgOpts{'contact sheet tile'},
-					stroke => 'none');
+			bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+			#mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
+			font => $cfgOpts{'contact sheet font'},
+			fill => colorValidator($cfgOpts{'contact sheet fill'}),
+			label => $cfgOpts{'contact sheet label'},
+			frame => $cfgOpts{'contact sheet frame'},
+			geometry => $size . "x" . $size . "+4+4",
+			pointsize => $cfgOpts{'contact sheet pointsize'},
+			shadow => $cfgOpts{'contact sheet shadow'},
+			title => $cfgOpts{'contact sheet title'},
+			tile => $cfgOpts{'contact sheet tile'},
+			stroke => 'none');
 
 		if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
 		else { dbgmsg (1,"Montage've finished successfully.\n"); }
 
 		undef $image;
 		$montage->Set(filename=>'jpg:'.$montagename,
-				quality=>95,
-				interlace=>'Partition',
-				gravity=>'Center',
-				stroke=>'none');
+			quality=>95,
+			interlace=>'Partition',
+			gravity=>'Center',
+			stroke=>'none');
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
-				pointsize=>9,
-				fill=>'lightgray',
-				text=>$left_up_row[0],
-				x=>1,
-				y=>10);
+			pointsize=>9,
+			fill=>'lightgray',
+			text=>$left_up_row[0],
+			x=>1,
+			y=>10);
 		$montage->Annotate(font=>$cfgOpts{'contact sheet font'},
-				pointsize=>9,
-				fill=>'lightgray',
-				text=>$left_up_row[1],
-				x=>1, y=>20);
+			pointsize=>9,
+			fill=>'lightgray',
+			text=>$left_up_row[1],
+			x=>1, y=>20);
 		$writeres = $montage->Write();
 		if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
 		else { errmsg ("Image::Magick error: $writeres\n\n"); }
