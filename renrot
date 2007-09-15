@@ -1248,20 +1248,36 @@ if ($isThereIM) {
 		my $montagename;
 		my $infoMontage;
 		my @left_up_row = ('RenRot (c)',$homeURL);
+		my $substrFile;
+                my $readIndex;
 
 		if ( $csIterationNumber > $tileX * $tileY ) {
 			for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
 				$image = Image::Magick->new;
 				$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-				for ($csIter = $csIterator * $tileMul ; $csIter < ($csIterator * $tileMul + $tileMul) ; $csIter++) {
+				for ($readIndex = 0, $csIter = $csIterator * $tileMul ; 
+                                     $csIter < ($csIterator * $tileMul + $tileMul) ; 
+                                     $csIter++, $readIndex++) {
 					$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
-					if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIter] was successfully red.\n"); }
+					if ( not $readres ) { dbgmsg (4,"contactSheetGenerator(): $thumbnailes_sorted[$csIter] was successfully red.\n"); }
 					else { errmsg ("Image::Magick error: $readres\n\n"); }
+
+					# ranking
+					$substrFile = substr($thumbnailes_sorted[$csIter],length($cfgOpts{'contact sheet dir'})+1);
+					if (defined $ranks->{$substrFile}->[1]) {
+					    dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+					    $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+					}
+					else { 
+					    dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is undefined,",
+                                                       " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
+					    $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+					}
 				}
 				dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
 				$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
 					bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-					mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
+					#mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}),
 					font => $cfgOpts{'contact sheet font'},
 					fill => colorValidator($cfgOpts{'contact sheet fill'}),
 					label => $cfgOpts{'contact sheet label'},
@@ -1301,16 +1317,27 @@ if ($isThereIM) {
 				saveOurHdrs($exifToolObj, $infoMontage, $montagename);
 				# Writing tags.
 				tagWriter($exifToolObj, $montagename);
-
 			}
 		}
 
 		$image = Image::Magick->new;
 		$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-		for ($csIteration = $csIterator-- * $tileMul; $csIteration < $csIterationNumber ; $csIteration++) {
-			$readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
-			if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
-			else { errmsg ("Image::Magick error: $readres\n\n"); }
+		for ($readIndex = 0, $csIteration = $csIterator-- * $tileMul; $csIteration < $csIterationNumber ; $csIteration++, $readIndex++) {
+		    $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
+		    if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
+		    else { errmsg ("Image::Magick error: $readres\n\n"); }
+
+		    # ranking
+		    $substrFile = substr($thumbnailes_sorted[$csIteration],length($cfgOpts{'contact sheet dir'})+1);
+		    if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
+			dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+			$image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+		    }
+		    else { 
+			dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined,",
+                                   " using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
+			$image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+		    }
 		}
 
 		dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
