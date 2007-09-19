@@ -135,7 +135,7 @@ my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
-my @excludeList;	# files that will be excluded from list
+my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $keywordize;		# keywordize or not
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
@@ -151,7 +151,7 @@ my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
-my %tagsFromCli;	# tags are got from CLI
+my %tagsFromCli = ();	# tags are got from CLI
 my $trim;		# jpegtran -trim
 my $useColor;		# colorized output
 my $useIPC;		# rotate thumbnail via pipe
@@ -164,8 +164,7 @@ my $isThereIM = 0;	# is there Image::Magick package?
 #
 # Tags hash for injecting to EXIF when renaming
 #
-my %tags = (
-	    'RenRotProcessingTimestamp' => {
+my %tags = ('RenRotProcessingTimestamp' => {
 					    value => timeNow(),
 					    group => 'RenRot',
 					   },
@@ -192,7 +191,7 @@ my @rotparms = (
 		'-rotate 90',
 		'-transverse',
 		'-rotate 270',
-	       );	# array of options to jpegtran to rotate the file
+	       );	# jpegtran options array to rotate the file
 
 my @angles = (
 	      '',
@@ -220,7 +219,7 @@ my %rotorient = (
 
 my %rotorientrev = reverse %rotorient;
 
-my %incFiles;	# hash of included files while parsing configuration file
+my %incFiles = ();	# hash of included files while parsing configuration file
 
 my @multOpts = (
 		'color',
@@ -229,8 +228,8 @@ my @multOpts = (
 		'tagfile',
 	       );
 
-my @files;		# array of the sorted filenames to process
-my %filenameshash;	# hash for old file names
+my @files = ();		# array of the sorted filenames to process
+my %filenameshash = ();	# hash for old file names
 
 ########################################################################################
 #
@@ -342,7 +341,7 @@ sub isTherePackage {
 sub getOptions {
   my $showVersion = 0;	# need version
   my $showHelp = 0;	# need help
-  my @tmpTags;
+  my @tmpTags = ();
   my $getOptions = GetOptions (
 			       "aggr-delta=i" => \$aggrDelta,
 			       "aggr-directory=s" => \$aggrDir,
@@ -489,7 +488,7 @@ sub getOptions {
   # is there ImageMagick?
   if (defined isTherePackage("Image::Magick")) {
     $isThereIM = 1;
-    dbgmsg (1, "getOptions(): We have Image::Magick package", 
+    dbgmsg (1, "getOptions(): We have Image::Magick package",
 	    " and could proceed with --contact-sheet related functionality.\n");
   }
   elsif ($cfgOpts{'contact sheet'} == 1 and not defined isTherePackage("Image::Magick")) {
@@ -557,7 +556,7 @@ sub parsePair {
 sub strToHash {
   my $str = shift;
   my $default = shift;
-  my %hash;
+  my %hash = ();
   $str =~ s/:/=/;		# change first entrance of ':' to '='
   my ($key, $value) = parsePair($str, $default);
   if (defined $key) {
@@ -582,7 +581,7 @@ sub strToHash {
 sub getConfig {
   my $fc = shift;
   my $file = shift;
-  my %hConfig;
+  my %hConfig = ();
 
   if (open (CFGFILE, "<$file")) {
     my @cfgfile = <CFGFILE>;
@@ -672,7 +671,7 @@ sub parseConfig {
 #
 sub dirConv {
   my $dirStr = shift;
-  $dirStr =~ s/\/*\/\.\/\/*/\//g;		# remove dotslashes
+  $dirStr =~ s/\/*\/\.\/\/*/\//g;	# remove dotslashes
   $dirStr =~ s/^\.\/\/*//;		# remove heading dotslash
   $dirStr =~ s/\/+$//;			# remove trailing slashes
   return $dirStr;
@@ -715,7 +714,7 @@ sub keywordizer {
   my $file = shift;			# keywords file
   return if (not (-R $file and -f $file and -T $file));
   dbgmsg (2, "Reading keywords from file: $file\n");
-  my @result;
+  my @result = ();
   my @keywordArr = getFileDataLines($file);
   for (my $i = 0; $i < scalar(@keywordArr); $i++) {
     $keywordArr[$i] =~ s/\r?\n$//;	# remove CR and LF symbols
@@ -731,10 +730,10 @@ sub keywordizer {
 sub renRotProcess {
   my $exifToolObj = shift;
   my $counterSize = shift;
-  my $fileCounter = $countStart;	# file counter
+  my $fileCounter = $countStart;# file counter
   my $newFileName;		# the name file to be renamed to
   my $info;			# ImageInfo object
-  my @keywordArr;		# array for keywords
+  my @keywordArr = ();		# array for keywords
 
   if ($cfgOpts{'keywordize'} != 0) {
     @keywordArr = keywordizer ($cfgOpts{'keywords file'});
@@ -968,7 +967,7 @@ sub getFileDatLns {
   if (open(XXXFILE, "<$file")) {
     binmode XXXFILE;
     my %xxxData; # splited line hash
-    my @chunks;  # arr, chunks to be placed to
+    my @chunks = ();  # arr, chunks to be placed to
     my ($i,$j);
 
     while (<XXXFILE>){
@@ -1129,8 +1128,8 @@ if ($isThereIM) {
     my $width;
     my $height;
     my $size = 0;
-    my @thumbnailes;
-    my @thumbnailes_sorted;
+    my @thumbnailes = ();
+    my @thumbnailes_sorted = ();
     my $orientation;
     my $filefull;
     my $ranks;              # reference to the hash of files ranks
@@ -1578,7 +1577,7 @@ sub rotateImg {
   my $oldfile = shift;			# original name to transform with jpegtran
   my $origfile = $oldfile . "_orig";	# backup original name
   my $newfile = $oldfile . "_rotated";	# temporay name to store rotated file
-  my @addon = @_;				# the switches for jpegtran to transform the image
+  my @addon = @_;			# the switches for jpegtran to transform the image
 
   # jpegtran the image
   my $cmd = "jpegtran -copy none @addon -outfile \"$newfile\" \"$oldfile\"";
@@ -1982,10 +1981,10 @@ if (scalar(@files) == 0) {
 }
 
 # independently of @files initialization doing this
-my @filenames;
+my @filenames = ();
 
 foreach my $file ( @files ) {
-  next if (not -f $file);				# skip absent file or not a file
+  next if (not -f $file);			# skip absent file or not a file
   next if (grep {/^$file$/} @excludeList);	# skip excluded file
   push (@filenames, $file);
 }
@@ -2017,7 +2016,7 @@ $tags{'UserComment'} = {value => $userComment} if (defined $userComment);
 map { $tags{$_} = $tagsFromCli{$_} } keys %tagsFromCli;
 
 # Print parsed tags at debug level
-my @dbgTags;
+my @dbgTags = ();
 foreach my $key (sort (keys %tags)) {
   my $group = defined $tags{$key}{group} ? $tags{$key}{group} : "";
   my $value = defined $tags{$key}{value} ? $tags{$key}{value} : "";
