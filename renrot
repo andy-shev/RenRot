@@ -316,9 +316,13 @@ sub boolConv {
 }
 
 ########################################################################################
-#
-# boolConverter() converts given string to a boolean value
-#
+# Usage      : boolConverter($var)
+# Purpose    : converts given string to a boolean value
+# Returns    : number 1 or 0
+# Parameters : one of "1", "Yes", "True", "On", "0", "No", "False" or "Off"
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : boolConv()
 sub boolConverter {
   my $value = shift;
   if ($value =~ m/^(0|No|False|Off)$/i) {
