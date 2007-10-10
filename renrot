@@ -1820,8 +1820,8 @@ Aggregating options:
       --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
       --aggr-virtual-directory <DIR> root directory for virtual aggregation
 
-Contact Sheet options:
-	--contact-sheet		create the contact sheet
+Contact Sheet options (CS):
+	--contact-sheet		create the CS
 	--contact-sheet-tile	tile in montage, MxN
 	--contact-sheet-title	set title of the montage
 	--contact-sheet-file <FILE>
@@ -1829,6 +1829,8 @@ Contact Sheet options:
 	--contact-sheet-dir <DIR>
                                 temporary montage dir
 	--contact-sheet-thm	files for montage are already thumbnails
+	--contact-sheet-rank-file
+                                file with CS ranks
 
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
