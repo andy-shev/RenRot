@@ -1129,9 +1129,13 @@ sub aggregationProcess {
 }
 
 ########################################################################################
-#
-# contactSheetGenerator(): requires -e
-#
+# Usage      : contactSheetGenerator();
+# Purpose    : builds contact sheet/s
+# Returns    : none
+# Parameters : $exifTool ref    -
+# Throws     : no exceptions
+# Comments   : requires --ext; --counter-start is valid
+# See Also   : template2name()
 if ($isThereIM) {
   sub contactSheetGenerator {
     return if (not $cfgOpts{'contact sheet'});
