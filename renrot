@@ -2513,6 +2513,26 @@ Font point size (IM: -pointsize).
 
 Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
+=item B<--contact-sheet-rank>
+
+Run ranking process according the ranks defined with B<--contact-sheet-rank-file>
+The result is the colored frames of the thumbnails of contact sheets.
+
+=item B<--contact-sheet-rank-file>
+
+Path to the file with ranks. Its format is a "file rankcolor" per line.
+Filename separated from the color by space or tabulation.
+
+=over
+
+01.file.jpg        red
+
+04.file.JPG        green
+
+=back
+
+Only the files found in the file will be ranked.
+
 =over
 
 =head1 B<TEMPLATE EXAMPLES>
