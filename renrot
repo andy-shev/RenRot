@@ -2135,11 +2135,12 @@ if ($countFF != 0) {
 }
 
 renRotProcess($exifTool, $counterSize);
-aggregationProcess($exifTool, $counterSize);
 
 if ($isThereIM) {
   contactSheetGenerator($exifTool);
 }
+
+aggregationProcess($exifTool, $counterSize);
 
 __END__
 
