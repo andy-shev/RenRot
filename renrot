@@ -334,9 +334,13 @@ sub boolConverter {
 }
 
 ########################################################################################
-#
-# isTherePackage() checks availability of some package renrot could be dependent of
-#
+# Usage      : isTherePackage($pkg)
+# Purpose    : checks availability of package renrot could be dependent of
+# Returns    : nothing in case the package available and undef if not
+# Parameters : $pkg - string with package name
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
 sub isTherePackage {
   my $pkg = shift;
   return undef unless eval "require $pkg";
@@ -508,7 +512,7 @@ sub getOptions {
   if ($isThereIM == 1) {
     my $imverobj = Image::Magick->new;
     my ($IMName, $IMVer, $IMrest) = split(/ /, $imverobj->Get('version'));
-    $tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s", 
+    $tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s",
 					 $VERSION, $Image::ExifTool::VERSION, $IMName, $IMVer);
     $tags{'Software'}{'group'} = 'EXIF';
     undef $imverobj;
@@ -1246,11 +1250,11 @@ if ($isThereIM) {
       for ( ; $csIterator < $csFullIterations ; $csIterator++ ) {
 	$image = Image::Magick->new;
 	$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-	for ($readIndex = 0, $csIter = $csIterator * $tileMul ; 
-	     $csIter < ($csIterator * $tileMul + $tileMul) ; 
+	for ($readIndex = 0, $csIter = $csIterator * $tileMul ;
+	     $csIter < ($csIterator * $tileMul + $tileMul) ;
 	     $csIter++, $readIndex++) {
 	  $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
-	  if ( not $readres ) { dbgmsg (4,"contactSheetGenerator(): ", 
+	  if ( not $readres ) { dbgmsg (4,"contactSheetGenerator(): ",
 					"$thumbnailes_sorted[$csIter] was successfully red.\n"); }
 	  else { errmsg ("Image::Magick error: $readres\n\n"); }
 
@@ -1325,7 +1329,7 @@ if ($isThereIM) {
       if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
 	dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
 	$image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
-      } else { 
+      } else {
 	dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined,",
 		" using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
 	$image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
@@ -1334,7 +1338,7 @@ if ($isThereIM) {
 
     dbgmsg (1,++$csIterator . " montage is started, wait a bit please ...\n");
 
-    # the final invocation of ->Montage() method for the the rest of files didn't fit 
+    # the final invocation of ->Montage() method for the the rest of files didn't fit
     # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
     $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
 			       bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
