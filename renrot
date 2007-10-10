@@ -1500,9 +1500,13 @@ if ($isThereIM) {
 }
 
 ########################################################################################
-#
-# makeDir() makes one level directory
-#
+# Usage      : makeDir($dir);
+# Purpose    : makes one level directory
+# Returns    : none
+# Parameters : $dir str - directory to make
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
 sub makeDir {
   my $newDir = shift;
   if (not -d $newDir) {
