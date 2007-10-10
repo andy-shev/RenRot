@@ -1855,18 +1855,28 @@ or '--no-mtime' disables setting it."
 }
 
 ########################################################################################
-#
-# template2name() builds file name according to the template
-#
+# Usage      : $name = template2name(...);
+# Purpose    : builds file name according to the template
+# Returns    : name as string
+# Parameters : $exifToolObj ref -
+#            : $infoObj     ref -
+#            : $template    str - the template to be used
+#            : $fileNo      num - counter for %c
+#            : $fileName    str - file name for %n and %e
+#            : $counterSize num - the size of the counter for format (like "01", "0012")
+#            : $angleSuffix str - suffix to add to the end of the rotated files
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
 sub template2name {
   my $exifToolObj = shift;
   my $infoObj = shift;
-  my $template = shift;	# the template to be used
-  my $fileNo = shift;	        # counter for %c
-  my $fileName = shift;	# file name for %n and %e
+  my $template = shift;
+  my $fileNo = shift;
+  my $fileName = shift;
   my $counterSize = shift;
-  my $angleSuffix = shift;    # suffix to add to the end of the rotated files
-  my ($base, $ext);	        # file name %n and extension %e
+  my $angleSuffix = shift;
+  my ($base, $ext); # file name %n and extension %e
 
   if ($fileName =~ m/^(.*)\.([^\.]+)$/) {
     $base = $1;
@@ -1890,7 +1900,7 @@ sub template2name {
   my $ISO = "";
   my $WhiteBalance = "";
   my $fileNameOriginal = "";
-  my $fileNameOriginalCounter = "";		# we can't use 0 as default value
+  my $fileNameOriginalCounter = "";		# we can not use 0 as default value
   my $fileNameOriginalExtensionLess = "";
 
   if (defined $infoObj->{"FileNumber"}) {
@@ -1977,25 +1987,25 @@ parseConfig($configFile);
 switchColor();
 
 # redefining options set in configuration file with set via CLI ones
-$cfgOpts{'aggregation delta'}	= $aggrDelta if (defined $aggrDelta);
+$cfgOpts{'aggregation delta'}	        = $aggrDelta if (defined $aggrDelta);
 $cfgOpts{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
-$cfgOpts{'aggregation mode'}	= $aggrMode if (defined $aggrMode);
+$cfgOpts{'aggregation mode'}	        = $aggrMode if (defined $aggrMode);
 $cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
-$cfgOpts{'aggregation virtual'}	= $aggrVirtual if (defined $aggrVirtual);
-$cfgOpts{'aggregation virtual directory'}	= $aggrVirtDir if (defined $aggrVirtDir);
-$cfgOpts{'keywordize'}		= $keywordize if (defined $keywordize);
-$cfgOpts{'keywords file'}	= $keywordsFile if (defined $keywordsFile);
-$cfgOpts{'keywords replace'}	= $keywordsReplace if (defined $keywordsReplace);
-$cfgOpts{'mtime'}		= $mtime if (defined $mtime);
-$cfgOpts{'name template'}	= $nameTemplate if (defined $nameTemplate);
-$cfgOpts{'trim'}		= $trim if (defined $trim);
-$cfgOpts{'use color'}		= $useColor if (defined $useColor);
-$cfgOpts{'use ipc'}		= $useIPC if (defined $useIPC);
-$cfgOpts{'contact sheet'}	= $contactSheet if (defined $contactSheet);
-$cfgOpts{'contact sheet tile'}	= $contactSheetTile if (defined $contactSheetTile);
-$cfgOpts{'contact sheet title'}	= $contactSheetTitle if (defined $contactSheetTitle);
-$cfgOpts{'contact sheet file'}	= $contactSheetFile if (defined $contactSheetFile);
-$cfgOpts{'contact sheet dir'}	= $contactSheetDir if (defined $contactSheetDir);
+$cfgOpts{'aggregation virtual'}	        = $aggrVirtual if (defined $aggrVirtual);
+$cfgOpts{'aggregation virtual directory'} = $aggrVirtDir if (defined $aggrVirtDir);
+$cfgOpts{'keywordize'}                  = $keywordize if (defined $keywordize);
+$cfgOpts{'keywords file'}       	= $keywordsFile if (defined $keywordsFile);
+$cfgOpts{'keywords replace'}    	= $keywordsReplace if (defined $keywordsReplace);
+$cfgOpts{'mtime'}	        	= $mtime if (defined $mtime);
+$cfgOpts{'name template'}       	= $nameTemplate if (defined $nameTemplate);
+$cfgOpts{'trim'}	        	= $trim if (defined $trim);
+$cfgOpts{'use color'}	        	= $useColor if (defined $useColor);
+$cfgOpts{'use ipc'}	        	= $useIPC if (defined $useIPC);
+$cfgOpts{'contact sheet'}	        = $contactSheet if (defined $contactSheet);
+$cfgOpts{'contact sheet tile'}  	= $contactSheetTile if (defined $contactSheetTile);
+$cfgOpts{'contact sheet title'}  	= $contactSheetTitle if (defined $contactSheetTitle);
+$cfgOpts{'contact sheet file'}   	= $contactSheetFile if (defined $contactSheetFile);
+$cfgOpts{'contact sheet dir'}	        = $contactSheetDir if (defined $contactSheetDir);
 $cfgOpts{'contact sheet background'}	= $contactSheetBg if (defined $contactSheetBg);
 $cfgOpts{'contact sheet bordercolor'}	= $contactSheetBd if (defined $contactSheetBd);
 $cfgOpts{'contact sheet mattecolor'}	= $contactSheetMt if (defined $contactSheetMt);
