@@ -1165,7 +1165,7 @@ if ($isThereIM) {
 
     use Image::Magick;
 
-    if ( not -d $workdir ) { mkdir $workdir; }
+    makeDir($workdir );
 
     use File::Copy;
 
