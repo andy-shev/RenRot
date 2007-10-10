@@ -347,9 +347,13 @@ sub isTherePackage {
 }
 
 ########################################################################################
-#
-# getOptions() parses command line arguments
-#
+# Usage      : getOptions(...)
+# Purpose    : parses command line arguments
+# Returns    : nothing
+# Parameters : many of them, look bellow
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : Getopt::Long GetOptions()
 sub getOptions {
   my $showVersion = 0;	# need version
   my $showHelp = 0;	# need help
@@ -364,8 +368,8 @@ sub getOptions {
 			       "backup!" => \$backup,
 			       "comment-file=s" => \$comfile,
 			       "config-file|c=s" => \$configFile,
-			       "contact-sheet-tile=s" => \$contactSheetTile,
 			       "contact-sheet!" => \$contactSheet,
+			       "contact-sheet-tile=s" => \$contactSheetTile,
 			       "contact-sheet-title=s" => \$contactSheetTitle,
 			       "contact-sheet-file=s" => \$contactSheetFile,
 			       "contact-sheet-dir=s" => \$contactSheetDir,
