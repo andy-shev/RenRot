@@ -1233,14 +1233,16 @@ if ($isThereIM) {
     dbgmsg (3, "contactSheetGenerator(): contact sheet frame = \"$cfgOpts{'contact sheet frame'}\"\n");
     dbgmsg (3, "contactSheetGenerator(): contact sheet pointsize = \"$cfgOpts{'contact sheet pointsize'}\"\n");
     dbgmsg (3, "contactSheetGenerator(): contact sheet shadow = \"$cfgOpts{'contact sheet shadow'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): title = \"$cfgOpts{'contact sheet title'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): tile = \"$cfgOpts{'contact sheet tile'}\"\n");
+    dbgmsg (3, "contactSheetGenerator(): contact sheet title = \"$cfgOpts{'contact sheet title'}\"\n");
+    dbgmsg (3, "contactSheetGenerator(): contact sheet tile = \"$cfgOpts{'contact sheet tile'}\"\n");
 
     # here it's iteration by tile
     my ($tileX, $tileY) = split ("x",$cfgOpts{'contact sheet tile'});
     my $tileMul = $tileX * $tileY;
-    my $csIterationNumber = $#thumbnailes_sorted + 1;
+    my $csIterationNumber = scalar @thumbnailes_sorted;
     my $csFullIterations = int($csIterationNumber/$tileMul);
+    my $csRest = $csIterationNumber % $tileMul;
+    my $fileCounter = $countStart;
     my $csIteration = 0;
     my $csIterator = 0;
     my $csIter = 0;
