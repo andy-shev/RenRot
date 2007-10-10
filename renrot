@@ -1427,11 +1427,19 @@ if ($isThereIM) {
     rmdir $workdir;
   }
 
-  # thumbnail stub generator
+  ########################################################################################
+  # Usage      : thmbgen($wrkdir,$thmbname);
+  # Purpose    : thumbnail stub generator
+  # Returns    : none
+  # Parameters : $wrkdir   str - the directory, thumbnailes are kept
+  #            : $thmbname str - thumbnail image name
+  # Throws     : no exceptions
+  # Comments   : sie of the generated thumbnail is fixed and is 160x120
+  # See Also   : contactSheetGenerator();
   sub thmbgen {
-    my $wrkdir = shift;
+    my $workdir  = shift;
     my $thmbname = shift;
-    $thmbname = $wrkdir.$thmbname;
+    $thmbname = $workdir.$thmbname;
     my $size = "160x120";
     my $thmb = Image::Magick->new;
 
