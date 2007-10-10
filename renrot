@@ -299,9 +299,13 @@ sub dbgmsg {
 }
 
 ########################################################################################
-#
-# boolConv() converts boolean value to human readable string
-#
+# Usage      : boolConv($var)
+# Purpose    : converts boolean value to human readable string
+# Returns    : string "Yes" or "No"
+# Parameters : 0 or 1
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : boolConverter()
 sub boolConv {
   my $var = shift;
   if ($var == 0) {
