@@ -1447,32 +1447,48 @@ if ($isThereIM) {
     $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) .
 		     "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
     $thmb->Annotate(pointsize => 25,
-		    fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
-		    font => $cfgOpts{'contact sheet thm font'},
-		    text => $cfgOpts{'contact sheet thm text'},
-		    gravity=>'Center');
+		    fill    => colorValidator($cfgOpts{'contact sheet thm fill'}),
+		    font    => $cfgOpts{'contact sheet thm font'},
+		    text    => $cfgOpts{'contact sheet thm text'},
+		    gravity => 'Center');
     my $thmbnum = $thmb->Write();
 
     if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
     undef $thmb;
   }
 
-  # rotCs() rotates thumbnails for montage
+  ########################################################################################
+  # Usage      : rotCs($base_orig, $angle,$workdir);
+  # Purpose    : rotates thumbnails for montage
+  # Returns    : none
+  # Parameters : $base_orig str - pathless filename of the rotated file
+  #            : $angle     num - rotation angle
+  #            : $workdir   str - the work directory thumbnails kept in
+  # Throws     : no exceptions
+  # Comments   : works only with JPEGs
+  # See Also   : contactSheetGenerator();
   sub rotCs {
-    my $fileorig = shift;	# pathless filename of the rotated file
+    my $base_orig = shift;
     my $angle = shift;
-    my $theworkdir = shift;
-    my $rotate = Image::Magick->new;
-    my $res = $theworkdir.$fileorig;
+    my $workdir = shift;
+    my $image_to_rotate = Image::Magick->new;
+    my $result = $workdir.$base_orig;
 
-    $rotate->Read("JPEG:".$fileorig);
-    $rotate->Rotate(degrees=>$angle);
-    $rotate->Write(filename=>"JPEG:".$res, quality=>95, compression=>'JPEG2000');
-    undef $rotate;
-    return $res;
+    $image_to_rotate->Read("JPEG:".$base_orig);
+    $image_to_rotate->Rotate(degrees=>$angle);
+    $image_to_rotate->Write(filename=>"JPEG:".$result, quality=>95, compression=>'JPEG2000');
+    undef $image_to_rotate;
+    return $result;
   }
 
-  # colorValidator() validates given string as color
+  ########################################################################################
+  # Usage      : colorValidator($color);
+  # Purpose    : validates given string as color suitable for ImageMagick
+  # Returns    : none
+  # Parameters : $color str - color
+  # Throws     : no exceptions
+  # Comments   : none
+  # See Also   : convert -list color
   sub colorValidator {
     my $color = shift;
     if ($color =~ /^#.*$/) {
