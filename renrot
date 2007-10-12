@@ -1163,7 +1163,7 @@ if ($isThereIM) {
       }
     }
 
-    use Image::Magick;
+    require Image::Magick; # compile time
 
     makeDir($workdir );
 
