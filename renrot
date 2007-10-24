@@ -1166,13 +1166,7 @@ if ($isThereIM) {
       }
     }
 
-<<<<<<< .mine
-    my $I_M = 'Image::Magick';
-    #use $I_M;
-    require Image::Magick;
-=======
     require Image::Magick; # compile time
->>>>>>> .r361
 
     makeDir($workdir );
 
