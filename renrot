@@ -17,6 +17,9 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
+# perl5.8 memory overflow workaround (at least on FreeBSD 6.x)
+my $mem_trouble_stub=" "x1_000_000; undef $mem_trouble_stub;
+
 our $VERSION = "0.25.20070915";		# the version of this script
 my $maxVerbosity = 4;			# our max verbosity level (internal)
 my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
@@ -1163,7 +1166,13 @@ if ($isThereIM) {
       }
     }
 
+<<<<<<< .mine
+    my $I_M = 'Image::Magick';
+    #use $I_M;
+    require Image::Magick;
+=======
     require Image::Magick; # compile time
+>>>>>>> .r361
 
     makeDir($workdir );
 
