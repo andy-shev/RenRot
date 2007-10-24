@@ -392,7 +392,7 @@ sub getOptions {
 			       "contact-sheet-thm-grto|cs-thm-grto=s" => \$contactSheetThmGrTo,
 			       "contact-sheet-thm-text|cs-thm-text=s" => \$contactSheetThmText,
 			       "contact-sheet-rank|cs-rank!" => \$contactSheetRank,
-			       "contact-sheet-rank-file=s" => \$contactSheetRankFile,
+			       "contact-sheet-rank-file|cs-rank-file=s" => \$contactSheetRankFile,
 			       "counter-fixed-field!" => \$countFF,
 			       "counter-start=i" => \$countStart,
 			       "counter-step=i" => \$countStep,
