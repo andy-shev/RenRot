@@ -372,7 +372,7 @@ sub getOptions {
 			       "comment-file=s" => \$comfile,
 			       "config-file|c=s" => \$configFile,
 			       "contact-sheet|cs!" => \$contactSheet,
-			       "contact-sheet-tile=s" => \$contactSheetTile,
+			       "contact-sheet-tile|cs-title=s" => \$contactSheetTile,
 			       "contact-sheet-title=s" => \$contactSheetTitle,
 			       "contact-sheet-file=s" => \$contactSheetFile,
 			       "contact-sheet-dir=s" => \$contactSheetDir,
