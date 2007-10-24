@@ -2750,11 +2750,16 @@ The configuration file is searched in the following locations
 If you found some bug or have some nice propositions, you are welcome.
 Additionally, please, read the section RESTRICTIONS in file README.
 
-It seems that on FreeBSD 6, Perl versions 5.8.7 and 5.8.8, exhibit a bug
-that causes B<renrot> to crash.
+It seems that on FreeBSD 6, Perl versions 5.8.x exhibits a bug that 
+causes B<renrot> to crash. The overal amount of memory for the perl 
+process increasing up to the user datasize limit (in FreeBSD default 
+is 512M).
 
-If the sizes of files to be processed sum up to a value greater than your RAM
-amount, B<renrot> aborts with the error message:
+It seems to be a bug in perl's own malloc implementation. The bug should 
+not occur in any perl which uses the system malloc (unless the system malloc 
+has the same bug).
+
+B<renrot> aborts with the error message:
 
 =over
 
