@@ -219,6 +219,8 @@ Sergey Poznyakoff for help summary and manual style, English and code fixes.
 
 Anthony Thyssen for his help with ImageMagick/PerlMagick related questions.
 
+Slaven Rezic for his help with perl5.8.x "Out of memory ... sbrk()" on FreeBSD-6.x
+
 ARE YOU WANT SOMETHING TO SAY?
 --- --- ---- --------- -- ----
 
