@@ -382,7 +382,7 @@ sub getOptions {
 			       "contact-sheet-mt|cs-mt=s" => \$contactSheetMt,
 			       "contact-sheet-fl|cs-fl=s" => \$contactSheetFl,
 			       "contact-sheet-fn|cs-fn=s" => \$contactSheetFn,
-			       "contact-sheet-lb=s" => \$contactSheetLb,
+			       "contact-sheet-lb|cs-lb=s" => \$contactSheetLb,
 			       "contact-sheet-fr=s" => \$contactSheetFr,
 			       "contact-sheet-pntsz=i" => \$contactSheetPntSz,
 			       "contact-sheet-shadow" => \$contactSheetShadow,
