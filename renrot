@@ -389,7 +389,7 @@ sub getOptions {
 			       "contact-sheet-thm-fl|cs-thm-fl=s" => \$contactSheetThmFl,
 			       "contact-sheet-thm-fn|cs-thm-fn=s" => \$contactSheetThmFn,
 			       "contact-sheet-thm-grfr|cs-thm-grfr=s" => \$contactSheetThmGrFr,
-			       "contact-sheet-thm-grto=s" => \$contactSheetThmGrTo,
+			       "contact-sheet-thm-grto|cs-thm-grto=s" => \$contactSheetThmGrTo,
 			       "contact-sheet-thm-text=s" => \$contactSheetThmText,
 			       "contact-sheet-rank!" => \$contactSheetRank,
 			       "contact-sheet-rank-file=s" => \$contactSheetRankFile,
