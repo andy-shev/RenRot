@@ -378,7 +378,7 @@ sub getOptions {
 			       "contact-sheet-dir|cs-dir=s" => \$contactSheetDir,
 			       "contact-sheet-thm" => \$contactSheetThm,
 			       "contact-sheet-bg|cs-bg=s" => \$contactSheetBg,
-			       "contact-sheet-bd=s" => \$contactSheetBd,
+			       "contact-sheet-bd|cs-bd=s" => \$contactSheetBd,
 			       "contact-sheet-mt=s" => \$contactSheetMt,
 			       "contact-sheet-fl=s" => \$contactSheetFl,
 			       "contact-sheet-fn=s" => \$contactSheetFn,
