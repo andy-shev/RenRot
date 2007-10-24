@@ -371,7 +371,7 @@ sub getOptions {
 			       "backup!" => \$backup,
 			       "comment-file=s" => \$comfile,
 			       "config-file|c=s" => \$configFile,
-			       "contact-sheet!" => \$contactSheet,
+			       "contact-sheet|cs!" => \$contactSheet,
 			       "contact-sheet-tile=s" => \$contactSheetTile,
 			       "contact-sheet-title=s" => \$contactSheetTitle,
 			       "contact-sheet-file=s" => \$contactSheetFile,
