@@ -18,7 +18,7 @@ $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
 # perl5.8 memory overflow workaround (at least on FreeBSD 6.x)
-my $mem_trouble_stub=" "x1_000_000; undef $mem_trouble_stub;
+my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
 
 our $VERSION = "0.25.20070915";		# the version of this script
 my $maxVerbosity = 4;			# our max verbosity level (internal)
