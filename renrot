@@ -16,6 +16,7 @@ use Term::ANSIColor;
 
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
+$ENV{ANSI_COLORS_DISABLED} = 1;
 
 # perl5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
@@ -252,6 +253,7 @@ sub printColored {
   my $facility = shift;
 
   if ($cfgOpts{'use color'} != 0) {
+    delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $facility and defined $colors{$facility}) {
       print STDERR colored [$colors{$facility}{value}], @_;
       return;
