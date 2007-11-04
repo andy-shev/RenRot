@@ -17,10 +17,10 @@ use Term::ANSIColor;
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 
-# perl5.8 memory overflow workaround (at least on FreeBSD 6.x)
+# perl5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
 
-our $VERSION = "0.25.20070915";		# the version of this script
+our $VERSION = "0.25.20071104";		# the version of this script
 my $maxVerbosity = 4;			# our max verbosity level (internal)
 my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
 
