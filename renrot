@@ -264,11 +264,12 @@ sub printColored {
   print STDERR @_;	# fallback to normal print
 }
 
-# processing message
+# general processing message
 sub procmsg {
   return if ($quiet != 0);
 
   if ($cfgOpts{'use color'} != 0) {
+    delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $colors{'process'}) {
       print colored [$colors{'process'}{value}], @_;
       return;
