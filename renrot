@@ -3,6 +3,8 @@
 # $Id: renrot 299 2007-09-01 08:50:11Z zeus $
 #
 
+BEGIN { $| = 1; }
+
 use strict;
 use warnings;
 use diagnostics;
