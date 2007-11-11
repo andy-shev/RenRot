@@ -158,6 +158,7 @@ my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
 my %tagsFromCli = ();	# tags are got from CLI
+my @tag_to_name = ();   # tags for name building, theirs values to be used (in theory any EXIF)
 my $trim;		# jpegtran -trim
 my $useColor;		# colorized output
 my $useIPC;		# rotate thumbnail via pipe
