@@ -475,12 +475,13 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
   dbgmsg (3, "getOptions():   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
   dbgmsg (3, "getOptions():   --sub-fileset: $subFileSet\n") if ($subFileSet ne "");
-  dbgmsg (3, "getOptions():   --tag:\n", join("\n", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+  dbgmsg (3, "getOptions():   --tag:\n", join("\n--tag: ", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
+  dbgmsg (3, "getOptions():   --tag-to-name:\n", join("\n--tag-to-name: ", @tag_to_name), "\n") if (scalar(@tag_to_name) > 0);
   dbgmsg (3, "getOptions():   --trim: ", boolConv($trim), "\n") if (defined $trim);
   dbgmsg (3, "getOptions():   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
   dbgmsg (3, "getOptions():   --use-ipc: ", boolConv($useIPC), "\n") if (defined $useIPC);
   dbgmsg (3, "getOptions():   --work-directory: $workDir\n");
-  dbgmsg (3, "getOptions():   ARGV:\n", join("\n", @ARGV), "\n") if ($fileCount > 0);
+  dbgmsg (3, "getOptions():   ARGV:\n", join("\nARGV:", @ARGV), "\n") if ($fileCount > 0);
 
   if ($showHelp != 0) {
     usage();
