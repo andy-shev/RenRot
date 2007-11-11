@@ -1993,6 +1993,14 @@ sub template2name {
       if ( defined $templatehash{$substrchar} ) {
 	$thename .= $templatehash{$substrchar};
       }
+    } elsif ($substrchar eq "#" and $substroffset < scalar(@templatearea)) {
+      $substrchar = $templatearea[$substroffset++];
+      if ( defined $tags_to_name_val[$substrchar] ) { # the array begins with 0
+	$tags_to_name_val[$substrchar] =~ s/\s+//g;
+	$tags_to_name_val[$substrchar] =~ s/\/+/_/g;
+	$thename .= $tags_to_name_val[$substrchar];
+	dbgmsg (4, "template2name(): #" . $substrchar . " " .  $tag_to_name[$substrchar] . " = " . $tags_to_name_val[$substrchar] . "\n");
+      }
     } else { $thename .= $substrchar; }
   }
   return $thename;
