@@ -460,7 +460,7 @@ sub getOptions {
 	  "   --counter-step: $countStep",
 	  "   --counter-fixed-field: ", boolConv($countFF), "\n");
   dbgmsg (3, "getOptions():   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
-  dbgmsg (3, "getOptions():   --exclude:\n", join("\n", @excludeList), "\n") if (scalar(@excludeList) > 0);
+  dbgmsg (3, "getOptions():   --exclude:\n", join("\n--exclude: ", @excludeList), "\n") if (scalar(@excludeList) > 0);
   dbgmsg (3, "getOptions():   --extension: $extToProcess\n");
   dbgmsg (3, "getOptions():   --keywordize: ", boolConv($keywordize), "\n") if (defined $keywordize);
   dbgmsg (3, "getOptions():   --keywords-replace: ", boolConv($keywordsReplace), "\n") if (defined $keywordsReplace);
