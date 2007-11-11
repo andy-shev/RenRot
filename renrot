@@ -421,6 +421,7 @@ sub getOptions {
 			       "rotate-thumb=i" => \$rotateThumbnail,
 			       "sub-fileset=s" => \$subFileSet,
 			       "tag|t=s" => \@tmpTags,
+			       "tag-to-name|ttn=s" => \@tag_to_name,
 			       "trim!" => \$trim,
 			       "use-color!" => \$useColor,
 			       "use-ipc!" => \$useIPC,
