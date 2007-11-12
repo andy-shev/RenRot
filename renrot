@@ -1947,15 +1947,15 @@ sub template2name {
     }
   }
 
-  my @tags_to_name_val = ();
-  my $tag_to_name_index = 0;
-  if ( scalar(@tag_to_name) > 0 ) {
-    for (; $tag_to_name_index < scalar(@tag_to_name); $tag_to_name_index++) {
-      if (defined $infoObj->{$tag_to_name[$tag_to_name_index]}) {
-	$tags_to_name_val[$tag_to_name_index] = $infoObj->{$tag_to_name[$tag_to_name_index]};
-      }
-    }
-  }
+#  my @tags_to_name_val = ();
+#  my $tag_to_name_index = 0;
+#  if ( scalar(@tag_to_name) > 0 ) {
+#    for (; $tag_to_name_index < scalar(@tag_to_name); $tag_to_name_index++) {
+#      if (defined $infoObj->{$tag_to_name[$tag_to_name_index]}) {
+#	$tags_to_name_val[$tag_to_name_index] = $infoObj->{$tag_to_name[$tag_to_name_index]};
+#      }
+#    }
+#  }
 
   my @templatearea = split (//, $template);
   my %templatehash = (
@@ -1984,6 +1984,8 @@ sub template2name {
 
   my $substroffset = 0;
   my $substrchar;
+  my $tag_to_name_val = "";
+  my $tag_to_name = "";
 
   dbgmsg (4, "template2name(): '$template' (length: " . scalar(@templatearea) .")\n");
   while ($substroffset < scalar(@templatearea)) {
@@ -1995,12 +1997,26 @@ sub template2name {
       }
     } elsif ($substrchar eq "#" and $substroffset < scalar(@templatearea)) {
       $substrchar = $templatearea[$substroffset++];
-      if ( defined $tags_to_name_val[$substrchar] ) { # the array begins with 0
-	$tags_to_name_val[$substrchar] =~ s/\s+//g;
-	$tags_to_name_val[$substrchar] =~ s/\/+/_/g;
-	$thename .= $tags_to_name_val[$substrchar];
-	dbgmsg (4, "template2name(): #" . $substrchar . " " .  $tag_to_name[$substrchar] . " = " . $tags_to_name_val[$substrchar] . "\n");
+
+#      if ( defined $tags_to_name_val[$substrchar] ) { # the array begins with 0
+#	$tags_to_name_val[$substrchar] =~ s/\s+//g;
+#	$tags_to_name_val[$substrchar] =~ s/\/+/_/g;
+#	$thename .= $tags_to_name_val[$substrchar];
+#	dbgmsg (4, "template2name(): #" . $substrchar . " " .  $tag_to_name[$substrchar] . " = " . $tags_to_name_val[$substrchar] . "\n");
+#      }
+
+      until ($substrchar eq "#") {
+	$tag_to_name .= $substrchar;
+	$substrchar = $templatearea[$substroffset++];
       }
+      if (defined $infoObj->{$tag_to_name}) {
+	$tag_to_name_val = $infoObj->{$tag_to_name};
+	dbgmsg (1, "template2name(): Tag " . $tag_to_name . " = " . $tag_to_name_val . "\n");
+	$tag_to_name_val =~ s/[\s()]//g;
+	$tag_to_name_val =~ s/[\/:;\\'"]/_/g;
+	$thename .= $tag_to_name_val;
+      }
+      $tag_to_name_val = "";
     } else { $thename .= $substrchar; }
   }
   return $thename;
