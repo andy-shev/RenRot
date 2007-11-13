@@ -2277,6 +2277,8 @@ Interpreted sequences are:
 
 B<%%>	a literal %
 
+B<%#>	a literal #
+
 B<%C>	Numeric part of the original file name. Implemented for the sake
 of cameras, that do not supply FileNumber EXIF tag (currently all makes,
 except I<Canon>). Such cameras generate file names starting with letters
@@ -2321,6 +2323,9 @@ B<%W>	The value of WhiteBalance tag, if defined.
 B<%Y>	Year with the century (1900, 1901, and so on)
 
 B<%y>	Year without a century (00..99)
+
+You can use value of any EXIF tag. To do that you need to embrace tag name with 
+two signs B<"#">, while building name template (see L</TEMPLATE EXAMPLES>).
 
 =back
 
@@ -2592,6 +2597,19 @@ can produce the following names:
 01.0021.20030414103656.NA.shtr-1by40.f-2.8.wb-Auto.iso-160.jpg
 
 01.0024.20040131230857.100-0078.shtr-1by320.f-2.8.wb-Auto.iso-50.jpg
+
+01.0022.20000820222108.NA.jpg
+
+=back
+
+The name template C<01.%c.%Y%m%d%H%M%S.%i.shtr-#ExposureTime#.f-#FNumber#.wb-#WhiteBalance#.iso-#ISO#>
+can produce the following names:
+
+=over
+
+01.0021.20030414103656.NA.shtr-1_40.f-2.8.wb-Auto.iso-160.jpg
+
+01.0024.20040131230857.100-0078.shtr-1_320.f-2.8.wb-Auto.iso-50.jpg
 
 01.0022.20000820222108.NA.jpg
 
