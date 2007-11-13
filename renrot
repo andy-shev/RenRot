@@ -1960,7 +1960,7 @@ sub template2name {
   my @templatearea = split (//, $template);
   my %templatehash = (
 		      '%' => "%",
-#		      '#' => "#",
+		      '#' => "#",
 		      'a' => $angleSuffix,
 		      'C' => $fileNameOriginalCounter,
 		      'c' => sprintf($counterSize, $fileNo),
