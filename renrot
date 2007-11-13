@@ -157,8 +157,8 @@ my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
 my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
 my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
-my %tagsFromCli = ();	# tags are got from CLI
-my @tag_to_name = ();   # tags for name building, theirs values to be used (in theory any EXIF)
+#my %tagsFromCli = ();	# tags are got from CLI
+#my @tag_to_name = ();   # tags for name building, theirs values to be used (in theory any EXIF)
 my $trim;		# jpegtran -trim
 my $useColor;		# colorized output
 my $useIPC;		# rotate thumbnail via pipe
@@ -421,7 +421,7 @@ sub getOptions {
 			       "rotate-thumb=i" => \$rotateThumbnail,
 			       "sub-fileset=s" => \$subFileSet,
 			       "tag|t=s" => \@tmpTags,
-			       "tag-to-name|ttn=s" => \@tag_to_name,
+			       #"tag-to-name|ttn=s" => \@tag_to_name,
 			       "trim!" => \$trim,
 			       "use-color!" => \$useColor,
 			       "use-ipc!" => \$useIPC,
@@ -476,7 +476,7 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
   dbgmsg (3, "getOptions():   --sub-fileset: $subFileSet\n") if ($subFileSet ne "");
   dbgmsg (3, "getOptions():   --tag:\n", join("\n--tag: ", @tmpTags), "\n") if (scalar(@tmpTags) > 0);
-  dbgmsg (3, "getOptions():   --tag-to-name:\n", join("\n--tag-to-name: ", @tag_to_name), "\n") if (scalar(@tag_to_name) > 0);
+#  dbgmsg (3, "getOptions():   --tag-to-name:\n", join("\n--tag-to-name: ", @tag_to_name), "\n") if (scalar(@tag_to_name) > 0);
   dbgmsg (3, "getOptions():   --trim: ", boolConv($trim), "\n") if (defined $trim);
   dbgmsg (3, "getOptions():   --use-color: ", boolConv($useColor), "\n") if (defined $useColor);
   dbgmsg (3, "getOptions():   --use-ipc: ", boolConv($useIPC), "\n") if (defined $useIPC);
@@ -1960,6 +1960,7 @@ sub template2name {
   my @templatearea = split (//, $template);
   my %templatehash = (
 		      '%' => "%",
+#		      '#' => "#",
 		      'a' => $angleSuffix,
 		      'C' => $fileNameOriginalCounter,
 		      'c' => sprintf($counterSize, $fileNo),
