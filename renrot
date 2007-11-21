@@ -2324,8 +2324,9 @@ B<%Y>	Year with the century (1900, 1901, and so on)
 
 B<%y>	Year without a century (00..99)
 
-You can use value of any EXIF tag. To do that you need to embrace tag name with 
-two signs B<"#">, while building name template (see L</TEMPLATE EXAMPLES>).
+You can use value of any EXIF tag to be included as name part. To do that you 
+need to embrace tag name with sign B<"#">, while building name template 
+(see L</TEMPLATE EXAMPLES>).
 
 Be careful, since any binary EXIF (like ThumbnaiImage) can produce totally 
 unexpected results.
