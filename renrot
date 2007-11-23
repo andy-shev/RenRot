@@ -548,9 +548,13 @@ sub getOptions {
 }
 
 ########################################################################################
-#
-# trimValue() removes heading and trailing spaces
-#
+# Usage      : trimValue($value)
+# Purpose    : removes heading and trailing spaces
+# Returns    : trimmed $value
+# Parameters : $value string
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub trimValue {
   my $value = shift;
   $value =~ s/\s*([^\s]+.*[^\s]+)\s*/$1/;
