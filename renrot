@@ -562,7 +562,8 @@ sub trimValue {
 }
 
 ########################################################################################
-# Usage      : parsePair() gets (key, value) pair from the string like [multiword] key = "value"
+# Usage      : parsePair() gets (key, value) pair from the string 
+#            : like [multiword] key = "value"
 # Purpose    : parses pairs of data
 # Returns    : $key, $value  string
 # Parameters : string like [multiword] key = "value"
