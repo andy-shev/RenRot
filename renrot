@@ -605,7 +605,7 @@ sub strToHash {
     $group = "" if (not defined $group);
     dbgmsg (4, "strToHash(): Parsed: $key [$group] = '$value'\n");
   } else {
-    warnmsg ("Invalid line format: $str\n");
+    warnmsg ("strToHash(): Invalid line format: $str\n");
   }
   return %hash;
 }
