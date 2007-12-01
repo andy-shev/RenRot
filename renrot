@@ -747,9 +747,13 @@ sub switchColor {
 }
 
 ########################################################################################
-#
-# keywordizer() validates keywords
-#
+# Usage      : keywordizer($keywords_file)
+# Purpose    : validates keywords
+# Returns    : [array of strings] @results with CR and LF symbols removed
+# Parameters : [string] $keywords_file
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub keywordizer {
   my $file = shift;			# keywords file
   return if (not (-R $file and -f $file and -T $file));
