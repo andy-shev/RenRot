@@ -714,9 +714,13 @@ sub dirConv {
 }
 
 ########################################################################################
-#
-# dirValidator() validates given string as no tree and no current directory
-#
+# Usage      : dirValidator($dir_str)
+# Purpose    : validates given string as no tree and no current directory
+# Returns    : 0 or 1
+# Parameters : [string] $dir_str
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub dirValidator {
   my $dirStr = shift;
   if ($dirStr =~ m/\// or
