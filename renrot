@@ -1553,17 +1553,17 @@ sub makeDir {
 # See Also   : N/A
 sub aggregateFile {
   my $file = shift;
-  my $NewDir = shift;
+  my $new_dir = shift;
 
   if ($cfgOpts{'aggregation virtual'} == 0) {
-    makeDir($NewDir);
-    my $newfilename = $NewDir . "/" . $file;
+    makeDir($new_dir);
+    my $newfilename = $new_dir . "/" . $file;
     rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
   } else {
     makeDir($cfgOpts{'aggregation virtual directory'});
-    $NewDir = $cfgOpts{'aggregation virtual directory'} . "/" . $NewDir;
-    makeDir($NewDir);
-    my $newfilename = $NewDir . "/" . $file;
+    $new_dir = $cfgOpts{'aggregation virtual directory'} . "/" . $new_dir;
+    makeDir($new_dir);
+    my $newfilename = $new_dir . "/" . $file;
     if (not -l $newfilename) {
       my $symlink = "../../" . $file;
       symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
