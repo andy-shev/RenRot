@@ -1509,14 +1509,14 @@ if ($isThereIM) {
     return $result;
   }
 
-  ########################################################################################
-  # Usage      : colorValidator($color);
-  # Purpose    : validates given string as color suitable for ImageMagick
-  # Returns    : none
-  # Parameters : $color str - color
-  # Throws     : no exceptions
-  # Comments   : none
-  # See Also   : convert -list color
+########################################################################################
+# Usage      : colorValidator($color);
+# Purpose    : validates given string as color suitable for ImageMagick
+# Returns    : none
+# Parameters : $color str - color
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : convert -list color
   sub colorValidator {
     my $color = shift;
     if ($color =~ /^#.*$/) {
@@ -1574,9 +1574,13 @@ sub aggregateFile {
 }
 
 ########################################################################################
-#
-# timeNow() returns timestamp in form YYYYmmddHHMMSS
-#
+# Usage      : timeNow();
+# Purpose    : builds timestamp in form YYYYmmddHHMMSS
+# Returns    : string
+# Parameters : none
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
 sub timeNow {
   my $date = localtime();
   my $timeNow = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
