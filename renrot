@@ -1583,10 +1583,10 @@ sub aggregateFile {
 # See Also   : n/a
 sub timeNow {
   my $date = localtime();
-  my $timeNow = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
+  my $time_now = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
 			$$date[5] + 1900, $$date[4] + 1, $$date[3],
 			$$date[2], $$date[1], $$date[0]);
-  return $timeNow;
+  return $time_now;
 }
 
 ########################################################################################
