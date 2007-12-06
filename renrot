@@ -1543,9 +1543,14 @@ sub makeDir {
 }
 
 ########################################################################################
-#
-# aggregateFile() moves file to new directory
-#
+# Usage      : aggregateFile($file, $NewDir);
+# Purpose    : moves file to new directory
+# Returns    : none
+# Parameters : $file [str] - name of file to be moved
+#            : $new_dir [str] - name of dir the file to be moved to
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub aggregateFile {
   my $file = shift;
   my $NewDir = shift;
