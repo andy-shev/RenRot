@@ -1536,9 +1536,9 @@ if ($isThereIM) {
 # Comments   : none
 # See Also   : n/a
 sub makeDir {
-  my $newDir = shift;
-  if (not -d $newDir) {
-    unless (mkdir $newDir) { errmsg ("$newDir wasn't created!\n"); }
+  my $new_dir = shift;
+  if (not -d $new_dir) {
+    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created!\n"); }
   }
 }
 
