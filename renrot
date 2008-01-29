@@ -2043,7 +2043,7 @@ sub template2name {
 	$tag_to_name_val =~ s/[\/:;\\'"]/_/g;
 	$thename .= $tag_to_name_val;
       }
-      $tag_to_name_val = "";
+      $tag_to_name_val = $tag_to_name = "";
     } else { $thename .= $substrchar; }
   }
   return $thename;
