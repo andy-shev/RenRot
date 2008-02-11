@@ -23,7 +23,7 @@ $ENV{ANSI_COLORS_DISABLED} = 1;
 # perl5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
 
-our $VERSION = "0.25.20080129";		# the version of this script
+our $VERSION = "0.25.20080211";		# the version of this script
 my $maxVerbosity = 4;			# our max verbosity level (internal)
 my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
 
@@ -702,9 +702,13 @@ sub parseConfig {
 }
 
 ########################################################################################
-#
-# dirConv() simplifies directory name
-#
+# Usage      : dirConv($dir_str)
+# Purpose    : removes dotslashes, heading dotslash and trailing slashes
+# Returns    : directory name without dotslashes, heading dotslash and trailing slashes
+# Parameters : [string] $dir_str
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub dirConv {
   my $dirStr = shift;
   $dirStr =~ s/\/*\/\.\/\/*/\//g;	# remove dotslashes
