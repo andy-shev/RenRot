@@ -772,9 +772,15 @@ sub keywordizer {
 }
 
 ########################################################################################
-#
-# renRotProcess() renames and rotates given file set
-#
+# Usage      : renRotProcess($exif_tool_obj, $counter_size)
+# Purpose    : renames and rotates given file set
+# Returns    : nothing
+# Parameters : $exif_tool_obj [ref]
+#            : $counter_size  [num] file name counter digit capacity (number of digits in
+#            :                      counter. for tens it is 2, for thousands - 4, e.t.c.)
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub renRotProcess {
   my $exifToolObj = shift;
   my $counterSize = shift;
@@ -1899,13 +1905,13 @@ or '--no-mtime' disables setting it."
 # Usage      : $name = template2name(...);
 # Purpose    : builds file name according to the template
 # Returns    : name as string
-# Parameters : $exifToolObj ref -
-#            : $infoObj     ref -
-#            : $template    str - the template to be used
-#            : $fileNo      num - counter for %c
-#            : $fileName    str - file name for %n and %e
-#            : $counterSize num - the size of the counter for format (like "01", "0012")
-#            : $angleSuffix str - suffix to add to the end of the rotated files
+# Parameters : $exifToolObj [ref] -
+#            : $infoObj     [ref] -
+#            : $template    [str] - the template to be used
+#            : $fileNo      [num] - counter for %c
+#            : $fileName    [str] - file name for %n and %e
+#            : $counterSize [num] - the size of the counter for format (like "01", "0012")
+#            : $angleSuffix [str] - suffix to add to the end of the rotated files
 # Throws     : no exceptions
 # Comments   : none
 # See Also   : n/a
