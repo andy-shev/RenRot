@@ -23,8 +23,8 @@ $ENV{ANSI_COLORS_DISABLED} = 1;
 # perl5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
 
-our $VERSION = "0.25.20080211";		# the version of this script
-my $maxVerbosity = 4;			# our max verbosity level (internal)
+our $VERSION = "1.0";		# the version of this script
+my $maxVerbosity = 4;		# our max verbosity level (internal)
 my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
 
 ########################################################################################
