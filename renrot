@@ -2833,16 +2833,34 @@ B<TagFile> options as described above.
 
 =head1 FILES
 
-The configuration file is searched in the following locations
+The main configuration file B<renrot.conf> is searched in the following locations
 (in the order of their appearence):
 
 =over
 
-=item B<~/.renrot/renrot.conf>
+=item B<~/.renrot/>
 
-=item B</usr/local/etc/renrot/renrot.conf>
+=item B</usr/local/etc/renrot/>
 
-=item B</etc/renrot/renrot.conf>
+=item B</etc/renrot/>
+
+=back
+
+=back
+
+Other configuration files are:
+
+=item B<colors.conf>
+
+colors setup for different output facilities
+
+=item B<rankfile>
+
+file with ranks (see B<--contact-sheet-rank-file>)
+
+=item B<tags.conf>
+
+different tags setup
 
 =back
 
@@ -2872,7 +2890,7 @@ This, however, does not happen with Perl v.5.6.x
 
 =head1 AUTHORS
 
-Copyright 2005-2007, Zeus Panchenko, Andy Shevchenko.
+Copyright 2005-2008, Zeus Panchenko, Andy Shevchenko.
 
 This program is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
