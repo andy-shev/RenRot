@@ -2560,7 +2560,7 @@ like I<000> for the I<black> or I<F00> for the I<red>.
 
 =back
 
-=item B<--contact-sheet-tile> I<GEOMETRY>
+=item B<--contact-sheet-tile> I<GEOMETRY> or B<--cs-tile> I<GEOMETRY>
 
 Tile MxN (IM: -tile)
 
