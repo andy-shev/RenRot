@@ -2609,7 +2609,7 @@ Set the shadow beneath a tile to simulate depth (IM: -shadow).
 Run ranking process according the ranks defined with B<--contact-sheet-rank-file>
 The result is the colored frames of the thumbnails of contact sheets.
 
-=item B<--contact-sheet-rank-file>
+=item B<--contact-sheet-rank-file> or B<--cs-rank-file>
 
 Path to the file with ranks. Its format is a "file rankcolor" per line.
 Filename separated from the color by space or tabulation.
