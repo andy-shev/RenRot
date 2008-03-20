@@ -2540,7 +2540,7 @@ below)
 
 Base file name for montage files.
 
-=item B<--contact-sheet-dir> F<DIR>
+=item B<--contact-sheet-dir> F<DIR> or B<--cs> F<DIR>
 
 Temporary directory for montage (created in the begining and deleted at the
 end of the process)
