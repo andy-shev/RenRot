@@ -2600,7 +2600,7 @@ Surround image with an ornamental border in N pixels (IM: -frame).
 
 Font point size (IM: -pointsize).
 
-=item B<--contact-sheet-shadow>
+=item B<--contact-sheet-shadow> or B<--cs-shadow>
 
 Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
