@@ -2564,11 +2564,11 @@ like I<000> for the I<black> or I<F00> for the I<red>.
 
 Tile MxN (IM: -tile)
 
-=item B<--contact-sheet-title> I<STRING> or B<--cstitle> I<STRING>
+=item B<--contact-sheet-title> I<STRING> or B<--cs-title> I<STRING>
 
 Set the title of the contact sheet (IM: -title).
 
-=item B<--contact-sheet-bg> I<COLOR>
+=item B<--contact-sheet-bg> I<COLOR> or B<--cs-bg> I<COLOR>
 
 Background color (IM: -background).
 
