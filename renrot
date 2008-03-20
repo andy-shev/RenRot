@@ -2588,7 +2588,7 @@ Render text with this font (IM: -font).
 
 Color to fill the text (IM: -fill).
 
-=item B<--contact-sheet-lb> I<STRING>
+=item B<--contact-sheet-lb> I<STRING> or B<--cs-lb> I<STRING>
 
 Assign a label to an image (IM: -label).
 
