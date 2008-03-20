@@ -2592,7 +2592,7 @@ Color to fill the text (IM: -fill).
 
 Assign a label to an image (IM: -label).
 
-=item B<--contact-sheet-fr> I<GEOMETRY>
+=item B<--contact-sheet-fr> I<GEOMETRY> or B<--cs-fr> I<GEOMETRY>
 
 Surround image with an ornamental border in N pixels (IM: -frame).
 
