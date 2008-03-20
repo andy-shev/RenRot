@@ -2572,7 +2572,7 @@ Set the title of the contact sheet (IM: -title).
 
 Background color (IM: -background).
 
-=item B<--contact-sheet-bd> I<COLOR>
+=item B<--contact-sheet-bd> I<COLOR> or B<--cs-bd> I<COLOR>
 
 Border color (IM: -bordercolor).
 
