@@ -2564,7 +2564,7 @@ like I<000> for the I<black> or I<F00> for the I<red>.
 
 Tile MxN (IM: -tile)
 
-=item B<--contact-sheet-title> I<STRING>
+=item B<--contact-sheet-title> I<STRING> or B<--cstitle> I<STRING>
 
 Set the title of the contact sheet (IM: -title).
 
