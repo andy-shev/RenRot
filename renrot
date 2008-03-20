@@ -2580,7 +2580,7 @@ Border color (IM: -bordercolor).
 
 Frame color (IM: -mattecolor).
 
-=item B<--contact-sheet-fn> I<STRING>
+=item B<--contact-sheet-fn> I<STRING> or B<--cs-fn> I<STRING>
 
 Render text with this font (IM: -font).
 
