@@ -2584,7 +2584,7 @@ Frame color (IM: -mattecolor).
 
 Render text with this font (IM: -font).
 
-=item B<--contact-sheet-fl> I<COLOR>
+=item B<--contact-sheet-fl> I<COLOR> or B<--cs-fl> I<COLOR>
 
 Color to fill the text (IM: -fill).
 
