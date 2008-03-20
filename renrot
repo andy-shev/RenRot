@@ -2576,7 +2576,7 @@ Background color (IM: -background).
 
 Border color (IM: -bordercolor).
 
-=item B<--contact-sheet-mt> I<COLOR>
+=item B<--contact-sheet-mt> I<COLOR> or B<--cs-mt> I<COLOR>
 
 Frame color (IM: -mattecolor).
 
