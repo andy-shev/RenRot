@@ -2536,7 +2536,7 @@ Create the contact sheet. Currently it works with ThumbnailImage EXIFs
 and the files defined as thumbnails (see the option B<--contact-sheet-thm>,
 below)
 
-=item B<--contact-sheet-file> F<FILE>
+=item B<--contact-sheet-file> F<FILE> or B<--cs> F<FILE>
 
 Base file name for montage files.
 
