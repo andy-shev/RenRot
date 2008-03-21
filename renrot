@@ -2874,6 +2874,9 @@ It seems to be a bug in perl's own malloc implementation. The bug should
 not occur in any perl which uses the system malloc (unless the system malloc 
 has the same bug).
 
+2. Some versions of ImageMagick renders contact sheets incorrectly ... 
+it seems it is the question to IM.
+
 B<renrot> aborts with the error message:
 
 =over
