@@ -25,7 +25,7 @@ my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
 
 our $VERSION = "1.0";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
-my $homeURL = 'https://puszcza.gnu.org.ua/projects/renrot/';	# homepage of the project
+my $homeURL = 'https://ps.gnu.org.ua/projects/renrot/';	# homepage of the project
 
 ########################################################################################
 #
@@ -1290,7 +1290,7 @@ if ($isThereIM) {
     my $montage;
     my $montagename;
     my $infoMontage;
-    my @left_up_row = ('RenRot (c)',$homeURL);
+    my @left_up_row = ("RenRot v.$VERSION",$homeURL);
     my $substrFile;
     my $readIndex;
     my $counter_size;
@@ -2841,8 +2841,6 @@ The main configuration file B<renrot.conf> is searched in the following location
 =item B</usr/local/etc/renrot/>
 
 =item B</etc/renrot/>
-
-=back
 
 =back
 
