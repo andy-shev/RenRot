@@ -258,11 +258,15 @@ sub printColored {
   if ($cfgOpts{'use color'} != 0) {
     delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $facility and defined $colors{$facility}) {
-      print STDERR colored [$colors{$facility}{value}], @_;
+      if ($facility eq "error" ) {
+	print STDERR colored [$colors{$facility}{value}], @_;
+      } else {
+	print STDOUT colored [$colors{$facility}{value}], @_;
+      }
       return;
     }
   }
-  print STDERR @_;	# fallback to normal print
+  print STDOUT @_;	# fallback to normal print
 }
 
 # general processing message
@@ -518,7 +522,7 @@ sub getOptions {
     dbgmsg (1, "getOptions(): We have Image::Magick package",
 	    " and could proceed with --contact-sheet related functionality.\n");
   }
-  elsif (($cfgOpts{'contact sheet'} == 1or defined $contactSheet)
+  elsif (($cfgOpts{'contact sheet'} == 1 or defined $contactSheet)
 	 and not defined isTherePackage("Image::Magick")) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
     errmsg ("Contact Sheet generation disabled.\n\n");
