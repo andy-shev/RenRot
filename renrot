@@ -518,7 +518,8 @@ sub getOptions {
     dbgmsg (1, "getOptions(): We have Image::Magick package",
 	    " and could proceed with --contact-sheet related functionality.\n");
   }
-  elsif ($cfgOpts{'contact sheet'} == 1 and not defined isTherePackage("Image::Magick")) {
+  elsif (($cfgOpts{'contact sheet'} == 1or defined $contactSheet)
+	 and not defined isTherePackage("Image::Magick")) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
     errmsg ("Contact Sheet generation disabled.\n\n");
   }
