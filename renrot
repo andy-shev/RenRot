@@ -1886,10 +1886,10 @@ Contact Sheet options (CS):
   --cs-mt, --contact-sheet-mt <COLOR>       frame color (IM: -mattecolor)
   --cs-fn, --contact-sheet-fn <STRING>      text render font (IM: -font)
   --cs-fl, --contact-sheet-fl <COLOR>       color to fill the text (IM: -fill)
-  --cs-lb, --contact-sheet-lb <STRING>      assign a label to an image (IM: -label)
-  --cs-fr, --contact-sheet-fr <NUMBER>      border image with N pixels (IM: -frame)
+  --cs-lb, --contact-sheet-lb <STRING>      image label (IM: -label)
+  --cs-fr, --contact-sheet-fr <NUMBER>      N pixel border (IM: -frame)
   --cs-pntsz, --contact-sheet-pntsz <NUM>   font point size (IM: -pointsize)
-  --cs-shadow, --contact-sheet-shadow       set shadow beneath a tile (IM: -shadow)
+  --cs-shadow, --contact-sheet-shadow       set shadow (IM: -shadow)
   --cs-thm-fl, --contact-sheet-thm-fl <STR> generated thumbnail text fill color
   --cs-thm-fn, --contact-sheet-thm-fn <STR> generated thumbnail font
   --cs-thm-grfr, --contact-sheet-thm-grfr <COLOR>
