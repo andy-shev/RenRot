@@ -2632,6 +2632,10 @@ Generated thumbnail background gradient color-from
 
 Generated thumbnail background gradient color-to
 
+=item B<--contact-sheet-thm-text> or B<--cs-thm-text> I<STRING>
+
+Generated thumbnail text
+
 =item B<--contact-sheet-rank> or B<--cs-rank>
 
 Run ranking process according the ranks defined with B<--contact-sheet-rank-file>
