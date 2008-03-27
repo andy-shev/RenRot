@@ -2620,6 +2620,10 @@ Font point size (IM: -pointsize).
 
 Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
+=item B<--contact-sheet-thm-fl> or B<--cs-thm-fl> I<COLOR>
+
+Color to fill the text in generated thumbnail.
+
 =item B<--contact-sheet-thm-fn> or B<--cs-thm-fn> I<STRING>
 
 Render the generated thumbnail text with this font (IM: -font).
