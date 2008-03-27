@@ -1878,8 +1878,8 @@ Contact Sheet options (CS):
   --cs-title, --contact-sheet-title  set title of the montage
   --cs-file, --contact-sheet-file <FILE>
                                      name of the montage files
-	--contact-sheet-dir <DIR>
-                                temporary montage dir
+  --cs-dir, --contact-sheet-dir <DIR>
+                                     temporary montage dir
 	--contact-sheet-thm	files for montage are already thumbnails
 	--contact-sheet-rank-file
                                 file with CS ranks
