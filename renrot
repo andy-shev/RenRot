@@ -1881,7 +1881,9 @@ Contact Sheet options (CS):
   --cs-dir, --contact-sheet-dir <DIR>
                                      temporary montage dir
   --cs-thm, --contact-sheet-thm	     files for montage are already thumbnails
-  --cs-bg, --contact-sheet-bg|cs-bg  background color (IM: -background)
+  --cs-bg, --contact-sheet-bg        background color (IM: -background)
+  --cs-bd, --contact-sheet-bd        border color (IM: -bordercolor)
+  --cs-mt, --contact-sheet-mt        frame color (IM: -mattecolor)
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
