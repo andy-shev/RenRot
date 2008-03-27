@@ -1879,16 +1879,16 @@ Contact Sheet options (CS):
   --cs-file, --contact-sheet-file <FILE>
                                       name of the montage files
   --cs-dir, --contact-sheet-dir <DIR>
-                                      temporary montage dir
-  --cs-thm, --contact-sheet-thm	      files for montage are already thumbnails
-  --cs-bg, --contact-sheet-bg <COLOR> background color (IM: -background)
-  --cs-bd, --contact-sheet-bd <COLOR> border color (IM: -bordercolor)
-  --cs-mt, --contact-sheet-mt <COLOR> frame color (IM: -mattecolor)
-  --cs-fn, --contact-sheet-fn <STR>   text render font (IM: -font)
-  --cs-fl, --contact-sheet-fl <COLOR> color to fill the text (IM: -fill)
-  --cs-lb, --contact-sheet-lb <STR>   assign a label to an image (IM: -label)
-  --cs-fr, --contact-sheet-fr <NUM>   border image with N pixels (IM: -frame)
-  --cs-pntsz, --contact-sheet-pntsz   font point size (IM: -pointsize)
+                                          temporary montage dir
+  --cs-thm, --contact-sheet-thm	          montage files are thumbnails
+  --cs-bg, --contact-sheet-bg <COLOR>     background color (IM: -background)
+  --cs-bd, --contact-sheet-bd <COLOR>     border color (IM: -bordercolor)
+  --cs-mt, --contact-sheet-mt <COLOR>     frame color (IM: -mattecolor)
+  --cs-fn, --contact-sheet-fn <STR>       text render font (IM: -font)
+  --cs-fl, --contact-sheet-fl <COLOR>     color to fill the text (IM: -fill)
+  --cs-lb, --contact-sheet-lb <STR>       assign a label to an image (IM: -label)
+  --cs-fr, --contact-sheet-fr <NUM>       border image with N pixels (IM: -frame)
+  --cs-pntsz, --contact-sheet-pntsz <NUM> font point size (IM: -pointsize)
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
