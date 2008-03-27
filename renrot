@@ -1889,6 +1889,7 @@ Contact Sheet options (CS):
   --cs-lb, --contact-sheet-lb <STR>       assign a label to an image (IM: -label)
   --cs-fr, --contact-sheet-fr <NUM>       border image with N pixels (IM: -frame)
   --cs-pntsz, --contact-sheet-pntsz <NUM> font point size (IM: -pointsize)
+  --cs-shadow, --contact-sheet-shadow     set shadow beneath a tile (IM: -shadow)
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
