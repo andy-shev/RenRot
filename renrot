@@ -2628,6 +2628,10 @@ Render the generated thumbnail text with this font (IM: -font).
 
 Generated thumbnail background gradient color-from
 
+=item B<--contact-sheet-thm-grto> or B<--cs-thm-grto> I<COLOR>
+
+Generated thumbnail background gradient color-to
+
 =item B<--contact-sheet-rank> or B<--cs-rank>
 
 Run ranking process according the ranks defined with B<--contact-sheet-rank-file>
