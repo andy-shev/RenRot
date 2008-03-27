@@ -1892,6 +1892,9 @@ Contact Sheet options (CS):
   --cs-shadow, --contact-sheet-shadow     set shadow beneath a tile (IM: -shadow)
   --cs-thm-fl, --contact-sheet-thm-fl <STR> generated thumbnail text fill color
   --cs-thm-fn, --contact-sheet-thm-fn <STR> generated thumbnail font
+  --cs-thm-grfr, --contact-sheet-thm-grfr <COLOR>
+                                          generated thumbnail background gradient
+                                          color-from
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
