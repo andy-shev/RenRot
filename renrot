@@ -1881,8 +1881,10 @@ Contact Sheet options (CS):
   --cs-dir, --contact-sheet-dir <DIR>
                                      temporary montage dir
   --cs-thm, --contact-sheet-thm	     files for montage are already thumbnails
-	--contact-sheet-rank-file
-                                file with CS ranks
+  --cs-rank, --contact-sheet-rank|cs-rank
+                                     to do CS ranking
+  --cs-rank-file, --contact-sheet-rank-file <FILE>
+                                     file with CS ranks
 
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
