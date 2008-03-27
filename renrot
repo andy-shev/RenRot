@@ -1884,6 +1884,7 @@ Contact Sheet options (CS):
   --cs-bg, --contact-sheet-bg        background color (IM: -background)
   --cs-bd, --contact-sheet-bd        border color (IM: -bordercolor)
   --cs-mt, --contact-sheet-mt        frame color (IM: -mattecolor)
+  --cs-fn, --contact-sheet-fn        text render font (IM: -font)
   --cs-fl, --contact-sheet-fl        color to fill the text (IM: -fill)
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
