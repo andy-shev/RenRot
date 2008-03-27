@@ -1884,10 +1884,10 @@ Contact Sheet options (CS):
   --cs-bg, --contact-sheet-bg <COLOR>     background color (IM: -background)
   --cs-bd, --contact-sheet-bd <COLOR>     border color (IM: -bordercolor)
   --cs-mt, --contact-sheet-mt <COLOR>     frame color (IM: -mattecolor)
-  --cs-fn, --contact-sheet-fn <STR>       text render font (IM: -font)
+  --cs-fn, --contact-sheet-fn <STRING>    text render font (IM: -font)
   --cs-fl, --contact-sheet-fl <COLOR>     color to fill the text (IM: -fill)
-  --cs-lb, --contact-sheet-lb <STR>       assign a label to an image (IM: -label)
-  --cs-fr, --contact-sheet-fr <NUM>       border image with N pixels (IM: -frame)
+  --cs-lb, --contact-sheet-lb <STRING>    assign a label to an image (IM: -label)
+  --cs-fr, --contact-sheet-fr <NUMBER>    border image with N pixels (IM: -frame)
   --cs-pntsz, --contact-sheet-pntsz <NUM> font point size (IM: -pointsize)
   --cs-shadow, --contact-sheet-shadow     set shadow beneath a tile (IM: -shadow)
   --cs-thm-fl, --contact-sheet-thm-fl <STR> generated thumbnail text fill color
@@ -1898,7 +1898,8 @@ Contact Sheet options (CS):
   --cs-thm-grto, --contact-sheet-thm-grto <COLOR>
                                           generated thumbnail background gradient
                                           color-to
-  --cs-thm-text, --contact-sheet-thm-text generated thumbnail text
+  --cs-thm-text, --contact-sheet-thm-text <STRING>
+                                          generated thumbnail text
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
