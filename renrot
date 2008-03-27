@@ -1873,8 +1873,8 @@ Aggregating options:
       --aggr-virtual-directory <DIR> root directory for virtual aggregation
 
 Contact Sheet options (CS):
-  --cs, --contact-sheet		create the CS
-	--contact-sheet-tile	tile in montage, MxN
+  --cs, --contact-sheet		     create the CS
+  --cs-tile, --contact-sheet-tile    tile in montage, MxN
 	--contact-sheet-title	set title of the montage
 	--contact-sheet-file <FILE>
                                 name of the montage files
