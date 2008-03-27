@@ -1888,6 +1888,7 @@ Contact Sheet options (CS):
   --cs-fl, --contact-sheet-fl <COLOR> color to fill the text (IM: -fill)
   --cs-lb, --contact-sheet-lb <STR>   assign a label to an image (IM: -label)
   --cs-fr, --contact-sheet-fr <NUM>   border image with N pixels (IM: -frame)
+  --cs-pntsz, --contact-sheet-pntsz   font point size (IM: -pointsize)
   --cs-rank, --contact-sheet-rank|cs-rank
                                      to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
