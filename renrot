@@ -1885,7 +1885,7 @@ Contact Sheet options (CS):
   --cs-bd, --contact-sheet-bd <COLOR> border color (IM: -bordercolor)
   --cs-mt, --contact-sheet-mt <COLOR> frame color (IM: -mattecolor)
   --cs-fn, --contact-sheet-fn <STRING> text render font (IM: -font)
-  --cs-fl, --contact-sheet-fl <COLOR> color to fill the text (IM: -fill)
+  --cs-fl, --contact-sheet-fl <COLOR>  color to fill the text (IM: -fill)
   --cs-lb, --contact-sheet-lb <STRING> assign a label to an image (IM: -label)
   --cs-fr, --contact-sheet-fr <NUMBER> border image with N pixels (IM: -frame)
   --cs-pntsz, --contact-sheet-pntsz <NUM> font point size (IM: -pointsize)
