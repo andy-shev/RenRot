@@ -2620,9 +2620,13 @@ Font point size (IM: -pointsize).
 
 Set the shadow beneath a tile to simulate depth (IM: -shadow).
 
-=item B<--contact-sheet-thm-fn> or B<--cs-thm-fn  
+=item B<--contact-sheet-thm-fn> or B<--cs-thm-fn> I<STRING>
 
 Render the generated thumbnail text with this font (IM: -font).
+
+=item B<--contact-sheet-thm-grfr> or B<--cs-thm-grfr> I<COLOR>
+
+Generated thumbnail background gradient color-from
 
 =item B<--contact-sheet-rank> or B<--cs-rank>
 
