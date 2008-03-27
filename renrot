@@ -1873,37 +1873,37 @@ Aggregating options:
       --aggr-virtual-directory <DIR> root directory for virtual aggregation
 
 Contact Sheet options (CS):
-  --cs, --contact-sheet		      create the CS
-  --cs-tile, --contact-sheet-tile     tile in montage, MxN
-  --cs-title, --contact-sheet-title   set title of the montage
+  --cs, --contact-sheet		            create the CS
+  --cs-tile, --contact-sheet-tile           tile in montage, MxN
+  --cs-title, --contact-sheet-title         set title of the montage
   --cs-file, --contact-sheet-file <FILE>
-                                      name of the montage files
-  --cs-dir, --contact-sheet-dir <DIR>
-                                      temporary montage dir
-  --cs-thm, --contact-sheet-thm	      montage files are thumbnails
-  --cs-bg, --contact-sheet-bg <COLOR> background color (IM: -background)
-  --cs-bd, --contact-sheet-bd <COLOR> border color (IM: -bordercolor)
-  --cs-mt, --contact-sheet-mt <COLOR> frame color (IM: -mattecolor)
-  --cs-fn, --contact-sheet-fn <STRING> text render font (IM: -font)
-  --cs-fl, --contact-sheet-fl <COLOR>  color to fill the text (IM: -fill)
-  --cs-lb, --contact-sheet-lb <STRING> assign a label to an image (IM: -label)
-  --cs-fr, --contact-sheet-fr <NUMBER> border image with N pixels (IM: -frame)
-  --cs-pntsz, --contact-sheet-pntsz <NUM> font point size (IM: -pointsize)
-  --cs-shadow, --contact-sheet-shadow     set shadow beneath a tile (IM: -shadow)
+                                            name of the montage files
+  --cs-dir, --contact-sheet-dir <DIR>       
+                                            temporary montage dir
+  --cs-thm, --contact-sheet-thm	            montage files are thumbnails
+  --cs-bg, --contact-sheet-bg <COLOR>       background color (IM: -background)
+  --cs-bd, --contact-sheet-bd <COLOR>       border color (IM: -bordercolor)
+  --cs-mt, --contact-sheet-mt <COLOR>       frame color (IM: -mattecolor)
+  --cs-fn, --contact-sheet-fn <STRING>      text render font (IM: -font)
+  --cs-fl, --contact-sheet-fl <COLOR>       color to fill the text (IM: -fill)
+  --cs-lb, --contact-sheet-lb <STRING>      assign a label to an image (IM: -label)
+  --cs-fr, --contact-sheet-fr <NUMBER>      border image with N pixels (IM: -frame)
+  --cs-pntsz, --contact-sheet-pntsz <NUM>   font point size (IM: -pointsize)
+  --cs-shadow, --contact-sheet-shadow       set shadow beneath a tile (IM: -shadow)
   --cs-thm-fl, --contact-sheet-thm-fl <STR> generated thumbnail text fill color
   --cs-thm-fn, --contact-sheet-thm-fn <STR> generated thumbnail font
   --cs-thm-grfr, --contact-sheet-thm-grfr <COLOR>
-                                          generated thumbnail background gradient
-                                          color-from
+                                            generated thumbnail background gradient
+                                            color-from
   --cs-thm-grto, --contact-sheet-thm-grto <COLOR>
-                                          generated thumbnail background gradient
-                                          color-to
+                                            generated thumbnail background gradient
+                                            color-to
   --cs-thm-text, --contact-sheet-thm-text <STRING>
-                                          generated thumbnail text
+                                            generated thumbnail text
   --cs-rank, --contact-sheet-rank|cs-rank
-                                     to do CS ranking
+                                            to do CS ranking
   --cs-rank-file, --contact-sheet-rank-file <FILE>
-                                     file with CS ranks
+                                            file with CS ranks
 
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
