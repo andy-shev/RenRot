@@ -851,9 +851,15 @@ sub renRotProcess {
 }
 
 ########################################################################################
-#
-# saveOurHdrs() saves our defined tags to file
-#
+# Usage      : saveOurHdrs($exif_tool_obj, $info_obj, $file)
+# Purpose    : saves native RenRot defined tags to file EXIF
+# Returns    : nothing
+# Parameters : $exif_tool_obj [ref]
+#            : $info_obj      [ref]
+#            : $file          [str]
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : N/A
 sub saveOurHdrs {
   my $exifToolObj = shift;
   my $infoObj = shift;
