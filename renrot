@@ -2014,6 +2014,18 @@ sub template2name {
       $fileNameOriginalExtensionLess = $1;
     }
   }
+  else {
+    # temporary stub to make renrot remember original file name for the formats
+    # ExifTool writing to doesnt sopport ... reported by Neil Hooey <nhooey@gmail.com>
+    $fileNameOriginal = $infoObj->{"FileName"};
+    # file name starts with letters and ends with digits
+    if ($fileNameOriginal =~ m/^[[:alpha:]\-_]*(\d+)(\.[^\.]+)?$/) {
+      $fileNameOriginalCounter = $1;
+    }
+    if ($fileNameOriginal =~ m/^(.*)\.([^\.]+)$/) {
+      $fileNameOriginalExtensionLess = $1;
+    }
+  }
 
 #  my @tags_to_name_val = ();
 #  my $tag_to_name_index = 0;
