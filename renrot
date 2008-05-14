@@ -143,6 +143,7 @@ my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
 my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
+my $gen_thm = 0;        # to not to generate ThumbnailImage if empty
 my $keywordize;		# keywordize or not
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
 my $keywordsFile;	# file with keyword set
@@ -409,6 +410,7 @@ sub getOptions {
 			       "dry-run" => \$dryRun,
 			       "exclude=s" => \@excludeList,
 			       "extension|e=s" => \$extToProcess,
+			       "gen-thm!" => \$gen_thm,
 			       "help|?"   => \$showHelp,
 			       "keywordize!" => \$keywordize,
 			       "keywords-file|k=s" => \$keywordsFile,
@@ -451,6 +453,7 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
   dbgmsg (3, "getOptions():   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
   dbgmsg (3, "getOptions():   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
+  dbgmsg (3, "getOptions():   --gen-thm: ", boolConv($gen_thm),"\n");
   dbgmsg (3, "getOptions():   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
   dbgmsg (3, "getOptions():   --contact-sheet-bg: $contactSheetBg\n") if (defined $contactSheetBg);
   dbgmsg (3, "getOptions():   --contact-sheet-bd: $contactSheetBd\n") if (defined $contactSheetBd);
@@ -831,6 +834,12 @@ sub renRotProcess {
 
     # analyzing whether to rotate
     my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
+
+    # generating absent ThumbnailImage tag from the original image
+    if ( $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
+      thmb_add($file);
+      procmsg ( "ThumbnailImage was written to the file $file .\n" );
+    }
 
     # analyzing whether and how to rename file
     $newFileName = renameFile($exifToolObj, $info, $file, $fileCounter, $counterSize, $angleSuffix);
@@ -1231,36 +1240,37 @@ if ($isThereIM) {
 	$filefull = rotCs ( $file, $rotorient{$orientation}, $workdir );
       } elsif ( $contactSheetThm != 0
 		and defined $orientation and $orientation == 1 ) {
-	  # we need this since rotated img'll be @ $workdir, but others are in current
-	  $ThumbnailOriginal = $workdir . $file;
-	  copy($file, $ThumbnailOriginal) or die "copy failed: $!";
-	  $filefull = $ThumbnailOriginal;
+	# we need this since rotated img'll be @ $workdir, but others are in current
+	$ThumbnailOriginal = $workdir . $file;
+	copy($file, $ThumbnailOriginal) or die "copy failed: $!";
+	$filefull = $ThumbnailOriginal;
       } elsif ( $contactSheetThm == 0 and defined ${$$info{ThumbnailImage}} ) {
-	  $ThumbnailOriginal = $workdir . $file;
-	  unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
-	      die "$ThumbnailOriginal wasn't opened!\n";
-	  }
-	  binmode OLDTHUMBNAIL;
-	  print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-	  unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
-	  
-	  if ( not defined $orientation ) {
-	      $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
-	  }
-	  
-	  if ( defined $orientation and $orientation > 1 ) {
-	      $filefull = rotCs ( $ThumbnailOriginal , $orientation, "" );
-	  } else {
-	      $filefull = $ThumbnailOriginal;
-	  }
-      } elsif ( $contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
-	  procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
-	  if ( not -f $workdir."thmbstub.jpg" ) {
-	      thmbgen($workdir,"thmbstub.jpg");
-	      procmsg ( "Stub thumbnail image've been created.\n" );
-	  }
-	  copy($workdir."thmbstub.jpg",$workdir.$file);
-	  $filefull = $workdir.$file;
+	$ThumbnailOriginal = $workdir . $file;
+	unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
+	  die "$ThumbnailOriginal wasn't opened!\n";
+	}
+	binmode OLDTHUMBNAIL;
+	print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+	unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
+
+	if ( not defined $orientation ) {
+	  $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
+	}
+
+	if ( defined $orientation and $orientation > 1 ) {
+	  $filefull = rotCs ( $ThumbnailOriginal , $orientation, "" );
+	} else {
+	  $filefull = $ThumbnailOriginal;
+	}
+      } elsif ( $contactSheetThm == 0 
+		and not defined ${$$info{ThumbnailImage}} ) {
+	procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+	if ( not -f $workdir."thmbstub.jpg" ) {
+	  thmbgen($workdir,"thmbstub.jpg");
+	  procmsg ( "Stub thumbnail image've been created.\n" );
+	}
+	copy($workdir."thmbstub.jpg",$workdir.$file);
+	$filefull = $workdir.$file;
       }
 
       $infothm = $exifToolObj->ImageInfo($filefull);
@@ -1529,14 +1539,14 @@ if ($isThereIM) {
     return $result;
   }
 
-########################################################################################
-# Usage      : colorValidator($color);
-# Purpose    : validates given string as color suitable for ImageMagick
-# Returns    : none
-# Parameters : $color str - color
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : convert -list color
+  ########################################################################################
+  # Usage      : colorValidator($color);
+  # Purpose    : validates given string as color suitable for ImageMagick
+  # Returns    : none
+  # Parameters : $color str - color
+  # Throws     : no exceptions
+  # Comments   : none
+  # See Also   : convert -list color
   sub colorValidator {
     my $color = shift;
     if ($color =~ /^#.*$/) {
@@ -1796,6 +1806,37 @@ sub rotateThumbnail {
     thumbWriter($file, piper($origThumb, $cmd));
   }
 }
+
+########################################################################################
+# Usage      : thmb_add($wrkdir,$thmbname);
+# Purpose    : generate thumbnail image from the original file and write it
+#            : to the ThumbnailImage tag
+# Returns    : none
+# Parameters : $file str - original image name
+# Throws     : no exceptions
+# Comments   : sie of the generated thumbnail is fixed and is 160x120
+# See Also   : n/a
+sub thmb_add {
+  my $file = shift;
+  my $thm_name = "thm_" . $file;
+  my $size = "160x120";
+  my $thmb = Image::Magick->new;
+
+  $thmb->Set(size=>$size,filename=>$thm_name, quality=>95, interlace=>'Partition');
+
+  $thmb->ReadImage($file);
+  $thmb->Thumbnail(geometry => $size);
+
+  my $thmbnum = $thmb->Write();
+
+  if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
+  undef $thmb;
+
+  thumbWriter($file, getFileData($thm_name));
+
+  unlink $thm_name;
+}
+
 
 ########################################################################################
 #
