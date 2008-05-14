@@ -530,6 +530,10 @@ sub getOptions {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
     errmsg ("Contact Sheet generation disabled.\n\n");
   }
+  elsif ($gen_thm != 0 and not defined isTherePackage("Image::Magick")) {
+    errmsg ("To use --gen-thm functionality you need Image::Magick package!\n");
+    errmsg ("ThumbnailImage generation is disabled.\n\n");
+  }
 
   # preparing Software tag according the usage or not of ImageMagick
   if ($isThereIM == 1) {
@@ -836,7 +840,7 @@ sub renRotProcess {
     my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
 
     # generating absent ThumbnailImage tag from the original image
-    if ( $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
+    if ( $isThereIM == 1 and $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
       thmb_add($file);
       procmsg ( "ThumbnailImage was written to the file $file .\n" );
     }
