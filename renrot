@@ -1,9 +1,9 @@
-#! perl -w
+#! perl
 #
 # $Id: renrot 299 2007-09-01 08:50:11Z zeus $
 #
 
-BEGIN { $| = 1; }
+BEGIN { $| = 1; $SIG{__DIE__} = sub { use Carp ; confess $_[0] . 'Aborted' } }
 
 use strict;
 use warnings;
