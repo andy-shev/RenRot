@@ -1965,6 +1965,7 @@ Colorizing options:
       --use-color (*)		colorized output
 
 Misc options:
+      --gen-thm                 generation and writing ThumbnailImage tag if absent
       --dry-run			do nothing, only print would have been done
       --use-ipc (*)		rotate thumbnail via pipe, rather than via file
   -v				increment debugging level by 1
