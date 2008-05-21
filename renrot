@@ -260,7 +260,6 @@ sub printColored {
   my $facility = shift;
 
   if ($cfgOpts{'use color'} != 0) {
-    delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $facility and defined $colors{$facility}) {
       if ($facility eq "error") {
         print STDERR colored [$colors{$facility}{value}], @_;
@@ -278,7 +277,6 @@ sub procmsg {
   return if ($quiet != 0);
 
   if ($cfgOpts{'use color'} != 0) {
-    delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $colors{'process'}) {
       print colored [$colors{'process'}{value}], @_;
       return;
@@ -1984,8 +1982,8 @@ Misc options:
 
 (*) The options marked with this sign do not take arguments and can be negated,
 i.e. prefixed by 'no'. E.g. '--mtime' sets file mtime value, while '--nomtime'
-or '--no-mtime' disables setting it."
-  );
+or '--no-mtime' disables setting it.
+");
 }
 
 ########################################################################################
@@ -2197,6 +2195,9 @@ $cfgOpts{'contact sheet thm grad to'}	= $contactSheetThmGrTo if (defined $contac
 $cfgOpts{'contact sheet thm text'}	= $contactSheetThmText if (defined $contactSheetThmText);
 $cfgOpts{'contact sheet rank'}	        = $contactSheetRank if (defined $contactSheetRank);
 $cfgOpts{'contact sheet rank file'}	= $contactSheetRankFile if (defined $contactSheetRankFile);
+
+# Remove this variable before any screen output
+delete $ENV{ANSI_COLORS_DISABLED} if ($cfgOpts{'use color'} != 0);
 
 dbgmsg (1, "main(): Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
