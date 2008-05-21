@@ -1,6 +1,10 @@
-#! perl
+#!/usr/bin/env perl
+
+#
+# vim: ts=2 sw=2 et :
 #
 
+# Analyze crash in third-party modules
 BEGIN { $| = 1; $SIG{__DIE__} = sub { use Carp ; confess $_[0] . 'Aborted' } }
 
 use strict;
@@ -18,8 +22,8 @@ $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 $ENV{ANSI_COLORS_DISABLED} = 1;
 
-# perl5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
-my $mem_trouble_stub=" "x4_000_000; undef $mem_trouble_stub;
+# perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
+my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
 our $VERSION = "1.0";		# the version of this script
 my $maxVerbosity = 4;		# our max verbosity level (internal)
@@ -36,26 +40,26 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 }
 
 %Image::ExifTool::UserDefined::RenRot = (
-					 GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
-					 NAMESPACE => [ 'RenRot' => $homeURL ],
-					 WRITABLE => 'string',
-					 RenRotFileNameOriginal => { },
-					 RenRotProcessingTimestamp => { },
-					 RenRotVersion => { },
-					 RenRotURL => { },
-					);
+    GROUPS => { 0 => 'XMP', 1 => 'RenRot', 2 => 'Image' },
+    NAMESPACE => [ 'RenRot' => $homeURL ],
+    WRITABLE => 'string',
+    RenRotFileNameOriginal => { },
+    RenRotProcessingTimestamp => { },
+    RenRotVersion => { },
+    RenRotURL => { },
+);
 
 # The %Image::ExifTool::UserDefined hash defines new tags to be added to
 # existing tables.
 %Image::ExifTool::UserDefined = (
-# new XMP namespaces must be added to the Main XMP table
-    'Image::ExifTool::XMP::Main' => {
-	RenRot => {
-	    SubDirectory => {
-		TagTable => 'Image::ExifTool::UserDefined::RenRot',
-	    },
-	},
+  # new XMP namespaces must be added to the Main XMP table
+  'Image::ExifTool::XMP::Main' => {
+    RenRot => {
+      SubDirectory => {
+        TagTable => 'Image::ExifTool::UserDefined::RenRot',
+      },
     },
+  },
 );
 
 ########################################################################################
@@ -63,42 +67,42 @@ if (defined %Image::ExifTool::UserDefined::RenRot) {
 # Parsed configuration file in hash
 #
 my %cfgOpts = (
-	       'aggregation delta' => 900,
-	       'aggregation directory' => 'Images',
-	       'aggregation mode' => 'none',
-	       'aggregation template' => '%Y%m%d',
-	       'aggregation virtual' => 0,
-	       'aggregation virtual directory' => 'Images.Links.Directory',
-	       'keywordize' => 0,
-	       'keywords file' => '.keywords',
-	       'keywords replace' => 0,
-	       'mtime' => 1,
-	       'name template' => '%Y%m%d%H%M%S',
-	       'trim' => 1,
-	       'use color' => 0,
-	       'use ipc' => 0,
-	       'contact sheet' => 0,
-	       'contact sheet tile' => '7x5',
-	       'contact sheet title' => 'Default Contact Sheet Title',
-	       'contact sheet file' => 'cs',
-	       'contact sheet dir' => 'CS.TMP',
-	       'contact sheet background' => 'FFF',
-	       'contact sheet bordercolor' => 'DDD',
-	       'contact sheet mattecolor' => 'CCC',
-	       'contact sheet fill' => '000',
-	       'contact sheet font' => 'Helvetica',
-	       'contact sheet label' => '%t',
-	       'contact sheet frame' => '3',
-	       'contact sheet pointsize' => '11',
-	       'contact sheet shadow' => 1,
-	       'contact sheet thm font' => 'Helvetica',
-	       'contact sheet thm fill' => 'gray34',
-	       'contact sheet thm grad fr' => 'FFFFFF',
-	       'contact sheet thm grad to' => '909090',
-	       'contact sheet thm text' => "thumbnail\n\nNA",
-	       'contact sheet rank' => 0,
-	       'contact sheet rank file' => '.rank',
-	      );
+  'aggregation delta' => 900,
+  'aggregation directory' => 'Images',
+  'aggregation mode' => 'none',
+  'aggregation template' => '%Y%m%d',
+  'aggregation virtual' => 0,
+  'aggregation virtual directory' => 'Images.Links.Directory',
+  'keywordize' => 0,
+  'keywords file' => '.keywords',
+  'keywords replace' => 0,
+  'mtime' => 1,
+  'name template' => '%Y%m%d%H%M%S',
+  'trim' => 1,
+  'use color' => 0,
+  'use ipc' => 0,
+  'contact sheet' => 0,
+  'contact sheet tile' => '7x5',
+  'contact sheet title' => 'Default Contact Sheet Title',
+  'contact sheet dir' => 'Contact.Sheet',
+  'contact sheet file' => 'cs-%c.jpg',
+  'contact sheet background' => 'FFF',
+  'contact sheet bordercolor' => 'DDD',
+  'contact sheet mattecolor' => 'CCC',
+  'contact sheet fill' => '000',
+  'contact sheet font' => 'Helvetica',
+  'contact sheet label' => '%t',
+  'contact sheet frame' => '3',
+  'contact sheet pointsize' => '11',
+  'contact sheet shadow' => 1,
+  'contact sheet thm font' => 'Helvetica',
+  'contact sheet thm fill' => 'gray34',
+  'contact sheet thm grad fr' => 'FFFFFF',
+  'contact sheet thm grad to' => '909090',
+  'contact sheet thm text' => "thumbnail\n\nNA",
+  'contact sheet rank' => 0,
+  'contact sheet rank file' => '.rank',
+);
 
 ########################################################################################
 #
@@ -170,69 +174,70 @@ my $isThereIM = 0;	# is there Image::Magick package?
 #
 # Tags hash for injecting to EXIF when renaming
 #
-my %tags = ('RenRotProcessingTimestamp' => {
-					    value => timeNow(),
-					    group => 'RenRot',
-					   },
-	    'RenrotVersion' => {
-				value => $VERSION,
-				group => 'RenRot',
-			       },
-	    'RenRotURL' => {
-			    value => $homeURL,
-			    group => 'RenRot',
-			   },
-	   );		# define tags for filling
+my %tags = (
+  'RenRotProcessingTimestamp' => {
+    value => timeNow(),
+    group => 'RenRot',
+  },
+  'RenrotVersion' => {
+    value => $VERSION,
+    group => 'RenRot',
+  },
+  'RenRotURL' => {
+    value => $homeURL,
+    group => 'RenRot',
+  },
+); # define tags for filling
 
 ########################################################################################
 #
 # Global variables (internal)
 #
 my @rotparms = (
-		'',
-		'-flip horizontal',
-		'-rotate 180',
-		'-flip vertical',
-		'-transpose',
-		'-rotate 90',
-		'-transverse',
-		'-rotate 270',
-	       );	# jpegtran options array to rotate the file
+  '',
+  '-flip horizontal',
+  '-rotate 180',
+  '-flip vertical',
+  '-transpose',
+  '-rotate 90',
+  '-transverse',
+  '-rotate 270',
+); # jpegtran options array to rotate the file
 
 my @angles = (
-	      '',
-	      'fh',
-	      '180cw',
-	      'fv',
-	      'tp',
-	      '90cw',
-	      'tv',
-	      '270cw',
-	     ); 	# the array of suffixes to add to the newfilename after rotating
+  '',
+  'fh',
+  '180cw',
+  'fv',
+  'tp',
+  '90cw',
+  'tv',
+  '270cw',
+); # the array of suffixes to add to the newfilename after rotating
 
 my %rotangles = (
-		 '90' => '-rotate 90',
-		 '180' => '-rotate 180',
-		 '270' => '-rotate 270'
-		);	# array of options to rotate file "by hands"
+  '90' => '-rotate 90',
+  '180' => '-rotate 180',
+  '270' => '-rotate 270'
+); # array of options to rotate file "by hands"
 
 my %rotorient = (
-		 1 => 0,
-		 6 => 90,
-		 3 => 180,
-		 8 => 270,
-		);
+  1 => 0,
+  6 => 90,
+  3 => 180,
+  8 => 270,
+);
 
 my %rotorientrev = reverse %rotorient;
 
 my %incFiles = ();	# hash of included files while parsing configuration file
 
 my @multOpts = (
-		'color',
-		'include',
-		'tag',
-		'tagfile',
-	       );
+  'color',
+  'include',
+  'tag',
+  'tagfile',
+);
 
 my @files = ();		# array of the sorted filenames to process
 my %filenameshash = ();	# hash for old file names
@@ -242,13 +247,13 @@ my %filenameshash = ();	# hash for old file names
 # Colors hash
 #
 my %colors = (
-	      debug => {value => 'green'},
-	      error => {value => 'magenta'},
-	      fatal => {value => 'red'},
-	      info => {value => 'bold'},
-	      process => {value => 'white'},
-	      warning => {value => 'cyan'},
-	     );
+  debug => {value => 'green'},
+  error => {value => 'magenta'},
+  fatal => {value => 'red'},
+  info => {value => 'bold'},
+  process => {value => 'white'},
+  warning => {value => 'cyan'},
+);
 
 # Prints colored message to STDERR
 sub printColored {
@@ -257,10 +262,10 @@ sub printColored {
   if ($cfgOpts{'use color'} != 0) {
     delete $ENV{ANSI_COLORS_DISABLED};
     if (defined $facility and defined $colors{$facility}) {
-      if ($facility eq "error" ) {
-	print STDERR colored [$colors{$facility}{value}], @_;
+      if ($facility eq "error") {
+        print STDERR colored [$colors{$facility}{value}], @_;
       } else {
-	print STDOUT colored [$colors{$facility}{value}], @_;
+        print STDOUT colored [$colors{$facility}{value}], @_;
       }
       return;
     }
@@ -347,7 +352,7 @@ sub boolConverter {
 
 ########################################################################################
 # Usage      : isTherePackage($pkg)
-# Purpose    : checks availability of package renrot could be dependent of
+# Purpose    : checks availability of given package (renrot could be depend of it)
 # Returns    : nothing in case the package available and undef if not
 # Parameters : $pkg - string with package name
 # Throws     : no exceptions
@@ -367,73 +372,73 @@ sub isTherePackage {
 # Comments   : none
 # See Also   : Getopt::Long GetOptions()
 sub getOptions {
-  my $showVersion = 0;	# need version
-  my $showHelp = 0;	# need help
+  my $showVersion = 0;  # need version
+  my $showHelp = 0;     # need help
   my @tmpTags = ();
   my $getOptions = GetOptions (
-			       "aggr-delta=i" => \$aggrDelta,
-			       "aggr-directory=s" => \$aggrDir,
-			       "aggr-mode=s" => \$aggrMode,
-			       "aggr-template|a=s" => \$aggrTemplate,
-			       "aggr-virtual!" => \$aggrVirtual,
-			       "aggr-virtual-directory=s" => \$aggrVirtDir,
-			       "backup!" => \$backup,
-			       "comment-file=s" => \$comfile,
-			       "config-file|c=s" => \$configFile,
-			       "contact-sheet|cs!" => \$contactSheet,
-			       "contact-sheet-tile|cs-tile=s" => \$contactSheetTile,
-			       "contact-sheet-title|cs-title=s" => \$contactSheetTitle,
-			       "contact-sheet-file|cs-file=s" => \$contactSheetFile,
-			       "contact-sheet-dir|cs-dir=s" => \$contactSheetDir,
-			       "contact-sheet-thm|cs-thm" => \$contactSheetThm,
-			       "contact-sheet-bg|cs-bg=s" => \$contactSheetBg,
-			       "contact-sheet-bd|cs-bd=s" => \$contactSheetBd,
-			       "contact-sheet-mt|cs-mt=s" => \$contactSheetMt,
-			       "contact-sheet-fl|cs-fl=s" => \$contactSheetFl,
-			       "contact-sheet-fn|cs-fn=s" => \$contactSheetFn,
-			       "contact-sheet-lb|cs-lb=s" => \$contactSheetLb,
-			       "contact-sheet-fr|cs-fr=s" => \$contactSheetFr,
-			       "contact-sheet-pntsz|cs-pntsz=i" => \$contactSheetPntSz,
-			       "contact-sheet-shadow|cs-shadow" => \$contactSheetShadow,
-			       "contact-sheet-thm-fl|cs-thm-fl=s" => \$contactSheetThmFl,
-			       "contact-sheet-thm-fn|cs-thm-fn=s" => \$contactSheetThmFn,
-			       "contact-sheet-thm-grfr|cs-thm-grfr=s" => \$contactSheetThmGrFr,
-			       "contact-sheet-thm-grto|cs-thm-grto=s" => \$contactSheetThmGrTo,
-			       "contact-sheet-thm-text|cs-thm-text=s" => \$contactSheetThmText,
-			       "contact-sheet-rank|cs-rank!" => \$contactSheetRank,
-			       "contact-sheet-rank-file|cs-rank-file=s" => \$contactSheetRankFile,
-			       "counter-fixed-field!" => \$countFF,
-			       "counter-start=i" => \$countStart,
-			       "counter-step=i" => \$countStep,
-			       "dry-run" => \$dryRun,
-			       "exclude=s" => \@excludeList,
-			       "extension|e=s" => \$extToProcess,
-			       "gen-thm!" => \$gen_thm,
-			       "help|?"   => \$showHelp,
-			       "keywordize!" => \$keywordize,
-			       "keywords-file|k=s" => \$keywordsFile,
-			       "keywords-replace!" => \$keywordsReplace,
-			       "mtime!" => \$mtime,
-			       "name-template|n=s" => \$nameTemplate,
-			       "no-rename|norename" => \$noRename,
-			       "no-rotate|norotate" => \$noRotation,
-			       "no-tags|notags" => \$noTags,
-			       "no-ren-rot-tag-mtm|nochg" => \$noRenRoTagMtm,
-			       "only-orientation" => \$orientTag,
-			       "quiet|q" => \$quiet,
-			       "rotate-angle|r=i" => \$rotateAngle,
-			       "rotate-thumb=i" => \$rotateThumbnail,
-			       "sub-fileset=s" => \$subFileSet,
-			       "tag|t=s" => \@tmpTags,
-			       #"tag-to-name|ttn=s" => \@tag_to_name,
-			       "trim!" => \$trim,
-			       "use-color!" => \$useColor,
-			       "use-ipc!" => \$useIPC,
-			       "user-comment=s" => \$userComment,
-			       "v+" => \$verbose,
-			       "version" => \$showVersion,
-			       "work-directory|d=s" => \$workDir,
-			      );
+      "aggr-delta=i" => \$aggrDelta,
+      "aggr-directory=s" => \$aggrDir,
+      "aggr-mode=s" => \$aggrMode,
+      "aggr-template|a=s" => \$aggrTemplate,
+      "aggr-virtual!" => \$aggrVirtual,
+      "aggr-virtual-directory=s" => \$aggrVirtDir,
+      "backup!" => \$backup,
+      "comment-file=s" => \$comfile,
+      "config-file|c=s" => \$configFile,
+      "contact-sheet|cs!" => \$contactSheet,
+      "contact-sheet-tile|cs-tile=s" => \$contactSheetTile,
+      "contact-sheet-title|cs-title=s" => \$contactSheetTitle,
+      "contact-sheet-file|cs-file=s" => \$contactSheetFile,
+      "contact-sheet-dir|cs-dir=s" => \$contactSheetDir,
+      "contact-sheet-thm|cs-thm" => \$contactSheetThm,
+      "contact-sheet-bg|cs-bg=s" => \$contactSheetBg,
+      "contact-sheet-bd|cs-bd=s" => \$contactSheetBd,
+      "contact-sheet-mt|cs-mt=s" => \$contactSheetMt,
+      "contact-sheet-fl|cs-fl=s" => \$contactSheetFl,
+      "contact-sheet-fn|cs-fn=s" => \$contactSheetFn,
+      "contact-sheet-lb|cs-lb=s" => \$contactSheetLb,
+      "contact-sheet-fr|cs-fr=s" => \$contactSheetFr,
+      "contact-sheet-pntsz|cs-pntsz=i" => \$contactSheetPntSz,
+      "contact-sheet-shadow|cs-shadow" => \$contactSheetShadow,
+      "contact-sheet-thm-fl|cs-thm-fl=s" => \$contactSheetThmFl,
+      "contact-sheet-thm-fn|cs-thm-fn=s" => \$contactSheetThmFn,
+      "contact-sheet-thm-grfr|cs-thm-grfr=s" => \$contactSheetThmGrFr,
+      "contact-sheet-thm-grto|cs-thm-grto=s" => \$contactSheetThmGrTo,
+      "contact-sheet-thm-text|cs-thm-text=s" => \$contactSheetThmText,
+      "contact-sheet-rank|cs-rank!" => \$contactSheetRank,
+      "contact-sheet-rank-file|cs-rank-file=s" => \$contactSheetRankFile,
+      "counter-fixed-field!" => \$countFF,
+      "counter-start=i" => \$countStart,
+      "counter-step=i" => \$countStep,
+      "dry-run" => \$dryRun,
+      "exclude=s" => \@excludeList,
+      "extension|e=s" => \$extToProcess,
+      "gen-thm!" => \$gen_thm,
+      "help|?"   => \$showHelp,
+      "keywordize!" => \$keywordize,
+      "keywords-file|k=s" => \$keywordsFile,
+      "keywords-replace!" => \$keywordsReplace,
+      "mtime!" => \$mtime,
+      "name-template|n=s" => \$nameTemplate,
+      "no-rename|norename" => \$noRename,
+      "no-rotate|norotate" => \$noRotation,
+      "no-tags|notags" => \$noTags,
+      "no-ren-rot-tag-mtm|nochg" => \$noRenRoTagMtm,
+      "only-orientation" => \$orientTag,
+      "quiet|q" => \$quiet,
+      "rotate-angle|r=i" => \$rotateAngle,
+      "rotate-thumb=i" => \$rotateThumbnail,
+      "sub-fileset=s" => \$subFileSet,
+      "tag|t=s" => \@tmpTags,
+#      "tag-to-name|ttn=s" => \@tag_to_name,
+      "trim!" => \$trim,
+      "use-color!" => \$useColor,
+      "use-ipc!" => \$useIPC,
+      "user-comment=s" => \$userComment,
+      "v+" => \$verbose,
+      "version" => \$showVersion,
+      "work-directory|d=s" => \$workDir,
+  );
 
   my $fileCount = scalar(@ARGV);
 
@@ -446,13 +451,13 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --backup: ", boolConv($backup), "\n");
   dbgmsg (3, "getOptions():   --comment-file: $comfile\n") if (defined $comfile);
   dbgmsg (3, "getOptions():   --config-file: $configFile\n") if (defined $configFile);
-  dbgmsg (3, "getOptions():   --contact-sheet: ", boolConv($contactSheet),"\n") if (defined $contactSheet);
+  dbgmsg (3, "getOptions():   --contact-sheet: ", boolConv($contactSheet), "\n") if (defined $contactSheet);
   dbgmsg (3, "getOptions():   --contact-sheet-tile: $contactSheetTile\n") if (defined $contactSheetTile);
   dbgmsg (3, "getOptions():   --contact-sheet-title: $contactSheetTitle\n") if (defined $contactSheetTitle);
   dbgmsg (3, "getOptions():   --contact-sheet-file: $contactSheetFile\n") if (defined $contactSheetFile);
   dbgmsg (3, "getOptions():   --contact-sheet-dir: $contactSheetDir\n") if (defined $contactSheetDir);
-  dbgmsg (3, "getOptions():   --gen-thm: ", boolConv($gen_thm),"\n");
-  dbgmsg (3, "getOptions():   --contact-sheet-thm: ", boolConv($contactSheetThm),"\n");
+  dbgmsg (3, "getOptions():   --gen-thm: ", boolConv($gen_thm), "\n");
+  dbgmsg (3, "getOptions():   --contact-sheet-thm: ", boolConv($contactSheetThm), "\n");
   dbgmsg (3, "getOptions():   --contact-sheet-bg: $contactSheetBg\n") if (defined $contactSheetBg);
   dbgmsg (3, "getOptions():   --contact-sheet-bd: $contactSheetBd\n") if (defined $contactSheetBd);
   dbgmsg (3, "getOptions():   --contact-sheet-mt: $contactSheetMt\n") if (defined $contactSheetMt);
@@ -462,8 +467,8 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --contact-sheet-rank: ", boolConv($contactSheetRank), "\n") if (defined $contactSheetRank);
   dbgmsg (3, "getOptions():   --contact-sheet-rank-file: $contactSheetRankFile\n") if (defined $contactSheetRankFile);
   dbgmsg (3, "getOptions():   --counter-start: $countStart",
-	  "   --counter-step: $countStep",
-	  "   --counter-fixed-field: ", boolConv($countFF), "\n");
+    "   --counter-step: $countStep",
+    "   --counter-fixed-field: ", boolConv($countFF), "\n");
   dbgmsg (3, "getOptions():   --dry-run: ", boolConv($dryRun), "\n") if (defined $dryRun);
   dbgmsg (3, "getOptions():   --exclude:\n", join("\n--exclude: ", @excludeList), "\n") if (scalar(@excludeList) > 0);
   dbgmsg (3, "getOptions():   --extension: $extToProcess\n");
@@ -473,9 +478,9 @@ sub getOptions {
   dbgmsg (3, "getOptions():   --mtime: ", boolConv($mtime), "\n") if (defined $mtime);
   dbgmsg (3, "getOptions():   --name-template: $nameTemplate\n") if (defined $nameTemplate);
   dbgmsg (3, "getOptions():   --no-rename: ", boolConv($noRename),
-	  "   --no-rotate: ", boolConv($noRotation),
-	  "   --no-tags: ", boolConv($noTags),
-	  "   --no-ren-rot-tag-mtm: ", boolConv($noRenRoTagMtm),"\n");
+    "   --no-rotate: ", boolConv($noRotation),
+    "   --no-tags: ", boolConv($noTags),
+    "   --no-ren-rot-tag-mtm: ", boolConv($noRenRoTagMtm), "\n");
   dbgmsg (3, "getOptions():   --only-orientation: ", boolConv($orientTag), "\n");
   dbgmsg (3, "getOptions():   --rotate-angle: $rotateAngle\n") if (defined $rotateAngle);
   dbgmsg (3, "getOptions():   --rotate-thumb: $rotateThumbnail\n") if (defined $rotateThumbnail);
@@ -521,14 +526,11 @@ sub getOptions {
   if (defined isTherePackage("Image::Magick")) {
     $isThereIM = 1;
     dbgmsg (1, "getOptions(): We have Image::Magick package",
-	    " and could proceed with --contact-sheet related functionality.\n");
-  }
-  elsif (($cfgOpts{'contact sheet'} == 1 or defined $contactSheet)
-	 and not defined isTherePackage("Image::Magick")) {
+      " and could proceed with --contact-sheet related functionality.\n");
+  } elsif (($cfgOpts{'contact sheet'} == 1 or defined $contactSheet) and not defined isTherePackage("Image::Magick")) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n");
     errmsg ("Contact Sheet generation disabled.\n\n");
-  }
-  elsif ($gen_thm != 0 and not defined isTherePackage("Image::Magick")) {
+  } elsif ($gen_thm != 0 and not defined isTherePackage("Image::Magick")) {
     errmsg ("To use --gen-thm functionality you need Image::Magick package!\n");
     errmsg ("ThumbnailImage generation is disabled.\n\n");
   }
@@ -537,8 +539,7 @@ sub getOptions {
   if ($isThereIM == 1) {
     my $imverobj = Image::Magick->new;
     my ($IMName, $IMVer, $IMrest) = split(/ /, $imverobj->Get('version'));
-    $tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s",
-					 $VERSION, $Image::ExifTool::VERSION, $IMName, $IMVer);
+    $tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s", $VERSION, $Image::ExifTool::VERSION, $IMName, $IMVer);
     $tags{'Software'}{'group'} = 'EXIF';
     undef $imverobj;
   } else {
@@ -589,8 +590,7 @@ sub parsePair {
     dbgmsg (4, "parsePair(): Parsed: '$key' <- '$value'\n");
   } elsif ($str =~ m/^([^=]+)=$/) {
     $key = trimValue($1);
-    dbgmsg (4, "parsePair(): Parsed empty '$key', applying default value: ",
-	    defined $value ? "'$value'" : "undef", "\n");
+    dbgmsg (4, "parsePair(): Parsed empty '$key', applying default value: ", defined $value ? "'$value'" : "undef", "\n");
   }
   return ($key, $value);
 }
@@ -644,16 +644,16 @@ sub getConfig {
 
       my ($key, $value) = parsePair($line);
       if (defined $value) {
-	$key = lc($key);
-	if ($key eq "include" and not $incFiles{$value}) {
-	  dbgmsg (2, "getConfig(): Parsing included file: '$value'\n");
-	  %hConfig = parseConfigFile($fc, $value, %hConfig);
-	}
-	$key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
-	$hConfig{$key} = boolConverter($value);
-	dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
+        $key = lc($key);
+        if ($key eq "include" and not $incFiles{$value}) {
+          dbgmsg (2, "getConfig(): Parsing included file: '$value'\n");
+          %hConfig = parseConfigFile($fc, $value, %hConfig);
+        }
+        $key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
+        $hConfig{$key} = boolConverter($value);
+        dbgmsg (3, "getConfig(): Parsed line($i): '$key' <- '$hConfig{$key}'\n");
       } else {
-	warnmsg ("Unparsed line $i in configuration file.\n");
+        warnmsg ("Unparsed line $i in configuration file.\n");
       }
     }
   } else {
@@ -697,14 +697,14 @@ sub parseConfig {
   }
 
   my @rcFiles = (
-		 "/etc/renrot.rc",
-		 "/etc/renrot/renrot.rc",
-		 "/etc/renrot/renrot.conf",
-		 "/usr/local/etc/renrot.rc",
-		 "/usr/local/etc/renrot/renrot.rc",
-		 "/usr/local/etc/renrot/renrot.conf",
-		 @homeRC,
-		);
+      "/etc/renrot.rc",
+      "/etc/renrot/renrot.rc",
+      "/etc/renrot/renrot.conf",
+      "/usr/local/etc/renrot.rc",
+      "/usr/local/etc/renrot/renrot.rc",
+      "/usr/local/etc/renrot/renrot.conf",
+      @homeRC,
+  );
 
   @rcFiles = ($file) if (defined $file);
 
@@ -838,9 +838,9 @@ sub renRotProcess {
     my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
 
     # generating absent ThumbnailImage tag from the original image
-    if ( $isThereIM == 1 and $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
+    if ($isThereIM == 1 and $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
       thmb_add($file);
-      procmsg ( "ThumbnailImage was written to the file $file .\n" );
+      procmsg ("ThumbnailImage was written to the file $file\n");
     }
 
     # analyzing whether and how to rename file
@@ -883,16 +883,13 @@ sub saveOurHdrs {
     dbgmsg (2, "saveOurHdrs(): set RenRotFileNameOriginal to $file.\n");
   } else {
     $tags{'RenRotFileNameOriginal'} = {
-				       value => $infoObj->{"RenRotFileNameOriginal"},
-				       group => 'RenRot'
-				      };
+              value => $infoObj->{"RenRotFileNameOriginal"},
+              group => 'RenRot'
+    };
     dbgmsg (2, "saveOurHdrs(): RenRotFileNameOriginal: $fileNameOriginal.\n");
   }
 
-  $exifToolObj->SetNewValue("RenRotFileNameOriginal",
-			    $tags{'RenRotFileNameOriginal'}{value},
-			    Group => $tags{'RenRotFileNameOriginal'}{group}
-			   );
+  $exifToolObj->SetNewValue("RenRotFileNameOriginal", $tags{'RenRotFileNameOriginal'}{value}, Group => $tags{'RenRotFileNameOriginal'}{group});
 }
 
 ########################################################################################
@@ -908,7 +905,7 @@ sub rotateFile {
   my $angleSuffix = "0cw";
 
   if ($noRotation != 0) { dbgmsg (2, "rotateFile(): No rotation asked, file orientation is left untouched.\n"); }
-  elsif ( defined $rotateAngle ) {
+  elsif (defined $rotateAngle) {
     dbgmsg (2, "rotateFile(): We'll deal with: $file and $rotangles{$rotateAngle}.\n");
     if ($orientTag != 0) {
       rotateOrient($exifToolObj, $file, $orientation);
@@ -917,23 +914,21 @@ sub rotateFile {
       rotateThumbnail($infoObj, $file, $rotangles{$rotateAngle}, $trimStr);
     }
     $angleSuffix = $rotateAngle . "cw";
-  } elsif ( defined $rotateThumbnail ) {
+  } elsif (defined $rotateThumbnail) {
     rotateThumbnail($infoObj, $file, $rotangles{$rotateThumbnail}, $trimStr);
   } else {
     if (defined $orientation) {
-      if ( $orientation > 1 ) {
-	rotateImg($file, $rotparms[$orientation - 1], $trimStr);
-	rotateThumbnail($infoObj, $file, $rotparms[$orientation - 1], $trimStr);
-	$angleSuffix = $angles[$orientation - 1];
-      }
-      elsif ( $orientation == 1 ) {
-	dbgmsg (2, "rotateFile(): No need to rotate, orientation is: Horizontal (normal).\n");
+      if ($orientation > 1) {
+        rotateImg($file, $rotparms[$orientation - 1], $trimStr);
+        rotateThumbnail($infoObj, $file, $rotparms[$orientation - 1], $trimStr);
+        $angleSuffix = $angles[$orientation - 1];
+      } elsif ($orientation == 1) {
+        dbgmsg (2, "rotateFile(): No need to rotate, orientation is: Horizontal (normal).\n");
       }
       else {
-	errmsg ("Something wrong, orientation low than 1: $orientation.\n");
+        errmsg ("Something wrong, orientation low than 1: $orientation.\n");
       }
-    }
-    else {
+    } else {
       warnmsg ("Orientation tag is absent!\n");
     }
   }
@@ -962,13 +957,16 @@ sub renameFile {
     my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
     my $extLen = length($ext);
 
-    $newFileName = template2name($exifToolObj,
-				 $infoObj,
-				 $cfgOpts{'name template'},
-				 $fileCounter,
-				 $file,
-				 $counterSize,
-				 $angleSuffix);
+    $newFileName = template2name (
+        $exifToolObj,
+        $infoObj,
+        $cfgOpts{'name template'},
+        $fileCounter,
+        $file,
+        $counterSize,
+        $angleSuffix
+    );
+
     if ($filenameshash{$newFileName . $ext}) {
       $newFileName .= "." . sprintf($counterSize, $fileCounter) . $ext;
     } else {
@@ -979,11 +977,11 @@ sub renameFile {
 
     if ($file ne $newFileName) {
       if (-f $newFileName) {
-	fatalmsg ("File $newFileName already exists!\n"), die;
+        fatalmsg ("File $newFileName already exists!\n"), die;
       }
-      if ($dryRun == 0) { rename ($file, $newFileName)
-			    || ( fatalmsg ("Unable to rename $file -> $newFileName.\n"), die );
-			}
+      if ($dryRun == 0) {
+        rename ($file, $newFileName) || ( fatalmsg ("Unable to rename $file -> $newFileName.\n"), die );
+      }
       procmsg ("Renamed: $file -> $newFileName\n");
     } else { warnmsg ("No renaming needed for $newFileName, it looks as needed!\n"); }
   }
@@ -1044,16 +1042,16 @@ sub getFileDatLns {
     binmode XXXFILE;
     my %xxxData; # splited line hash
     my @chunks = ();  # arr, chunks to be placed to
-    my ($i,$j);
+    my ($i, $j);
 
     while (<XXXFILE>){
       chomp;
       @chunks = split(/\s+/);
       $i = 0;
       $xxxData{$chunks[0]}[$i] = 1;
-      for ( ++$i; $i < scalar @chunks; $i++){
-	$xxxData{$chunks[0]}[$i] = $chunks[$i];
-	dbgmsg (4, "\$xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
+      for (++$i; $i < scalar @chunks; $i++) {
+        $xxxData{$chunks[0]}[$i] = $chunks[$i];
+        dbgmsg (4, "\$xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
       }
       undef @chunks;
     }
@@ -1111,8 +1109,8 @@ sub exifWriter {
   } else {
     my $errorMessage   = $exifToolObject->GetValue('Error');
     my $warningMessage = $exifToolObject->GetValue('Warning');
-    if ( defined $errorMessage ) { errmsg ("ExifTool: $errorMessage\n"); }
-    if ( defined $warningMessage ) { warnmsg ("ExifTool: $warningMessage\n"); }
+    if (defined $errorMessage) { errmsg ("ExifTool: $errorMessage\n"); }
+    if (defined $warningMessage) { warnmsg ("ExifTool: $warningMessage\n"); }
   }
   return $result;
 }
@@ -1143,13 +1141,15 @@ sub aggregationProcess {
       $file_rem++;
       dbgmsg (4, "aggregationProcess(): Processing ($file_rem of $file_num) file: $file\n");
       $info = $exifToolObj->ImageInfo($file);
-      $NewDir = template2name($exifToolObj,
-			      $info,
-			      $cfgOpts{'aggregation template'},
-			      $fileCounter,
-			      $file,
-			      $counterSize,
-			      "0cw");
+      $NewDir = template2name (
+          $exifToolObj,
+          $info,
+          $cfgOpts{'aggregation template'},
+          $fileCounter,
+          $file,
+          $counterSize,
+          "0cw"
+      );
       aggregateFile($file, $NewDir) if ($dryRun == 0);
 
       procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
@@ -1167,19 +1167,19 @@ sub aggregationProcess {
       dbgmsg (4, "aggregationProcess(): Processing ($file_rem of $file_num) file: $file\n");
 
       if ($DirCounter == 1) {
-	$timestampPrev = $filenameshash{$filetmp};
-	$filePrev = $filetmp;
-	$NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
-	$DirCounter++;
-	aggregateFile($file, $NewDir) if ($dryRun == 0);
+        $timestampPrev = $filenameshash{$filetmp};
+        $filePrev = $filetmp;
+        $NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+        $DirCounter++;
+        aggregateFile($file, $NewDir) if ($dryRun == 0);
       } else {
-	# Check for new direcroty creation
-	if (($filenameshash{$filetmp} - $timestampPrev) > $cfgOpts{'aggregation delta'}) {
-	  $NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
-	  $DirCounter++;
-	}
-	aggregateFile($file, $NewDir) if ($dryRun == 0);
-	$timestampPrev = $filenameshash{$filetmp};
+        # Check for new direcroty creation
+        if (($filenameshash{$filetmp} - $timestampPrev) > $cfgOpts{'aggregation delta'}) {
+          $NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+          $DirCounter++;
+        }
+        aggregateFile($file, $NewDir) if ($dryRun == 0);
+        $timestampPrev = $filenameshash{$filetmp};
       }
       procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
     }
@@ -1213,73 +1213,72 @@ if ($isThereIM) {
     my $orientation;
     my $filefull;
     my $ranks;              # reference to the hash of files ranks
+
     # ranks file processing
     if ($cfgOpts{'contact sheet rank'} == 1 and -f $cfgOpts{'contact sheet rank file'}) {
       $ranks = getFileDatLns($cfgOpts{'contact sheet rank file'});
       if ($ranks != 0) {
-	dbgmsg (3, "getOptions(): ranks successfully processed.\n");
+        dbgmsg (3, "getOptions(): ranks successfully processed.\n");
       } else {
-	errmsg ("getOptions(): ranks processing failed.\n");
+        errmsg ("getOptions(): ranks processing failed.\n");
       }
     }
 
     require Image::Magick; # compile time
 
-    makeDir($workdir );
+    makeDir($workdir);
 
     use File::Copy;
 
     procmsg ("CONTACT SHEET GENERATION\n");
     procmsg ("========================\n");
 
-    foreach $file (keys %filenameshash) { # no sort since it'll be sorted below
+    # no sort since it'll be sorted below
+    foreach $file (keys %filenameshash) {
       $info = $exifToolObj->ImageInfo($file);
       $orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
       $filefull = $file;
 
-      if ( $contactSheetThm != 0
-	   and defined $orientation and $orientation > 1 ) {
-	$filefull = rotCs ( $file, $rotorient{$orientation}, $workdir );
-      } elsif ( $contactSheetThm != 0
-		and defined $orientation and $orientation == 1 ) {
-	# we need this since rotated img'll be @ $workdir, but others are in current
-	$ThumbnailOriginal = $workdir . $file;
-	copy($file, $ThumbnailOriginal) or die "copy failed: $!";
-	$filefull = $ThumbnailOriginal;
-      } elsif ( $contactSheetThm == 0 and defined ${$$info{ThumbnailImage}} ) {
-	$ThumbnailOriginal = $workdir . $file;
-	unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
-	  die "$ThumbnailOriginal wasn't opened!\n";
-	}
-	binmode OLDTHUMBNAIL;
-	print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-	unless ( close ( OLDTHUMBNAIL ) ) { warn "$ThumbnailOriginal wasn't closed!\n"; }
+      if ($contactSheetThm != 0 and defined $orientation and $orientation > 1) {
+        $filefull = rotCs ($file, $rotorient{$orientation}, $workdir);
+      } elsif ($contactSheetThm != 0 and defined $orientation and $orientation == 1) {
+        # we need this since rotated img'll be @ $workdir, but others are in current
+        $ThumbnailOriginal = $workdir . $file;
+        copy ($file, $ThumbnailOriginal) or die "copy failed: $!";
+        $filefull = $ThumbnailOriginal;
+      } elsif ($contactSheetThm == 0 and defined ${$$info{ThumbnailImage}}) {
+        $ThumbnailOriginal = $workdir . $file;
+        unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
+          die "$ThumbnailOriginal wasn't opened!\n";
+        }
+        binmode OLDTHUMBNAIL;
+        print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+        unless (close (OLDTHUMBNAIL)) { warn "$ThumbnailOriginal wasn't closed!\n"; }
 
-	if ( not defined $orientation ) {
-	  $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
-	}
+        if (not defined $orientation) {
+          $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
+        }
 
-	if ( defined $orientation and $orientation > 1 ) {
-	  $filefull = rotCs ( $ThumbnailOriginal , $orientation, "" );
-	} else {
-	  $filefull = $ThumbnailOriginal;
-	}
-      } elsif ( $contactSheetThm == 0 
-		and not defined ${$$info{ThumbnailImage}} ) {
-	procmsg ( "WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
-	if ( not -f $workdir."thmbstub.jpg" ) {
-	  thmbgen($workdir,"thmbstub.jpg");
-	  procmsg ( "Stub thumbnail image've been created.\n" );
-	}
-	copy($workdir."thmbstub.jpg",$workdir.$file);
-	$filefull = $workdir.$file;
+        if (defined $orientation and $orientation > 1) {
+          $filefull = rotCs ($ThumbnailOriginal, $orientation, "");
+        } else {
+          $filefull = $ThumbnailOriginal;
+        }
+      } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
+        procmsg ("WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+        if (not -f $workdir . "thmbstub.jpg") {
+          thmbgen ($workdir, "thmbstub.jpg");
+          procmsg ("Stub thumbnail image've been created.\n");
+        }
+        copy ($workdir . "thmbstub.jpg", $workdir . $file);
+        $filefull = $workdir . $file;
       }
 
       $infothm = $exifToolObj->ImageInfo($filefull);
       $width = $exifToolObj->GetValue("ImageWidth");
       $height = $exifToolObj->GetValue("ImageHeight");
-      if ( $width > $size ) { $size = $width; }
-      if ( $height > $size ) { $size = $height; }
+      if ($width > $size) { $size = $width; }
+      if ($height > $size) { $size = $height; }
 
       push (@thumbnailes, $filefull);
     }
@@ -1297,7 +1296,7 @@ if ($isThereIM) {
     dbgmsg (3, "contactSheetGenerator(): contact sheet tile = \"$cfgOpts{'contact sheet tile'}\"\n");
 
     # here it's iteration by tile
-    my ($tileX, $tileY) = split ("x",$cfgOpts{'contact sheet tile'});
+    my ($tileX, $tileY) = split ("x", $cfgOpts{'contact sheet tile'});
     my $tileMul = $tileX * $tileY;
     my $csIterationNumber = scalar @thumbnailes_sorted;
     my $csFullIterations = int($csIterationNumber/$tileMul);
@@ -1312,7 +1311,7 @@ if ($isThereIM) {
     my $montage;
     my $montagename;
     my $infoMontage;
-    my @left_up_row = ("RenRot v.$VERSION",$homeURL);
+    my @left_up_row = ("RenRot v.$VERSION", $homeURL);
     my $substrFile;
     my $readIndex;
     my $counter_size;
@@ -1325,153 +1324,165 @@ if ($isThereIM) {
       $counter_size = "%d";
     }
 
-    if ( $csFullIterations > 0 ) {
+    if ($csFullIterations > 0) {
       # we need this for the case when $csRest == 0 and $csIterationNumber > $tileMul
-      if ( not $csRest ) {
-	--$csFullIterations;
+      if (not $csRest) {
+        --$csFullIterations;
       }
-      for ( ;
-	    $csIterator < $csFullIterations;
-	    $csIterator++, $fileCounter += $countStep ) {
-	$image = Image::Magick->new;
-	$montagename = template2name($exifToolObj,
-				     $info,
-				     $cfgOpts{'contact sheet file'},
-				     $fileCounter,
-				     "stub",
-				     $counter_size,
-				     "none");
-	#$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-	for ($readIndex = 0, $csIter = $csIterator * $tileMul ;
-	     $csIter < ($csIterator * $tileMul + $tileMul) ;
-	     $csIter++, $readIndex++) {
-	  $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
-	  if ( not $readres ) { dbgmsg (4,"contactSheetGenerator(): ",
-					"$thumbnailes_sorted[$csIter] was successfully red.\n"); }
-	  else { errmsg ("Image::Magick error: $readres\n\n"); }
+      for (; $csIterator < $csFullIterations; $csIterator++, $fileCounter += $countStep) {
+        $image = Image::Magick->new;
+        $montagename = template2name (
+            $exifToolObj,
+            $info,
+            $cfgOpts{'contact sheet file'},
+            $fileCounter,
+            "stub",
+            $counter_size,
+            "none"
+        );
+#        $montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
+        for ($readIndex = 0, $csIter = $csIterator * $tileMul; $csIter < ($csIterator * $tileMul + $tileMul); $csIter++, $readIndex++) {
+          $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
+          if (not $readres) {
+            dbgmsg (4, "contactSheetGenerator(): $thumbnailes_sorted[$csIter] was successfully read.\n");
+          } else { errmsg ("Image::Magick error: $readres\n\n"); }
 
-	  # ranking
-	  $substrFile = substr($thumbnailes_sorted[$csIter],length($cfgOpts{'contact sheet dir'})+1);
-	  if (defined $ranks->{$substrFile}->[1]) {
-	    dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
-	    $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
-	  } else { dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is undefined,",
-			   " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
-		   $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
-		 }
-	}
-	dbgmsg (1,"$csIterator montage is started, wait a bit please ...\n");
-	$montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-				   bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-				   font => $cfgOpts{'contact sheet font'},
-				   fill => colorValidator($cfgOpts{'contact sheet fill'}),
-				   label => $cfgOpts{'contact sheet label'},
-				   frame => $cfgOpts{'contact sheet frame'},
-				   geometry => $size . "x" . $size . "+4+4",
-				   pointsize => $cfgOpts{'contact sheet pointsize'},
-				   shadow => $cfgOpts{'contact sheet shadow'},
-				   title => $cfgOpts{'contact sheet title'},
-				   tile => $cfgOpts{'contact sheet tile'},
-				   stroke => 'none');
+          # ranking
+          $substrFile = substr($thumbnailes_sorted[$csIter], length($cfgOpts{'contact sheet dir'})+1);
+          if (defined $ranks->{$substrFile}->[1]) {
+            dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+            $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+          } else {
+            dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is undefined, ", " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
+            $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+          }
+        }
+        dbgmsg (1, "$csIterator montage is started, wait a bit please...\n");
+        $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
+            bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+            font => $cfgOpts{'contact sheet font'},
+            fill => colorValidator($cfgOpts{'contact sheet fill'}),
+            label => $cfgOpts{'contact sheet label'},
+            frame => $cfgOpts{'contact sheet frame'},
+            geometry => $size . "x" . $size . "+4+4",
+            pointsize => $cfgOpts{'contact sheet pointsize'},
+            shadow => $cfgOpts{'contact sheet shadow'},
+            title => $cfgOpts{'contact sheet title'},
+            tile => $cfgOpts{'contact sheet tile'},
+            stroke => 'none',
+        );
 
-	if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
-	else { dbgmsg (1,"$csIterator montage've finished successfully.\n"); }
+        if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+        else { dbgmsg (1, "$csIterator montage've finished successfully.\n"); }
 
-	$montage->Set(filename => 'jpg:'.$montagename,
-		      quality => 95,
-		      interlace => 'Partition',
-		      gravity => 'Center',
-		      stroke => 'none');
-	$montage->Annotate(font => $cfgOpts{'contact sheet font'},
-			   pointsize => 9,
-			   x => 5,
-			   y => 13,
-			   fill => 'lightgray',
-			   text => $left_up_row[0]);
-	$montage->Annotate(font => $cfgOpts{'contact sheet font'},
-			   pointsize => 9,
-			   x => 5,
-			   y => 23,
-			   fill => 'lightgray',
-			   text => $left_up_row[1],);
-     	$writeres = $montage->Write();
-	if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
-	else { errmsg ("Image::Magick error: $writeres\n\n"); }
-	$infoMontage = $exifToolObj->ImageInfo($montagename);
-	# to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
-	saveOurHdrs($exifToolObj, $infoMontage, $montagename);
-	# Writing tags.
-	tagWriter($exifToolObj, $montagename);
-	undef $image;
+        $montage->Set (
+            filename => 'jpg:'.$montagename,
+            quality => 95,
+            interlace => 'Partition',
+            gravity => 'Center',
+            stroke => 'none',
+        );
+        $montage->Annotate (
+            font => $cfgOpts{'contact sheet font'},
+            pointsize => 9,
+            x => 5,
+            y => 13,
+            fill => 'lightgray',
+            text => $left_up_row[0],
+        );
+        $montage->Annotate (
+            font => $cfgOpts{'contact sheet font'},
+            pointsize => 9,
+            x => 5,
+            y => 23,
+            fill => 'lightgray',
+            text => $left_up_row[1],
+        );
+        $writeres = $montage->Write();
+        if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
+        else { errmsg ("Image::Magick error: $writeres\n\n"); }
+        $infoMontage = $exifToolObj->ImageInfo($montagename);
+        # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+        saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+        # Writing tags.
+        tagWriter($exifToolObj, $montagename);
+        undef $image;
       }
     }
 
-    $montagename = template2name($exifToolObj,
-				 $info,
-				 $cfgOpts{'contact sheet file'},
-				 $fileCounter,
-				 "stub",
-				 $counter_size,
-				 "none");
+    $montagename = template2name (
+        $exifToolObj,
+        $info,
+        $cfgOpts{'contact sheet file'},
+        $fileCounter,
+        "stub",
+        $counter_size,
+        "none"
+    );
     #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-    for ($readIndex = 0, $csIteration = $csIterator * $tileMul, $image = Image::Magick->new;
-	 $csIteration < $csIterationNumber ;
-	 $csIteration++, $readIndex++) {
+    for ($readIndex = 0, $csIteration = $csIterator * $tileMul, $image = Image::Magick->new; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
 
       $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
-      if ( not $readres ) { dbgmsg (4,"$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
+      if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
       else { errmsg ("Image::Magick error: $readres\n\n"); }
 
       # ranking
-      $substrFile = substr($thumbnailes_sorted[$csIteration],length($cfgOpts{'contact sheet dir'})+1);
+      $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'})+1);
       if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
-	dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
-	$image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+        dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+        $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
       } else {
-	dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined,",
-		" using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
-	$image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+        dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
+        $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
       }
     }
-    dbgmsg (1,"Final, $csIterator montage is started, wait a bit please ...\n");
+    dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
 
     # the final invocation of ->Montage() method for the the rest of files didn't fit
     # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
-    $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-			       bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-			       font => $cfgOpts{'contact sheet font'},
-			       fill => colorValidator($cfgOpts{'contact sheet fill'}),
-			       label => $cfgOpts{'contact sheet label'},
-			       frame => $cfgOpts{'contact sheet frame'},
-			       geometry => $size . "x" . $size . "+4+4",
-			       pointsize => $cfgOpts{'contact sheet pointsize'},
-			       shadow => $cfgOpts{'contact sheet shadow'},
-			       title => $cfgOpts{'contact sheet title'},
-			       tile => $cfgOpts{'contact sheet tile'},
-			       stroke => 'none');
+    $montage = $image->Montage (
+        background => colorValidator($cfgOpts{'contact sheet background'}),
+        bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+        font => $cfgOpts{'contact sheet font'},
+        fill => colorValidator($cfgOpts{'contact sheet fill'}),
+        label => $cfgOpts{'contact sheet label'},
+        frame => $cfgOpts{'contact sheet frame'},
+        geometry => $size . "x" . $size . "+4+4",
+        pointsize => $cfgOpts{'contact sheet pointsize'},
+        shadow => $cfgOpts{'contact sheet shadow'},
+        title => $cfgOpts{'contact sheet title'},
+        tile => $cfgOpts{'contact sheet tile'},
+        stroke => 'none',
+    );
 
-    if ( not ref($montage) ) { errmsg ("Image::Magick error: $montage\n\n"); }
-    else { dbgmsg (1,"Montage've finished successfully.\n"); }
+    if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+    else { dbgmsg (1, "Montage've finished successfully.\n"); }
 
-    $montage->Set(filename => 'jpg:'.$montagename,
-		  quality => 95,
-		  interlace => 'Partition',
-		  gravity => 'Center',
-		  stroke => 'none');
-    $montage->Annotate(font => $cfgOpts{'contact sheet font'},
-		       pointsize => 9,
-		       x => 5,
-		       y => 13,
-		       fill => 'lightgray',
-		       text => $left_up_row[0]);
-    $montage->Annotate(font => $cfgOpts{'contact sheet font'},
-		       pointsize => 9,
-		       x => 5,
-		       y => 23,
-		       fill => 'lightgray',
-		       text => $left_up_row[1]);
+    $montage->Set (
+        filename => 'jpg:'.$montagename,
+        quality => 95,
+        interlace => 'Partition',
+        gravity => 'Center',
+        stroke => 'none',
+    );
+    $montage->Annotate (
+        font => $cfgOpts{'contact sheet font'},
+        pointsize => 9,
+        x => 5,
+        y => 13,
+        fill => 'lightgray',
+        text => $left_up_row[0],
+    );
+    $montage->Annotate (
+        font => $cfgOpts{'contact sheet font'},
+        pointsize => 9,
+        x => 5,
+        y => 23,
+        fill => 'lightgray',
+        text => $left_up_row[1],
+    );
     $writeres = $montage->Write();
-    if ( not $writeres ) { dbgmsg (1,"Successfully written $montagename file.\n\n"); }
+    if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
     else { errmsg ("Image::Magick error: $writeres\n\n"); }
     undef $image;
 
@@ -1488,7 +1499,7 @@ if ($isThereIM) {
   }
 
   ########################################################################################
-  # Usage      : thmbgen($wrkdir,$thmbname);
+  # Usage      : thmbgen($wrkdir, $thmbname);
   # Purpose    : thumbnail stub generator
   # Returns    : none
   # Parameters : $wrkdir   str - the directory, thumbnailes are kept
@@ -1503,22 +1514,23 @@ if ($isThereIM) {
     my $size = "160x120";
     my $thmb = Image::Magick->new;
 
-    $thmb->Set(size=>$size,filename=>$thmbname, quality=>95, interlace=>'Partition');
-    $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) .
-		     "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
-    $thmb->Annotate(pointsize => 25,
-		    fill    => colorValidator($cfgOpts{'contact sheet thm fill'}),
-		    font    => $cfgOpts{'contact sheet thm font'},
-		    text    => $cfgOpts{'contact sheet thm text'},
-		    gravity => 'Center');
+    $thmb->Set(size => $size, filename => $thmbname, quality => 95, interlace => 'Partition');
+    $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+    $thmb->Annotate (
+        pointsize => 25,
+        fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+        font => $cfgOpts{'contact sheet thm font'},
+        text => $cfgOpts{'contact sheet thm text'},
+        gravity => 'Center',
+    );
     my $thmbnum = $thmb->Write();
 
-    if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
+    if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
     undef $thmb;
   }
 
   ########################################################################################
-  # Usage      : rotCs($base_orig, $angle,$workdir);
+  # Usage      : rotCs($base_orig, $angle, $workdir);
   # Purpose    : rotates thumbnails for montage
   # Returns    : none
   # Parameters : $base_orig str - pathless filename of the rotated file
@@ -1534,9 +1546,9 @@ if ($isThereIM) {
     my $image_to_rotate = Image::Magick->new;
     my $result = $workdir.$base_orig;
 
-    $image_to_rotate->Read("JPEG:".$base_orig);
-    $image_to_rotate->Rotate(degrees=>$angle);
-    $image_to_rotate->Write(filename=>"JPEG:".$result, quality=>95, compression=>'JPEG2000');
+    $image_to_rotate->Read("JPEG:" . $base_orig);
+    $image_to_rotate->Rotate(degrees => $angle);
+    $image_to_rotate->Write(filename => "JPEG:" . $result, quality => 95, compression => 'JPEG2000');
     undef $image_to_rotate;
     return $result;
   }
@@ -1616,8 +1628,8 @@ sub aggregateFile {
 sub timeNow {
   my $date = localtime();
   my $time_now = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
-			$$date[5] + 1900, $$date[4] + 1, $$date[3],
-			$$date[2], $$date[1], $$date[0]);
+      $$date[5] + 1900, $$date[4] + 1, $$date[3],
+      $$date[2], $$date[1], $$date[0]);
   return $time_now;
 }
 
@@ -1782,12 +1794,12 @@ sub rotateThumbnail {
   if ($cfgOpts{'use ipc'} == 0) {
     # extracting the thumbnail image
     my $ThumbnailOriginal = $file . "_thumborig";
-    unless ( open ( OLDTHUMBNAIL, ">$ThumbnailOriginal" ) ) {
+    unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
       errmsg ("$ThumbnailOriginal wasn't opened!\n");
     }
     binmode OLDTHUMBNAIL;
     print OLDTHUMBNAIL $origThumb;
-    unless ( close ( OLDTHUMBNAIL ) ) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
+    unless (close (OLDTHUMBNAIL)) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
     # rotating the thumbnail
     my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
@@ -1810,7 +1822,7 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
-# Usage      : thmb_add($wrkdir,$thmbname);
+# Usage      : thmb_add($wrkdir, $thmbname);
 # Purpose    : generate thumbnail image from the original file and write it
 #            : to the ThumbnailImage tag
 # Returns    : none
@@ -1824,14 +1836,14 @@ sub thmb_add {
   my $size = "160x120";
   my $thmb = Image::Magick->new;
 
-  $thmb->Set(size=>$size,filename=>$thm_name, quality=>95, interlace=>'Partition');
+  $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
 
   $thmb->ReadImage($file);
   $thmb->Thumbnail(geometry => $size);
 
   my $thmbnum = $thmb->Write();
 
-  if ( $thmbnum ) { errmsg ("$thmbnum\n\n"); }
+  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
   undef $thmb;
 
   thumbWriter($file, getFileData($thm_name));
@@ -1875,9 +1887,9 @@ sub piper {
 #
 sub usage {
   infomsg (
-	   "Usage:	renrot 	<--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
-		[--name-template TPL] [--comment-file FILE] [--work-directory DIR]
-		[[--] FILE1 FILE2 ...]
+"Usage: renrot <--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
+          [--name-template TPL] [--comment-file FILE] [--work-directory DIR]
+          [[--] FILE1 FILE2 ...]
 
 Options:
   -c, --config-file <FILE>	configuration file to use
@@ -1973,7 +1985,7 @@ Misc options:
 (*) The options marked with this sign do not take arguments and can be negated,
 i.e. prefixed by 'no'. E.g. '--mtime' sets file mtime value, while '--nomtime'
 or '--no-mtime' disables setting it."
-);
+  );
 }
 
 ########################################################################################
@@ -2066,7 +2078,7 @@ sub template2name {
 
 #  my @tags_to_name_val = ();
 #  my $tag_to_name_index = 0;
-#  if ( scalar(@tag_to_name) > 0 ) {
+#  if (scalar(@tag_to_name) > 0) {
 #    for (; $tag_to_name_index < scalar(@tag_to_name); $tag_to_name_index++) {
 #      if (defined $infoObj->{$tag_to_name[$tag_to_name_index]}) {
 #	$tags_to_name_val[$tag_to_name_index] = $infoObj->{$tag_to_name[$tag_to_name_index]};
@@ -2076,28 +2088,28 @@ sub template2name {
 
   my @templatearea = split (//, $template);
   my %templatehash = (
-		      '%' => "%",
-		      '#' => "#",
-		      'a' => $angleSuffix,
-		      'C' => $fileNameOriginalCounter,
-		      'c' => sprintf($counterSize, $fileNo),
-		      'd' => $tm[3],
-		      'E' => $ExposureTime,
-		      'e' => $ext,
-		      'F' => $FNumber,
-		      'H' => $tm[4],
-		      'I' => $ISO,
-		      'i' => $FileNumber,
-		      'M' => $tm[5],
-		      'm' => $tm[2],
-		      'n' => $base,
-		      'O' => $fileNameOriginalExtensionLess,
-		      'o' => $fileNameOriginal,
-		      'S' => $tm[6],
-		      'W' => $WhiteBalance,
-		      'Y' => $tm[0],
-		      'y' => $tm[1],
-		     );
+      '%' => "%",
+      '#' => "#",
+      'a' => $angleSuffix,
+      'C' => $fileNameOriginalCounter,
+      'c' => sprintf($counterSize, $fileNo),
+      'd' => $tm[3],
+      'E' => $ExposureTime,
+      'e' => $ext,
+      'F' => $FNumber,
+      'H' => $tm[4],
+      'I' => $ISO,
+      'i' => $FileNumber,
+      'M' => $tm[5],
+      'm' => $tm[2],
+      'n' => $base,
+      'O' => $fileNameOriginalExtensionLess,
+      'o' => $fileNameOriginal,
+      'S' => $tm[6],
+      'W' => $WhiteBalance,
+      'Y' => $tm[0],
+      'y' => $tm[1],
+  );
   my $thename = "";
 
   my $substroffset = 0;
@@ -2105,34 +2117,34 @@ sub template2name {
   my $tag_to_name_val = "";
   my $tag_to_name = "";
 
-  dbgmsg (4, "template2name(): '$template' (length: " . scalar(@templatearea) .")\n");
+  dbgmsg (4, snprintf("template2name(): '%s' (length: %d)\n", $template, scalar(@templatearea)));
   while ($substroffset < scalar(@templatearea)) {
     $substrchar = $templatearea[$substroffset++];
     if ($substrchar eq "%" and $substroffset < scalar(@templatearea)) {
       $substrchar = $templatearea[$substroffset++];
-      if ( defined $templatehash{$substrchar} ) {
-	$thename .= $templatehash{$substrchar};
+      if (defined $templatehash{$substrchar}) {
+        $thename .= $templatehash{$substrchar};
       }
     } elsif ($substrchar eq "#" and $substroffset < scalar(@templatearea)) {
       $substrchar = $templatearea[$substroffset++];
 
-#      if ( defined $tags_to_name_val[$substrchar] ) { # the array begins with 0
+#      if (defined $tags_to_name_val[$substrchar]) { # the array begins with 0
 #	$tags_to_name_val[$substrchar] =~ s/\s+//g;
 #	$tags_to_name_val[$substrchar] =~ s/\/+/_/g;
 #	$thename .= $tags_to_name_val[$substrchar];
-#	dbgmsg (4, "template2name(): #" . $substrchar . " " .  $tag_to_name[$substrchar] . " = " . $tags_to_name_val[$substrchar] . "\n");
+#	dbgmsg (4, "template2name(): #" . $substrchar . " " . $tag_to_name[$substrchar] . " = " . $tags_to_name_val[$substrchar] . "\n");
 #      }
 
       until ($substrchar eq "#") {
-	$tag_to_name .= $substrchar;
-	$substrchar = $templatearea[$substroffset++];
+        $tag_to_name .= $substrchar;
+        $substrchar = $templatearea[$substroffset++];
       }
       if (defined $infoObj->{$tag_to_name}) {
-	$tag_to_name_val = $infoObj->{$tag_to_name};
-	dbgmsg (1, "template2name(): Tag " . $tag_to_name . " = " . $tag_to_name_val . "\n");
-	$tag_to_name_val =~ s/[\s()]//g;
-	$tag_to_name_val =~ s/[\/:;\\'"]/_/g;
-	$thename .= $tag_to_name_val;
+        $tag_to_name_val = $infoObj->{$tag_to_name};
+        dbgmsg (1, "template2name(): Tag $tag_to_name = $tag_to_name_val\n");
+        $tag_to_name_val =~ s/[\s()]//g;
+        $tag_to_name_val =~ s/[\/:;\\'"]/_/g;
+        $thename .= $tag_to_name_val;
       }
       $tag_to_name_val = $tag_to_name = "";
     } else { $thename .= $substrchar; }
@@ -2215,7 +2227,7 @@ if ($subFileSet eq "") {
   @files = @ARGV;
 } else {
   dbgmsg (2, "Reading file names for processing from file: $subFileSet\n");
-  @files =  getFileDataLines($subFileSet);
+  @files = getFileDataLines($subFileSet);
   chomp(@files);
 }
 
@@ -2223,19 +2235,19 @@ if ($subFileSet eq "") {
 if (scalar(@files) == 0) {
   # opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
   # my $file;
-  # while ( defined ( $file = readdir DIR )) {
+  # while (defined ($file = readdir DIR)) {
   # 	next if (not -f $file);			# skip absent file or not a file
   # 	push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
   # }
   # closedir(DIR);
   my $fileMask = "*" . $extToProcess;
-  @files = grep { -f } glob( $fileMask );
+  @files = grep { -f } glob ($fileMask);
 }
 
 # independently of @files initialization doing this
 my @filenames = ();
 
-foreach my $file ( @files ) {
+foreach my $file (@files) {
   next if (not -f $file);			# skip absent file or not a file
   next if (grep {/^$file$/} @excludeList);	# skip excluded file
   push (@filenames, $file);
