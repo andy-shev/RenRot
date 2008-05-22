@@ -1194,7 +1194,6 @@ sub aggregationProcess {
 # Throws     : no exceptions
 # Comments   : requires --ext; --counter-start is valid
 # See Also   : template2name()
-if ($isThereIM) {
   sub contactSheetGenerator {
     return if (not $cfgOpts{'contact sheet'});
     my $exifToolObj = shift;
@@ -1508,7 +1507,7 @@ if ($isThereIM) {
   sub thmbgen {
     my $workdir  = shift;
     my $thmbname = shift;
-    $thmbname = $workdir.$thmbname;
+    $thmbname = $workdir . $thmbname;
     my $size = "160x120";
     my $thmb = Image::Magick->new;
 
@@ -1542,7 +1541,7 @@ if ($isThereIM) {
     my $angle = shift;
     my $workdir = shift;
     my $image_to_rotate = Image::Magick->new;
-    my $result = $workdir.$base_orig;
+    my $result = $workdir . $base_orig;
 
     $image_to_rotate->Read("JPEG:" . $base_orig);
     $image_to_rotate->Rotate(degrees => $angle);
@@ -1567,7 +1566,6 @@ if ($isThereIM) {
       return "#" . $color;
     } else { return $color; }
   }
-}
 
 ########################################################################################
 # Usage      : makeDir($dir);
@@ -2115,7 +2113,7 @@ sub template2name {
   my $tag_to_name_val = "";
   my $tag_to_name = "";
 
-  dbgmsg (4, snprintf("template2name(): '%s' (length: %d)\n", $template, scalar(@templatearea)));
+  dbgmsg (4, sprintf("template2name(): '%s' (length: %d)\n", $template, scalar(@templatearea)));
   while ($substroffset < scalar(@templatearea)) {
     $substrchar = $templatearea[$substroffset++];
     if ($substrchar eq "%" and $substroffset < scalar(@templatearea)) {
