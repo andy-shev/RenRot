@@ -1194,378 +1194,378 @@ sub aggregationProcess {
 # Throws     : no exceptions
 # Comments   : requires --ext; --counter-start is valid
 # See Also   : template2name()
-  sub contactSheetGenerator {
-    return if (not $cfgOpts{'contact sheet'});
-    my $exifToolObj = shift;
-    my $workdir = $cfgOpts{'contact sheet dir'} . "/";
-    my $file;
-    my $info;
-    my $infothm;
-    my $ThumbnailOriginal;
-    my $width;
-    my $height;
-    my $size = 0;
-    my @thumbnailes = ();
-    my @thumbnailes_sorted = ();
-    my $orientation;
-    my $filefull;
-    my $ranks;              # reference to the hash of files ranks
+sub contactSheetGenerator {
+  return if (not $cfgOpts{'contact sheet'});
+  my $exifToolObj = shift;
+  my $workdir = $cfgOpts{'contact sheet dir'} . "/";
+  my $file;
+  my $info;
+  my $infothm;
+  my $ThumbnailOriginal;
+  my $width;
+  my $height;
+  my $size = 0;
+  my @thumbnailes = ();
+  my @thumbnailes_sorted = ();
+  my $orientation;
+  my $filefull;
+  my $ranks;              # reference to the hash of files ranks
 
-    # ranks file processing
-    if ($cfgOpts{'contact sheet rank'} == 1 and -f $cfgOpts{'contact sheet rank file'}) {
-      $ranks = getFileDatLns($cfgOpts{'contact sheet rank file'});
-      if ($ranks != 0) {
-        dbgmsg (3, "getOptions(): ranks successfully processed.\n");
-      } else {
-        errmsg ("getOptions(): ranks processing failed.\n");
-      }
-    }
-
-    require Image::Magick; # compile time
-
-    makeDir($workdir);
-
-    use File::Copy;
-
-    procmsg ("CONTACT SHEET GENERATION\n");
-    procmsg ("========================\n");
-
-    # no sort since it'll be sorted below
-    foreach $file (keys %filenameshash) {
-      $info = $exifToolObj->ImageInfo($file);
-      $orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
-      $filefull = $file;
-
-      if ($contactSheetThm != 0 and defined $orientation and $orientation > 1) {
-        $filefull = rotCs ($file, $rotorient{$orientation}, $workdir);
-      } elsif ($contactSheetThm != 0 and defined $orientation and $orientation == 1) {
-        # we need this since rotated img'll be @ $workdir, but others are in current
-        $ThumbnailOriginal = $workdir . $file;
-        copy ($file, $ThumbnailOriginal) or die "copy failed: $!";
-        $filefull = $ThumbnailOriginal;
-      } elsif ($contactSheetThm == 0 and defined ${$$info{ThumbnailImage}}) {
-        $ThumbnailOriginal = $workdir . $file;
-        unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
-          die "$ThumbnailOriginal wasn't opened!\n";
-        }
-        binmode OLDTHUMBNAIL;
-        print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-        unless (close (OLDTHUMBNAIL)) { warn "$ThumbnailOriginal wasn't closed!\n"; }
-
-        if (not defined $orientation) {
-          $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
-        }
-
-        if (defined $orientation and $orientation > 1) {
-          $filefull = rotCs ($ThumbnailOriginal, $orientation, "");
-        } else {
-          $filefull = $ThumbnailOriginal;
-        }
-      } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
-        procmsg ("WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
-        if (not -f $workdir . "thmbstub.jpg") {
-          thmbgen ($workdir, "thmbstub.jpg");
-          procmsg ("Stub thumbnail image've been created.\n");
-        }
-        copy ($workdir . "thmbstub.jpg", $workdir . $file);
-        $filefull = $workdir . $file;
-      }
-
-      $infothm = $exifToolObj->ImageInfo($filefull);
-      $width = $exifToolObj->GetValue("ImageWidth");
-      $height = $exifToolObj->GetValue("ImageHeight");
-      if ($width > $size) { $size = $width; }
-      if ($height > $size) { $size = $height; }
-
-      push (@thumbnailes, $filefull);
-    }
-    @thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
-
-    dbgmsg (3, "contactSheetGenerator(): contact sheet background = \"$cfgOpts{'contact sheet background'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet bordercolor = \"$cfgOpts{'contact sheet bordercolor'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet mattecolor = \"$cfgOpts{'contact sheet mattecolor'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet font = \"$cfgOpts{'contact sheet font'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet label = \"$cfgOpts{'contact sheet label'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet frame = \"$cfgOpts{'contact sheet frame'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet pointsize = \"$cfgOpts{'contact sheet pointsize'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet shadow = \"$cfgOpts{'contact sheet shadow'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet title = \"$cfgOpts{'contact sheet title'}\"\n");
-    dbgmsg (3, "contactSheetGenerator(): contact sheet tile = \"$cfgOpts{'contact sheet tile'}\"\n");
-
-    # here it's iteration by tile
-    my ($tileX, $tileY) = split ("x", $cfgOpts{'contact sheet tile'});
-    my $tileMul = $tileX * $tileY;
-    my $csIterationNumber = scalar @thumbnailes_sorted;
-    my $csFullIterations = int($csIterationNumber/$tileMul);
-    my $csRest = $csIterationNumber % $tileMul;
-    my $fileCounter = $countStart;
-    my $csIteration = 0;
-    my $csIterator = 0;
-    my $csIter = 0;
-    my $readres;
-    my $image;
-    my $writeres;
-    my $montage;
-    my $montagename;
-    my $infoMontage;
-    my @left_up_row = ("RenRot v.$VERSION", $homeURL);
-    my $substrFile;
-    my $readIndex;
-    my $counter_size;
-
-    if ($csFullIterations != 0) {
-      $counter_size = "%." . length($csFullIterations * $countStep + $countStart) . "d";
-      #$counterSize = "%." . $size . "d";
-      dbgmsg (1, "contactSheetGenerator(): Counter size: $size (CS files num: $csFullIterations)\n");
+  # ranks file processing
+  if ($cfgOpts{'contact sheet rank'} == 1 and -f $cfgOpts{'contact sheet rank file'}) {
+    $ranks = getFileDatLns($cfgOpts{'contact sheet rank file'});
+    if ($ranks != 0) {
+      dbgmsg (3, "getOptions(): ranks successfully processed.\n");
     } else {
-      $counter_size = "%d";
+      errmsg ("getOptions(): ranks processing failed.\n");
     }
+  }
 
-    if ($csFullIterations > 0) {
-      # we need this for the case when $csRest == 0 and $csIterationNumber > $tileMul
-      if (not $csRest) {
-        --$csFullIterations;
+  require Image::Magick; # compile time
+
+  makeDir($workdir);
+
+  use File::Copy;
+
+  procmsg ("CONTACT SHEET GENERATION\n");
+  procmsg ("========================\n");
+
+  # no sort since it'll be sorted below
+  foreach $file (keys %filenameshash) {
+    $info = $exifToolObj->ImageInfo($file);
+    $orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
+    $filefull = $file;
+
+    if ($contactSheetThm != 0 and defined $orientation and $orientation > 1) {
+      $filefull = rotCs ($file, $rotorient{$orientation}, $workdir);
+    } elsif ($contactSheetThm != 0 and defined $orientation and $orientation == 1) {
+      # we need this since rotated img'll be @ $workdir, but others are in current
+      $ThumbnailOriginal = $workdir . $file;
+      copy ($file, $ThumbnailOriginal) or die "copy failed: $!";
+      $filefull = $ThumbnailOriginal;
+    } elsif ($contactSheetThm == 0 and defined ${$$info{ThumbnailImage}}) {
+      $ThumbnailOriginal = $workdir . $file;
+      unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
+        die "$ThumbnailOriginal wasn't opened!\n";
       }
-      for (; $csIterator < $csFullIterations; $csIterator++, $fileCounter += $countStep) {
-        $image = Image::Magick->new;
-        $montagename = template2name (
-            $exifToolObj,
-            $info,
-            $cfgOpts{'contact sheet file'},
-            $fileCounter,
-            "stub",
-            $counter_size,
-            "none"
-        );
-#        $montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-        for ($readIndex = 0, $csIter = $csIterator * $tileMul; $csIter < ($csIterator * $tileMul + $tileMul); $csIter++, $readIndex++) {
-          $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
-          if (not $readres) {
-            dbgmsg (4, "contactSheetGenerator(): $thumbnailes_sorted[$csIter] was successfully read.\n");
-          } else { errmsg ("Image::Magick error: $readres\n\n"); }
+      binmode OLDTHUMBNAIL;
+      print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+      unless (close (OLDTHUMBNAIL)) { warn "$ThumbnailOriginal wasn't closed!\n"; }
 
-          # ranking
-          $substrFile = substr($thumbnailes_sorted[$csIter], length($cfgOpts{'contact sheet dir'})+1);
-          if (defined $ranks->{$substrFile}->[1]) {
-            dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
-            $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
-          } else {
-            dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is undefined, ", " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
-            $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
-          }
-        }
-        dbgmsg (1, "$csIterator montage is started, wait a bit please...\n");
-        $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-            bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-            font => $cfgOpts{'contact sheet font'},
-            fill => colorValidator($cfgOpts{'contact sheet fill'}),
-            label => $cfgOpts{'contact sheet label'},
-            frame => $cfgOpts{'contact sheet frame'},
-            geometry => $size . "x" . $size . "+4+4",
-            pointsize => $cfgOpts{'contact sheet pointsize'},
-            shadow => $cfgOpts{'contact sheet shadow'},
-            title => $cfgOpts{'contact sheet title'},
-            tile => $cfgOpts{'contact sheet tile'},
-            stroke => 'none',
-        );
-
-        if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
-        else { dbgmsg (1, "$csIterator montage've finished successfully.\n"); }
-
-        $montage->Set (
-            filename => 'jpg:'.$montagename,
-            quality => 95,
-            interlace => 'Partition',
-            gravity => 'Center',
-            stroke => 'none',
-        );
-        $montage->Annotate (
-            font => $cfgOpts{'contact sheet font'},
-            pointsize => 9,
-            x => 5,
-            y => 13,
-            fill => 'lightgray',
-            text => $left_up_row[0],
-        );
-        $montage->Annotate (
-            font => $cfgOpts{'contact sheet font'},
-            pointsize => 9,
-            x => 5,
-            y => 23,
-            fill => 'lightgray',
-            text => $left_up_row[1],
-        );
-        $writeres = $montage->Write();
-        if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
-        else { errmsg ("Image::Magick error: $writeres\n\n"); }
-        $infoMontage = $exifToolObj->ImageInfo($montagename);
-        # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
-        saveOurHdrs($exifToolObj, $infoMontage, $montagename);
-        # Writing tags.
-        tagWriter($exifToolObj, $montagename);
-        undef $image;
+      if (not defined $orientation) {
+        $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
       }
-    }
 
-    $montagename = template2name (
-        $exifToolObj,
-        $info,
-        $cfgOpts{'contact sheet file'},
-        $fileCounter,
-        "stub",
-        $counter_size,
-        "none"
-    );
-    #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-    for ($readIndex = 0, $csIteration = $csIterator * $tileMul, $image = Image::Magick->new; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
-
-      $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
-      if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
-      else { errmsg ("Image::Magick error: $readres\n\n"); }
-
-      # ranking
-      $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'})+1);
-      if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
-        dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
-        $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+      if (defined $orientation and $orientation > 1) {
+        $filefull = rotCs ($ThumbnailOriginal, $orientation, "");
       } else {
-        dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
-        $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+        $filefull = $ThumbnailOriginal;
       }
+    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
+      procmsg ("WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+      if (not -f $workdir . "thmbstub.jpg") {
+        thmbgen ($workdir, "thmbstub.jpg");
+        procmsg ("Stub thumbnail image've been created.\n");
+      }
+      copy ($workdir . "thmbstub.jpg", $workdir . $file);
+      $filefull = $workdir . $file;
     }
-    dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
 
-    # the final invocation of ->Montage() method for the the rest of files didn't fit
-    # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
-    $montage = $image->Montage (
-        background => colorValidator($cfgOpts{'contact sheet background'}),
-        bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
-        font => $cfgOpts{'contact sheet font'},
-        fill => colorValidator($cfgOpts{'contact sheet fill'}),
-        label => $cfgOpts{'contact sheet label'},
-        frame => $cfgOpts{'contact sheet frame'},
-        geometry => $size . "x" . $size . "+4+4",
-        pointsize => $cfgOpts{'contact sheet pointsize'},
-        shadow => $cfgOpts{'contact sheet shadow'},
-        title => $cfgOpts{'contact sheet title'},
-        tile => $cfgOpts{'contact sheet tile'},
-        stroke => 'none',
-    );
+    $infothm = $exifToolObj->ImageInfo($filefull);
+    $width = $exifToolObj->GetValue("ImageWidth");
+    $height = $exifToolObj->GetValue("ImageHeight");
+    if ($width > $size) { $size = $width; }
+    if ($height > $size) { $size = $height; }
 
-    if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
-    else { dbgmsg (1, "Montage've finished successfully.\n"); }
+    push (@thumbnailes, $filefull);
+  }
+  @thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
 
-    $montage->Set (
-        filename => 'jpg:'.$montagename,
-        quality => 95,
-        interlace => 'Partition',
-        gravity => 'Center',
-        stroke => 'none',
-    );
-    $montage->Annotate (
-        font => $cfgOpts{'contact sheet font'},
-        pointsize => 9,
-        x => 5,
-        y => 13,
-        fill => 'lightgray',
-        text => $left_up_row[0],
-    );
-    $montage->Annotate (
-        font => $cfgOpts{'contact sheet font'},
-        pointsize => 9,
-        x => 5,
-        y => 23,
-        fill => 'lightgray',
-        text => $left_up_row[1],
-    );
-    $writeres = $montage->Write();
-    if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
-    else { errmsg ("Image::Magick error: $writeres\n\n"); }
-    undef $image;
+  dbgmsg (3, "contactSheetGenerator(): contact sheet background = \"$cfgOpts{'contact sheet background'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet bordercolor = \"$cfgOpts{'contact sheet bordercolor'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet mattecolor = \"$cfgOpts{'contact sheet mattecolor'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet font = \"$cfgOpts{'contact sheet font'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet label = \"$cfgOpts{'contact sheet label'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet frame = \"$cfgOpts{'contact sheet frame'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet pointsize = \"$cfgOpts{'contact sheet pointsize'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet shadow = \"$cfgOpts{'contact sheet shadow'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet title = \"$cfgOpts{'contact sheet title'}\"\n");
+  dbgmsg (3, "contactSheetGenerator(): contact sheet tile = \"$cfgOpts{'contact sheet tile'}\"\n");
 
-    $infoMontage = $exifToolObj->ImageInfo($montagename);
-    # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
-    saveOurHdrs($exifToolObj, $infoMontage, $montagename);
-    # Writing tags.
-    tagWriter($exifToolObj, $montagename);
+  # here it's iteration by tile
+  my ($tileX, $tileY) = split ("x", $cfgOpts{'contact sheet tile'});
+  my $tileMul = $tileX * $tileY;
+  my $csIterationNumber = scalar @thumbnailes_sorted;
+  my $csFullIterations = int($csIterationNumber/$tileMul);
+  my $csRest = $csIterationNumber % $tileMul;
+  my $fileCounter = $countStart;
+  my $csIteration = 0;
+  my $csIterator = 0;
+  my $csIter = 0;
+  my $readres;
+  my $image;
+  my $writeres;
+  my $montage;
+  my $montagename;
+  my $infoMontage;
+  my @left_up_row = ("RenRot v.$VERSION", $homeURL);
+  my $substrFile;
+  my $readIndex;
+  my $counter_size;
 
-    chdir $workdir;
-    unlink <*>;
-    chdir "..";
-    rmdir $workdir;
+  if ($csFullIterations != 0) {
+    $counter_size = "%." . length($csFullIterations * $countStep + $countStart) . "d";
+    #$counterSize = "%." . $size . "d";
+    dbgmsg (1, "contactSheetGenerator(): Counter size: $size (CS files num: $csFullIterations)\n");
+  } else {
+    $counter_size = "%d";
   }
 
-  ########################################################################################
-  # Usage      : thmbgen($wrkdir, $thmbname);
-  # Purpose    : thumbnail stub generator
-  # Returns    : none
-  # Parameters : $wrkdir   str - the directory, thumbnailes are kept
-  #            : $thmbname str - thumbnail image name
-  # Throws     : no exceptions
-  # Comments   : sie of the generated thumbnail is fixed and is 160x120
-  # See Also   : contactSheetGenerator();
-  sub thmbgen {
-    my $workdir  = shift;
-    my $thmbname = shift;
-    $thmbname = $workdir . $thmbname;
-    my $size = "160x120";
-    my $thmb = Image::Magick->new;
+  if ($csFullIterations > 0) {
+    # we need this for the case when $csRest == 0 and $csIterationNumber > $tileMul
+    if (not $csRest) {
+      --$csFullIterations;
+    }
+    for (; $csIterator < $csFullIterations; $csIterator++, $fileCounter += $countStep) {
+      $image = Image::Magick->new;
+      $montagename = template2name (
+          $exifToolObj,
+          $info,
+          $cfgOpts{'contact sheet file'},
+          $fileCounter,
+          "stub",
+          $counter_size,
+          "none"
+      );
+      #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
+      for ($readIndex = 0, $csIter = $csIterator * $tileMul; $csIter < ($csIterator * $tileMul + $tileMul); $csIter++, $readIndex++) {
+        $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
+        if (not $readres) {
+          dbgmsg (4, "contactSheetGenerator(): $thumbnailes_sorted[$csIter] was successfully read.\n");
+        } else { errmsg ("Image::Magick error: $readres\n\n"); }
 
-    $thmb->Set(size => $size, filename => $thmbname, quality => 95, interlace => 'Partition');
-    $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
-    $thmb->Annotate (
-        pointsize => 25,
-        fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
-        font => $cfgOpts{'contact sheet thm font'},
-        text => $cfgOpts{'contact sheet thm text'},
-        gravity => 'Center',
-    );
-    my $thmbnum = $thmb->Write();
+        # ranking
+        $substrFile = substr($thumbnailes_sorted[$csIter], length($cfgOpts{'contact sheet dir'}) + 1);
+        if (defined $ranks->{$substrFile}->[1]) {
+          dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+          $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+        } else {
+          dbgmsg (4, "contactSheetGenerator(): $substrFile mattecolor is undefined, ", " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
+          $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+        }
+      }
+      dbgmsg (1, "$csIterator montage is started, wait a bit please...\n");
+      $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
+          bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+          font => $cfgOpts{'contact sheet font'},
+          fill => colorValidator($cfgOpts{'contact sheet fill'}),
+          label => $cfgOpts{'contact sheet label'},
+          frame => $cfgOpts{'contact sheet frame'},
+          geometry => $size . "x" . $size . "+4+4",
+          pointsize => $cfgOpts{'contact sheet pointsize'},
+          shadow => $cfgOpts{'contact sheet shadow'},
+          title => $cfgOpts{'contact sheet title'},
+          tile => $cfgOpts{'contact sheet tile'},
+          stroke => 'none',
+      );
 
-    if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
-    undef $thmb;
+      if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+      else { dbgmsg (1, "$csIterator montage've finished successfully.\n"); }
+
+      $montage->Set (
+          filename => 'jpg:'.$montagename,
+          quality => 95,
+          interlace => 'Partition',
+          gravity => 'Center',
+          stroke => 'none',
+      );
+      $montage->Annotate (
+          font => $cfgOpts{'contact sheet font'},
+          pointsize => 9,
+          x => 5,
+          y => 13,
+          fill => 'lightgray',
+          text => $left_up_row[0],
+      );
+      $montage->Annotate (
+          font => $cfgOpts{'contact sheet font'},
+          pointsize => 9,
+          x => 5,
+          y => 23,
+          fill => 'lightgray',
+          text => $left_up_row[1],
+      );
+      $writeres = $montage->Write();
+      if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
+      else { errmsg ("Image::Magick error: $writeres\n\n"); }
+      $infoMontage = $exifToolObj->ImageInfo($montagename);
+      # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+      saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+      # Writing tags.
+      tagWriter($exifToolObj, $montagename);
+      undef $image;
+    }
   }
 
-  ########################################################################################
-  # Usage      : rotCs($base_orig, $angle, $workdir);
-  # Purpose    : rotates thumbnails for montage
-  # Returns    : none
-  # Parameters : $base_orig str - pathless filename of the rotated file
-  #            : $angle     num - rotation angle
-  #            : $workdir   str - the work directory thumbnails kept in
-  # Throws     : no exceptions
-  # Comments   : works only with JPEGs
-  # See Also   : contactSheetGenerator();
-  sub rotCs {
-    my $base_orig = shift;
-    my $angle = shift;
-    my $workdir = shift;
-    my $image_to_rotate = Image::Magick->new;
-    my $result = $workdir . $base_orig;
+  $montagename = template2name (
+      $exifToolObj,
+      $info,
+      $cfgOpts{'contact sheet file'},
+      $fileCounter,
+      "stub",
+      $counter_size,
+      "none"
+  );
+  #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
+  for ($readIndex = 0, $csIteration = $csIterator * $tileMul, $image = Image::Magick->new; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
 
-    $image_to_rotate->Read("JPEG:" . $base_orig);
-    $image_to_rotate->Rotate(degrees => $angle);
-    $image_to_rotate->Write(filename => "JPEG:" . $result, quality => 95, compression => 'JPEG2000');
-    undef $image_to_rotate;
-    return $result;
-  }
+    $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
+    if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
+    else { errmsg ("Image::Magick error: $readres\n\n"); }
 
-  ########################################################################################
-  # Usage      : colorValidator($color);
-  # Purpose    : validates given string as color suitable for ImageMagick
-  # Returns    : none
-  # Parameters : $color str - color
-  # Throws     : no exceptions
-  # Comments   : none
-  # See Also   : convert -list color
-  sub colorValidator {
-    my $color = shift;
-    if ($color =~ /^#.*$/) {
-      errmsg("You have not use \"#\" in color index definition.\n");
-    } elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
-      return "#" . $color;
-    } else { return $color; }
+    # ranking
+    $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'})+1);
+    if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
+      dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
+      $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+    } else {
+      dbgmsg (4, "contactSheetGenerator(): [last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
+      $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+    }
   }
+  dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
+
+  # the final invocation of ->Montage() method for the the rest of files didn't fit
+  # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
+  $montage = $image->Montage (
+      background => colorValidator($cfgOpts{'contact sheet background'}),
+      bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+      font => $cfgOpts{'contact sheet font'},
+      fill => colorValidator($cfgOpts{'contact sheet fill'}),
+      label => $cfgOpts{'contact sheet label'},
+      frame => $cfgOpts{'contact sheet frame'},
+      geometry => $size . "x" . $size . "+4+4",
+      pointsize => $cfgOpts{'contact sheet pointsize'},
+      shadow => $cfgOpts{'contact sheet shadow'},
+      title => $cfgOpts{'contact sheet title'},
+      tile => $cfgOpts{'contact sheet tile'},
+      stroke => 'none',
+  );
+
+  if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+  else { dbgmsg (1, "Montage've finished successfully.\n"); }
+
+  $montage->Set (
+      filename => 'jpg:'.$montagename,
+      quality => 95,
+      interlace => 'Partition',
+      gravity => 'Center',
+      stroke => 'none',
+  );
+  $montage->Annotate (
+      font => $cfgOpts{'contact sheet font'},
+      pointsize => 9,
+      x => 5,
+      y => 13,
+      fill => 'lightgray',
+      text => $left_up_row[0],
+  );
+  $montage->Annotate (
+      font => $cfgOpts{'contact sheet font'},
+      pointsize => 9,
+      x => 5,
+      y => 23,
+      fill => 'lightgray',
+      text => $left_up_row[1],
+  );
+  $writeres = $montage->Write();
+  if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
+  else { errmsg ("Image::Magick error: $writeres\n\n"); }
+  undef $image;
+
+  $infoMontage = $exifToolObj->ImageInfo($montagename);
+  # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
+  saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+  # Writing tags.
+  tagWriter($exifToolObj, $montagename);
+
+  chdir $workdir;
+  unlink <*>;
+  chdir "..";
+  rmdir $workdir;
+}
+
+########################################################################################
+# Usage      : thmbgen($wrkdir, $thmbname);
+# Purpose    : thumbnail stub generator
+# Returns    : none
+# Parameters : $wrkdir   str - the directory, thumbnailes are kept
+#            : $thmbname str - thumbnail image name
+# Throws     : no exceptions
+# Comments   : sie of the generated thumbnail is fixed and is 160x120
+# See Also   : contactSheetGenerator();
+sub thmbgen {
+  my $workdir  = shift;
+  my $thmbname = shift;
+  $thmbname = $workdir . $thmbname;
+  my $size = "160x120";
+  my $thmb = Image::Magick->new;
+
+  $thmb->Set(size => $size, filename => $thmbname, quality => 95, interlace => 'Partition');
+  $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+  $thmb->Annotate (
+      pointsize => 25,
+      fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+      font => $cfgOpts{'contact sheet thm font'},
+      text => $cfgOpts{'contact sheet thm text'},
+      gravity => 'Center',
+  );
+  my $thmbnum = $thmb->Write();
+
+  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
+  undef $thmb;
+}
+
+########################################################################################
+# Usage      : rotCs($base_orig, $angle, $workdir);
+# Purpose    : rotates thumbnails for montage
+# Returns    : none
+# Parameters : $base_orig str - pathless filename of the rotated file
+#            : $angle     num - rotation angle
+#            : $workdir   str - the work directory thumbnails kept in
+# Throws     : no exceptions
+# Comments   : works only with JPEGs
+# See Also   : contactSheetGenerator();
+sub rotCs {
+  my $base_orig = shift;
+  my $angle = shift;
+  my $workdir = shift;
+  my $image_to_rotate = Image::Magick->new;
+  my $result = $workdir . $base_orig;
+
+  $image_to_rotate->Read("JPEG:" . $base_orig);
+  $image_to_rotate->Rotate(degrees => $angle);
+  $image_to_rotate->Write(filename => "JPEG:" . $result, quality => 95, compression => 'JPEG2000');
+  undef $image_to_rotate;
+  return $result;
+}
+
+########################################################################################
+# Usage      : colorValidator($color);
+# Purpose    : validates given string as color suitable for ImageMagick
+# Returns    : none
+# Parameters : $color str - color
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : convert -list color
+sub colorValidator {
+  my $color = shift;
+  if ($color =~ /^#.*$/) {
+    errmsg("You have not use \"#\" in color index definition.\n");
+  } elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
+    return "#" . $color;
+  } else { return $color; }
+}
 
 ########################################################################################
 # Usage      : makeDir($dir);
