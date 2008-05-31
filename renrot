@@ -182,7 +182,7 @@ my %tags = (
     value => timeNow(),
     group => 'RenRot',
   },
-  'RenrotVersion' => {
+  'RenRotVersion' => {
     value => $VERSION,
     group => 'RenRot',
   },
@@ -452,7 +452,7 @@ sub getOptions {
 
   my $fileCount = scalar(@ARGV);
 
-  ldbg("--aggr-delta: $aggrDelta") if (defined $aggrDelta);
+  ldbg3("--aggr-delta: $aggrDelta") if (defined $aggrDelta);
   ldbg3("--aggr-directory: $aggrDir") if (defined $aggrDir);
   ldbg3("--aggr-mode: $aggrMode") if (defined $aggrMode);
   ldbg3("--aggr-template: $aggrTemplate") if (defined $aggrTemplate);
