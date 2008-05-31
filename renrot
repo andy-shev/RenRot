@@ -25,8 +25,9 @@ $ENV{ANSI_COLORS_DISABLED} = 1;
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
-our $VERSION = '1.0';         # the version of this script
-our $REVISION = '$Revision$'; # revision
+my @svnrevision = split(/ /, '$Revision$'); 
+our $VERSION = '1.0';             # the version of this script
+our $REVISION = $svnrevision[1];  # revision
 
 my $maxVerbosity = 4;                                         # our max verbosity level (internal)
 my $homeURL = 'http://puszcza.gnu.org.ua/projects/renrot/';   # homepage of the project
@@ -508,7 +509,7 @@ sub getOptions {
   }
 
   if ($showVersion != 0) {
-    infomsg ("RenRot version $VERSION\n");
+    infomsg ("RenRot version $VERSION (r$REVISION)\n");
     exit 0;
   }
 
@@ -2064,10 +2065,9 @@ sub template2name {
 
   if (defined $infoObj->{"RenRotFileNameOriginal"}) {
     $fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
-  }
-  else {
+  } else {
     # temporary stub to make renrot remember original file name for the formats
-    # ExifTool writing to doesnt sopport ... reported by Neil Hooey <nhooey@gmail.com>
+    # ExifTool writing to doesn't sopport... reported by Neil Hooey <nhooey@gmail.com>
     $fileNameOriginal = $infoObj->{"FileName"};
   }
 
@@ -2239,13 +2239,6 @@ if ($subFileSet eq "") {
 
 # if no file is given
 if (scalar(@files) == 0) {
-  # opendir(DIR, "./") || ( fatalmsg ("Can't open $workDir!\n"), die );
-  # my $file;
-  # while (defined ($file = readdir DIR)) {
-  # 	next if (not -f $file);			# skip absent file or not a file
-  # 	push (@files, $file) if (substr($file, length($file) - length($extToProcess)) eq $extToProcess);
-  # }
-  # closedir(DIR);
   my $fileMask = "*" . $extToProcess;
   @files = grep { -f } glob ($fileMask);
 }
@@ -2317,9 +2310,7 @@ if ($countFF != 0) {
 
 renRotProcess($exifTool, $counterSize);
 
-if ($isThereIM) {
-  contactSheetGenerator($exifTool);
-}
+contactSheetGenerator($exifTool) if ($isThereIM);
 
 aggregationProcess($exifTool, $counterSize);
 
