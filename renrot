@@ -25,7 +25,7 @@ $ENV{ANSI_COLORS_DISABLED} = 1;
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
-my @svnrevision = split(/ /, '$Revision$'); 
+my @svnrevision = split(/ /, '$Revision$');
 our $VERSION = '1.0';             # the version of this script
 our $REVISION = $svnrevision[1];  # revision
 
@@ -120,7 +120,7 @@ my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
-my $contactSheet;       # contact sheet generation
+my $contactSheet;	# contact sheet generation
 my $contactSheetTile;	# tile in the montage
 my $contactSheetTitle;	# title for the montage
 my $contactSheetFile;	# file name for the montage
@@ -140,15 +140,15 @@ my $contactSheetThmFl;	# fill, look ImageMagick documentation for montage option
 my $contactSheetThmGrFr;# thumbnail background gradient from
 my $contactSheetThmGrTo;# thumbnail background gradient to
 my $contactSheetThmText;# thumbnail text
-my $contactSheetRank;   # ranking
-my $contactSheetRankFile; # file with images ranks
+my $contactSheetRank;	# ranking
+my $contactSheetRankFile;	# file with images ranks
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
 my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
-my $gen_thm = 0;        # to not to generate ThumbnailImage if empty
+my $gen_thm = 0;	# to not to generate ThumbnailImage if empty
 my $keywordize;		# keywordize or not
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
 my $keywordsFile;	# file with keyword set
@@ -157,14 +157,14 @@ my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation = 0;	# no rotation needed, default is to rotate
 my $noTags = 0;		# no tags writing needed
-my $noRenRoTagMtm = 0;  # no rename, no rotate, no tag and no mtime have to be done
+my $noRenRoTagMtm = 0;	# no rename, no rotate, no tag and no mtime have to be done
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
 my $rotateAngle;	# define the angle to rotate on 90, 180 or 270
-my $rotateThumbnail; 	# define the angle to rotate on 90, 180 or 270
+my $rotateThumbnail;	# define the angle to rotate on 90, 180 or 270
 my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
 my %tagsFromCli = ();	# tags are got from CLI
-my @tag_to_name = ();   # tags for name building, theirs values to be used (in theory any EXIF)
+my @tag_to_name = ();	# tags for name building, theirs values to be used (in theory any EXIF)
 my $trim;		# jpegtran -trim
 my $useColor;		# colorized output
 my $useIPC;		# rotate thumbnail via pipe
@@ -423,7 +423,7 @@ sub getOptions {
       "dry-run" => \$dryRun,
       "exclude=s" => \@excludeList,
       "extension|e=s" => \$extToProcess,
-      "gen-thm!" => \$gen_thm,
+      "generate-thumb|gen-thm|g" => \$gen_thm,
       "help|?"   => \$showHelp,
       "keywordize!" => \$keywordize,
       "keywords-file|k=s" => \$keywordsFile,
@@ -466,7 +466,7 @@ sub getOptions {
   ldbg3("--contact-sheet-title: $contactSheetTitle") if (defined $contactSheetTitle);
   ldbg3("--contact-sheet-file: $contactSheetFile") if (defined $contactSheetFile);
   ldbg3("--contact-sheet-dir: $contactSheetDir") if (defined $contactSheetDir);
-  ldbg3("--gen-thm: ", boolConv($gen_thm));
+  ldbg3("--generate-thumb: ", boolConv($gen_thm));
   ldbg3("--contact-sheet-thm: ", boolConv($contactSheetThm));
   ldbg3("--contact-sheet-bg: $contactSheetBg") if (defined $contactSheetBg);
   ldbg3("--contact-sheet-bd: $contactSheetBd") if (defined $contactSheetBd);
@@ -540,7 +540,7 @@ sub getOptions {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n",
             "Contact Sheet generation disabled.\n\n");
   } elsif ($gen_thm != 0) {
-    errmsg ("To use --gen-thm functionality you need Image::Magick package!\n",
+    errmsg ("To use --generate-thumb functionality you need Image::Magick package!\n",
             "ThumbnailImage generation is disabled.\n\n");
   }
 
@@ -579,7 +579,7 @@ sub trimValue {
 }
 
 ########################################################################################
-# Usage      : parsePair() gets (key, value) pair from the string 
+# Usage      : parsePair() gets (key, value) pair from the string
 #            : like [multiword] key = "value"
 # Purpose    : parses pairs of data
 # Returns    : $key, $value  string
@@ -844,7 +844,7 @@ sub renRotProcess {
     my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
 
     # generating absent ThumbnailImage tag from the original image
-    if ($isThereIM == 1 and $gen_thm != 0 and not defined ${$$info{ThumbnailImage}}) {
+    if (($isThereIM == 1) and ($gen_thm != 0) and not defined ${$$info{ThumbnailImage}}) {
       thmb_add($file);
       procmsg ("ThumbnailImage was written to the file $file\n");
     }
@@ -1934,40 +1934,34 @@ Aggregating options:
       --aggr-directory <DIR>	aggregation directory name
   -a, --aggr-template <TPL>	aggregation template (see manual for details)
       --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
-      --aggr-virtual-directory <DIR> root directory for virtual aggregation
+      --aggr-virtual-directory <DIR>
+                                root directory for virtual aggregation
 
 Contact Sheet options (CS):
-  --cs, --contact-sheet	(*)	            create the CS
-  --cs-tile, --contact-sheet-tile           tile in montage, MxN
-  --cs-title, --contact-sheet-title         set title of the montage
-  --cs-file, --contact-sheet-file <FILE>
-                                            name of the montage files
-  --cs-dir, --contact-sheet-dir <DIR>       
-                                            temporary montage dir
-  --cs-thm, --contact-sheet-thm	            montage files are thumbnails
-  --cs-bg, --contact-sheet-bg <COLOR>       background color (IM: -background)
-  --cs-bd, --contact-sheet-bd <COLOR>       border color (IM: -bordercolor)
-  --cs-mt, --contact-sheet-mt <COLOR>       frame color (IM: -mattecolor)
-  --cs-fn, --contact-sheet-fn <STRING>      text render font (IM: -font)
-  --cs-fl, --contact-sheet-fl <COLOR>       color to fill the text (IM: -fill)
-  --cs-lb, --contact-sheet-lb <STRING>      image label (IM: -label)
-  --cs-fr, --contact-sheet-fr <NUMBER>      N pixel border (IM: -frame)
-  --cs-pntsz, --contact-sheet-pntsz <NUM>   font point size (IM: -pointsize)
-  --cs-shadow, --contact-sheet-shadow       set shadow (IM: -shadow)
-  --cs-thm-fl, --contact-sheet-thm-fl <STR> generated thumbnail text fill color
-  --cs-thm-fn, --contact-sheet-thm-fn <STR> generated thumbnail font
-  --cs-thm-grfr, --contact-sheet-thm-grfr <COLOR>
-                                            generated thumbnail background gradient
-                                            color-from
-  --cs-thm-grto, --contact-sheet-thm-grto <COLOR>
-                                            generated thumbnail background gradient
-                                            color-to
-  --cs-thm-text, --contact-sheet-thm-text <STRING>
-                                            generated thumbnail text
-  --cs-rank, --contact-sheet-rank|cs-rank
-                                            to do CS ranking
-  --cs-rank-file, --contact-sheet-rank-file <FILE>
-                                            file with CS ranks
+      --cs (*)			create the CS
+      --cs-tile <MxN>		tile in montage
+      --cs-title		set title of the montage
+      --cs-file <FILE>		name of the montage files
+      --cs-dir <DIR>		temporary montage DIR
+      --cs-thm			montage files are thumbnails
+      --cs-bg <COLOR>		background color (IM: -background)
+      --cs-bd <COLOR>		border color (IM: -bordercolor)
+      --cs-mt <COLOR>		frame color (IM: -mattecolor)
+      --cs-fn <STRING>		text render font (IM: -font)
+      --cs-fl <COLOR>		color to fill the text (IM: -fill)
+      --cs-lb <STRING>		image label (IM: -label)
+      --cs-fr <NUMBER>		thickness of border (IM: -frame)
+      --cs-pntsz <NUMBER>	font point size (IM: -pointsize)
+      --cs-shadow		set shadow (IM: -shadow)
+      --cs-thm-fl <STRING>	generated thumbnail text fill color
+      --cs-thm-fn <STRING>	generated thumbnail font
+      --cs-thm-grfr <COLOR>	generated thumbnail background gradient
+                                COLOR-from
+      --cs-thm-grto <COLOR>	generated thumbnail background gradient
+                                COLOR-to
+      --cs-thm-text <STRING>	generated thumbnail text
+      --cs-rank			to do CS ranking
+      --cs-rank-file <FILE>	file with CS ranks
 
 Tag writing options:
       --comment-file <FILE>	file with text to put into Commentary tag
@@ -1979,7 +1973,7 @@ Colorizing options:
       --use-color (*)		colorized output
 
 Misc options:
-      --gen-thm                 generation and writing ThumbnailImage tag if absent
+  -g, --generate-thumb		generate and write ThumbnailImage tag if absent
       --dry-run			do nothing, only print would have been done
       --use-ipc (*)		rotate thumbnail via pipe, rather than via file
   -v				increment debugging level by 1
@@ -2438,9 +2432,9 @@ B<%n>	Previous filename (the one before B<renrot> started processing).
 B<%O>	Base part of the original filename (see B<%o>). In other words, the
 first part from the beginning to the last dot character.
 
-B<%o>	The name file had before it was processed by B<renrot> for the
-first time. If the file was processed only once, the tag
-RenRotFileNameOriginal is set to the original file name.
+B<%o>	The name file had before it was processed by B<renrot> for the first
+time. If the file was processed only once, the tag RenRotFileNameOriginal is
+set to the original file name.
 
 B<%S>	Second (00-59)
 
@@ -2450,11 +2444,11 @@ B<%Y>	Year with the century (1900, 1901, and so on)
 
 B<%y>	Year without a century (00..99)
 
-You can use value of any EXIF tag to be included as name part. To do that you 
-need to embrace tag name with sign B<"#">, while building name template 
+You can use value of any EXIF tag to be included as name part. To do that you
+need to embrace tag name with sign B<"#">, while building name template
 (see L</TEMPLATE EXAMPLES>).
 
-Be careful, since any binary EXIF (like ThumbnaiImage) can produce totally 
+Be careful, since any binary EXIF (like ThumbnaiImage) can produce totally
 unexpected results.
 
 =back
@@ -2566,9 +2560,9 @@ are placed into the directory given by the command line option
 B<--aggr-virtual-directory> or configuration file option B<aggregation virtual
 directory> then any changes required by the current aggregation mode are
 applied. The main effect of B<--aggr-virtual> is that any files to be
-aggregated remain untouched in their places, and symlinks pointing to them
-are stored in the directory tree created. Use B<--no-aggr-virtual> to
-prevent virtualization.
+aggregated remain untouched in their places, and symlinks pointing to them are
+stored in the directory tree created. Use B<--no-aggr-virtual> to prevent
+virtualization.
 
 =item B<--aggr-virtual-directory> F<DIR>
 
@@ -2622,9 +2616,8 @@ Output version information and exit.
 
 =item B<--contact-sheet>, B<--no-contact-sheet> or B<--cs>, B<--no-cs>
 
-Create the contact sheet. Currently it works with ThumbnailImage EXIFs
-and the files defined as thumbnails (see the option B<--contact-sheet-thm>,
-below)
+Create the contact sheet. Currently it works with ThumbnailImage EXIFs and the
+files defined as thumbnails (see the option B<--contact-sheet-thm>, below)
 
 =item B<--contact-sheet-file> or B<--cs-file> F<FILE>
 
@@ -2641,12 +2634,12 @@ Files for the montage are already thumbnails
 
 =over
 
-Options bellow are native ImageMagic montage options
-look ImageMagick documentation for montage options:
-I<montage --help> and I<http://www.imagemagick.org/>
+Options bellow are native ImageMagic montage options look ImageMagick
+documentation for montage options: I<montage --help> and
+I<http://www.imagemagick.org/>
 
-Note please, for I<COLOR> use RGB triplets only
-like I<000> for the I<black> or I<F00> for the I<red>.
+Note please, for I<COLOR> use RGB triplets only like I<000> for the I<black>
+or I<F00> for the I<red>.
 
 =back
 
@@ -2704,11 +2697,11 @@ Render the generated thumbnail text with this font (IM: -font).
 
 =item B<--contact-sheet-thm-grfr> or B<--cs-thm-grfr> I<COLOR>
 
-Generated thumbnail background gradient color-from
+Generated thumbnail background gradient COLOR-from
 
 =item B<--contact-sheet-thm-grto> or B<--cs-thm-grto> I<COLOR>
 
-Generated thumbnail background gradient color-to
+Generated thumbnail background gradient COLOR-to
 
 =item B<--contact-sheet-thm-text> or B<--cs-thm-text> I<STRING>
 
@@ -2716,8 +2709,9 @@ Generated thumbnail text
 
 =item B<--contact-sheet-rank> or B<--cs-rank>
 
-Run ranking process according the ranks defined with B<--contact-sheet-rank-file>
-The result is the colored frames of the thumbnails of contact sheets.
+Run ranking process according the ranks defined with
+B<--contact-sheet-rank-file> The result is the colored frames of the
+thumbnails of contact sheets.
 
 =item B<--contact-sheet-rank-file> or B<--cs-rank-file>
 
@@ -2738,9 +2732,9 @@ Only the files found in the file will be ranked.
 
 =head1 B<TEMPLATE EXAMPLES>
 
-The name template C<01.%c.%Y%m%d%H%M%S.%i.shtr-%E.f-%F.wb-%W.iso-%I> (where I<F> stays for
-FNumber, I<E> for ExposureTime, I<I> for ISO and I<W> for WhiteBalance)
-can produce the following names:
+The name template C<01.%c.%Y%m%d%H%M%S.%i.shtr-%E.f-%F.wb-%W.iso-%I> (where
+I<F> stays for FNumber, I<E> for ExposureTime, I<I> for ISO and I<W> for
+WhiteBalance) can produce the following names:
 
 =over
 
@@ -2752,7 +2746,8 @@ can produce the following names:
 
 =back
 
-The name template C<01.%c.%Y%m%d%H%M%S.%i.shtr-#ExposureTime#.f-#FNumber#.wb-#WhiteBalance#.iso-#ISO#>
+The name template
+C<01.%c.%Y%m%d%H%M%S.%i.shtr-#ExposureTime#.f-#FNumber#.wb-#WhiteBalance#.iso-#ISO#>
 can produce the following names:
 
 =over
@@ -2833,8 +2828,8 @@ B<--aggr-template>, for the description).
 
 =item B<aggregation virtual>
 
-Defines virtualization for the existing aggregation modes
-(see the B<--aggr-virtual> option).
+Defines virtualization for the existing aggregation modes (see the
+B<--aggr-virtual> option).
 
 =item B<aggregation virtual directory>
 
@@ -2936,8 +2931,8 @@ URL.
 
 =back
 
-Additionally, you can add any known tag here, using B<Tag> or
-B<TagFile> options as described above.
+Additionally, you can add any known tag here, using B<Tag> or B<TagFile>
+options as described above.
 
 =head1 FILES
 
@@ -2975,17 +2970,16 @@ different tags setup
 If you found some bug or have some nice propositions, you are welcome.
 Additionally, please, read the section RESTRICTIONS in file README.
 
-It seems that on FreeBSD 6, Perl versions 5.8.x exhibits a bug that 
-causes B<renrot> to crash. The overal amount of memory for the perl 
-process increasing up to the user datasize limit (in FreeBSD default 
-is 512M).
+1. It seems that on FreeBSD 6, Perl versions 5.8.x exhibits a bug that causes
+B<renrot> to crash. The overal amount of memory for the perl process
+increasing up to the user datasize limit (in FreeBSD default is 512M).
 
-It seems to be a bug in perl's own malloc implementation. The bug should 
-not occur in any perl which uses the system malloc (unless the system malloc 
-has the same bug).
+It seems to be a bug in perl's own malloc implementation. The bug should not
+occur in any perl which uses the system malloc (unless the system malloc has
+the same bug).
 
-2. Some versions of ImageMagick renders contact sheets incorrectly ... 
-it seems it is the question to IM.
+2. Some versions of ImageMagick render contact sheets incorrectly. it seems
+it is the question to ImageMagick.
 
 B<renrot> aborts with the error message:
 
@@ -3009,3 +3003,4 @@ the same terms as Perl itself.
 L<Image::ExifTool(3pm)|Image::ExifTool>,L<exiftool(1)>,L<jpegtran(1)>,L<Image::Magick(3pm)|Image::Magick>
 
 =cut
+
