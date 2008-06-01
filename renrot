@@ -5,6 +5,7 @@
 #
 
 # Analyze crash in third-party modules
+# (Receipt has been taken from http://ilya-dogolazky.livejournal.com/15061.html)
 BEGIN { $| = 1; $SIG{__DIE__} = sub { use Carp; confess $_[0] . 'Aborted' } }
 
 use strict;
@@ -313,7 +314,7 @@ sub dbgmsg {
   my $level = shift;
   if ($verbose >= $level) {
     # caller() described at Perl Cookbook 10.4
-    printColored('debug', "DEBUG[$level]: ", (caller(1))[3], "(): ",  @_);
+    printColored('debug', "DEBUG[$level]: ", (caller(1))[3], "(): ", @_);
   }
 }
 
@@ -321,7 +322,7 @@ sub dbgmsg {
 sub ldbg3 {
   if ($verbose >= 3) {
     # caller() described at Perl Cookbook 10.4
-    printColored('debug', "DEBUG[3]: ", (caller(1))[3], "(): ",  @_, "\n");
+    printColored('debug', "DEBUG[3]: ", (caller(1))[3], "(): ", @_, "\n");
   }
 };
 
@@ -433,7 +434,7 @@ sub getOptions {
       "no-rename|norename" => \$noRename,
       "no-rotate|norotate" => \$noRotation,
       "no-tags|notags" => \$noTags,
-      "no-ren-rot-tag-mtm|nochg" => \$noRenRoTagMtm,
+      "no-renrot|no-ren-rot-tag-mtm|nochg" => \$noRenRoTagMtm,
       "only-orientation" => \$orientTag,
       "quiet|q" => \$quiet,
       "rotate-angle|r=i" => \$rotateAngle,
@@ -490,7 +491,7 @@ sub getOptions {
   ldbg3("--no-rename: ", boolConv($noRename),
     "   --no-rotate: ", boolConv($noRotation),
     "   --no-tags: ", boolConv($noTags),
-    "   --no-ren-rot-tag-mtm: ", boolConv($noRenRoTagMtm));
+    "   --no-renrot: ", boolConv($noRenRoTagMtm));
   ldbg3("--only-orientation: ", boolConv($orientTag));
   ldbg3("--rotate-angle: $rotateAngle") if (defined $rotateAngle);
   ldbg3("--rotate-thumb: $rotateThumbnail") if (defined $rotateThumbnail);
