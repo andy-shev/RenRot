@@ -36,6 +36,7 @@ command line option or configuration file.
 In addition RenRot can aggregate all files in directories according the given
 date/time pattern template, set with --aggr-template.
 
+
 WHY RenRot
 --- ------
 
@@ -52,16 +53,24 @@ namely RenRot? Because:
     - it uses original algorithm of smart Orientation tag rotation;
     - it works in batch mode.
 
+Although not all of these 100% truth now due to implementation of the Contact
+Sheet Generator framework RenRot is worth to try.
+
 
 GETTING
 -------
 
-RenRot's home page is the http://freshmeat.net/projects/renrot/ for now. You
-can download script package from the following sites:
- ftp://ftp.dn.farlep.net/pub/misc/renrot/ (home)
+RenRot's home page is the https://puszcza.gnu.org.ua/projects/renrot/. You can
+download script package from the following sites:
+ ftp://download.gnu.org.ua/pub/release/renrot/ (home)
+ ftp://ftp.dn.farlep.net/pub/misc/renrot/ (mirror)
  http://www.smile.org.ua/~andy/prj/renrot/ (mirror)
  Fedora Extras repository on any its mirror (use yum, pirut or yumex utility
  to install package)
+
+To get notifications about new releases you could subscribe on the Freshmeat
+page:
+ http://freshmeat.net/projects/renrot/
 
 
 RUNNING
@@ -121,7 +130,8 @@ files size to process is bigger than RAM amount, the renrot falls with error:
 
 	Out of memory during "large" request for XXXX bytes ...
 
-This doesn't occure for Perl v.5.6.1.
+This doesn't occure for Perl with external malloc implementation used (f.e.
+Perl 5.6.1). Starting from version 1.0 RenRot has workaround for this.
 
 6. Still no way to set the tags with the same name but located in the
 different groups.
@@ -142,6 +152,9 @@ nine levels of debugging such as:
     from 1 till 4 - internal levels
     from 5 till 9 - equal to 1-5 levels for ExifTool plus maximum verbosity for
                     renrot
+
+First word after DEBUG prefix in each message means function where the dbgmsg()
+is called.
 
 
 INSTALLATION
@@ -178,6 +191,9 @@ except:
     				the perl distribution)
     jpegtran (libjpeg6)		http://www.ijg.org/
 
+Contact Sheet Generator framework is depended to Image::Magick module at
+run-time. The module is still optional to whole script.
+
 
 LICENSING
 ---------
@@ -200,8 +216,8 @@ For more information, please, consult with the full license text placed on
 http://opensource.org/licenses/.
 
 
-THANKS
-------
+THANKS AND CREDITS
+------ --- -------
 
 Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) for his valued
 comments and suggestions.
@@ -220,6 +236,7 @@ Sergey Poznyakoff for help summary and manual style, English and code fixes.
 Anthony Thyssen for his help with ImageMagick/PerlMagick related questions.
 
 Slaven Rezic for his help with perl5.8.x "Out of memory ... sbrk()" on FreeBSD-6.x
+
 
 ARE YOU WANT SOMETHING TO SAY?
 --- --- ---- --------- -- ----

@@ -1,3 +1,12 @@
+* 1.0 *
+
+Major upgrade was done. The contact sheet generator has been implemented. This
+new feature requires Image::Magick perl module at run-time. In addition to
+contact sheet generator framework the rank functionality has been added. See
+the applied manual to get details for using it. The configuration parameter
+"use color" turned off by default.
+
+
 * 0.25 *
 
 Several bugs were fixed after the last release. The "tag" target in the

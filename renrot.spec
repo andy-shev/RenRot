@@ -1,11 +1,11 @@
 Name:		renrot
 Version:	1.0
 Release:	1%{?dist}
-License:	GPL or Artistic
+License:	Artistic 2.0
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
-URL:		http://freshmeat.net/projects/renrot/
-Source0:	ftp://ftp.dn.farlep.net/pub/misc/renrot/%{name}-%{version}.tar.gz
+URL:		http://puszcza.gnu.org.ua/projects/renrot/
+Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 BuildRequires:	perl(Image::ExifTool) >= 5.72
@@ -72,6 +72,10 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/tags.conf
 
 %changelog
+* Sun Jun 01 2008 Andy Shevchenko <andy@smile.org.ua>
+- change License to Artistic 2.0 accordingly to mainstream
+- update URLs
+
 * Tue Aug 22 2006 Andy Shevchenko <andy@smile.org.ua>
 - add colors.conf
 
