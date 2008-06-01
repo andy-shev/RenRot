@@ -1317,14 +1317,13 @@ sub contactSheetGenerator {
   my $montage;
   my $montagename;
   my $infoMontage;
-  my @left_up_row = ("RenRot v.$VERSION", $homeURL);
+  my @left_up_row = ("RenRot v$VERSION (r$REVISION)", $homeURL);
   my $substrFile;
   my $readIndex;
   my $counter_size;
 
   if ($csFullIterations != 0) {
     $counter_size = "%." . length($csFullIterations * $countStep + $countStart) . "d";
-    #$counterSize = "%." . $size . "d";
     dbgmsg (1, "Counter size: $size (CS files num: $csFullIterations)\n");
   } else {
     $counter_size = "%d";
@@ -1337,6 +1336,7 @@ sub contactSheetGenerator {
     }
     for (; $csIterator < $csFullIterations; $csIterator++, $fileCounter += $countStep) {
       $image = Image::Magick->new;
+
       $montagename = template2name (
           $exifToolObj,
           $info,
@@ -1346,9 +1346,8 @@ sub contactSheetGenerator {
           $counter_size,
           "none"
       );
-      #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
       for ($readIndex = 0, $csIter = $csIterator * $tileMul; $csIter < ($csIterator * $tileMul + $tileMul); $csIter++, $readIndex++) {
-        $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIter]);
+        $readres = $image->Read("jpg:" . $thumbnailes_sorted[$csIter]);
         if (not $readres) {
           dbgmsg (4, "$thumbnailes_sorted[$csIter] was successfully read.\n");
         } else { errmsg ("Image::Magick error: $readres\n\n"); }
@@ -1382,7 +1381,7 @@ sub contactSheetGenerator {
       else { dbgmsg (1, "$csIterator montage've finished successfully.\n"); }
 
       $montage->Set (
-          filename => 'jpg:'.$montagename,
+          filename => 'jpg:' . $montagename,
           quality => 95,
           interlace => 'Partition',
           gravity => 'Center',
@@ -1416,6 +1415,8 @@ sub contactSheetGenerator {
     }
   }
 
+  $image = Image::Magick->new;
+
   $montagename = template2name (
       $exifToolObj,
       $info,
@@ -1425,10 +1426,9 @@ sub contactSheetGenerator {
       $counter_size,
       "none"
   );
-  #$montagename = $cfgOpts{'contact sheet file'} . "-" . $csIterator . ".jpg";
-  for ($readIndex = 0, $csIteration = $csIterator * $tileMul, $image = Image::Magick->new; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
 
-    $readres = $image->Read("jpg:".$thumbnailes_sorted[$csIteration]);
+  for ($readIndex = 0, $csIteration = $csIterator * $tileMul; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
+    $readres = $image->Read("jpg:" . $thumbnailes_sorted[$csIteration]);
     if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
     else { errmsg ("Image::Magick error: $readres\n\n"); }
 
@@ -1465,7 +1465,7 @@ sub contactSheetGenerator {
   else { dbgmsg (1, "Montage've finished successfully.\n"); }
 
   $montage->Set (
-      filename => 'jpg:'.$montagename,
+      filename => 'jpg:' . $montagename,
       quality => 95,
       interlace => 'Partition',
       gravity => 'Center',
