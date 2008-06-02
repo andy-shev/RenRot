@@ -2710,7 +2710,7 @@ Generated thumbnail text
 
 =item B<--contact-sheet-rank> or B<--cs-rank>
 
-Run ranking process according the ranks defined with
+Run ranking process according to the ranks defined with
 B<--contact-sheet-rank-file> The result is the colored frames of the
 thumbnails of contact sheets.
 
@@ -2722,6 +2722,10 @@ Filename separated from the color by space or tabulation.
 =over
 
 01.file.jpg        red
+
+02.JPG             CornflowerBlue
+
+03.jpg             aquamarine
 
 04.file.JPG        green
 
