@@ -12,6 +12,7 @@ BuildRequires:	perl(Image::ExifTool) >= 5.72
 BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 Requires:	libjpeg >= 6b
+Requires(hint):	perl(Image::Magick)
 
 %description
 Renrot renames files according the DateTimeOriginal and FileModifyDate
@@ -75,6 +76,7 @@ fi
 * Sun Jun 01 2008 Andy Shevchenko <andy@smile.org.ua>
 - change License to Artistic 2.0 accordingly to mainstream
 - update URLs
+- require (optional) Image::Magick
 
 * Tue Aug 22 2006 Andy Shevchenko <andy@smile.org.ua>
 - add colors.conf
