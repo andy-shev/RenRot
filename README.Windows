@@ -33,10 +33,10 @@ the NMAKE.ERR files to your Perl bin directory, normally C:\Perl\bin.
 
 STEP 2.2
 
-In case to get functionality of Contact SHeet Generator, you'll need
+In case to get functionality of Contact Sheet Generator, you'll need
 ImageMagick pakage. Download it from:
-http://www.imagemagick.org/script/binary-releases.php#windows
-In installation menu choose "With  PerlMagick"!!
+    http://www.imagemagick.org/script/binary-releases.php#windows
+In installation menu choose "With PerlMagick"!
 
 STEP 3
 

@@ -314,7 +314,9 @@ sub dbgmsg {
   my $level = shift;
   if ($verbose >= $level) {
     # caller() described at Perl Cookbook 10.4
-    printColored('debug', "DEBUG[$level]: ", (caller(1))[3], "(): ", @_);
+    my $funcname = (caller(1))[3];
+    $funcname = 'main' if (not defined $funcname);
+    printColored('debug', "DEBUG[$level]: ", $funcname, "(): ", @_);
   }
 }
 
@@ -322,7 +324,9 @@ sub dbgmsg {
 sub ldbg3 {
   if ($verbose >= 3) {
     # caller() described at Perl Cookbook 10.4
-    printColored('debug', "DEBUG[3]: ", (caller(1))[3], "(): ", @_, "\n");
+    my $funcname = (caller(1))[3];
+    $funcname = 'main' if (not defined $funcname);
+    printColored('debug', "DEBUG[3]: ", $funcname, "(): ", @_, "\n");
   }
 };
 
@@ -482,7 +486,7 @@ sub getOptions {
     "   --counter-fixed-field: ", boolConv($countFF));
   ldbg3("--dry-run: ", boolConv($dryRun)) if (defined $dryRun);
   ldbg3("--exclude:\n", join("\n", @excludeList)) if (scalar(@excludeList) > 0);
-  ldbg3("--extension: $extToProcess");
+  ldbg3("--extension: '$extToProcess'");
   ldbg3("--keywordize: ", boolConv($keywordize)) if (defined $keywordize);
   ldbg3("--keywords-replace: ", boolConv($keywordsReplace)) if (defined $keywordsReplace);
   ldbg3("--keywords-file: $keywordsFile") if (defined $keywordsFile);
@@ -622,7 +626,7 @@ sub strToHash {
     $group = "" if (not defined $group);
     dbgmsg (4, "Parsed: $key [$group] = '$value'\n");
   } else {
-    warnmsg ("strToHash(): Invalid line format: $str\n");
+    warnmsg ("Invalid line format: $str\n");
   }
   return %hash;
 }
@@ -1205,6 +1209,9 @@ sub aggregationProcess {
 # See Also   : template2name()
 sub contactSheetGenerator {
   return if (not $cfgOpts{'contact sheet'});
+
+  use File::Copy;
+
   my $exifToolObj = shift;
   my $workdir = $cfgOpts{'contact sheet dir'} . "/";
   my $file;
@@ -1226,15 +1233,11 @@ sub contactSheetGenerator {
     if ($ranks != 0) {
       dbgmsg (3, "ranks successfully processed.\n");
     } else {
-      errmsg ("getOptions(): ranks processing failed.\n");
+      errmsg ("ranks processing failed.\n");
     }
   }
 
-  require Image::Magick; # compile time
-
   makeDir($workdir);
-
-  use File::Copy;
 
   procmsg ("CONTACT SHEET GENERATION\n");
   procmsg ("========================\n");
@@ -2587,7 +2590,7 @@ No tags will be written. This is the default.
 
 =item B<--use-color>, B<--no-use-color>
 
-Colorize output. This does NOT work under Win32.
+Colorize output. This does NOT work under Windows.
 
 =item B<--dry-run>
 
@@ -2595,7 +2598,8 @@ Do not do anything, only print would have been done.
 
 =item B<--use-ipc>, B<--no-use-ipc>
 
-Rotate thumbnails using pipe, rather than files. This does NOT work under Win32.
+Rotate thumbnails using pipe, rather than files. This does NOT work under
+Windows.
 
 =item B<-v>
 
