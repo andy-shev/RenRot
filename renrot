@@ -2212,10 +2212,10 @@ if (not grep (/^$cfgOpts{'aggregation mode'}$/, ('none', 'delta', 'template'))) 
 $cfgOpts{'aggregation directory'} = dirConv($cfgOpts{'aggregation directory'});
 $cfgOpts{'aggregation virtual directory'} = dirConv($cfgOpts{'aggregation virtual directory'});
 
-fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
-  if ($cfgOpts{'aggregation mode'} ne "none" and
-      (dirValidator($cfgOpts{'aggregation directory'}) == 0 or
-       dirValidator($cfgOpts{'aggregation virtual directory'}) == 0));
+#fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
+#  if ($cfgOpts{'aggregation mode'} ne "none" and
+#      (dirValidator($cfgOpts{'aggregation directory'}) == 0 or
+#       dirValidator($cfgOpts{'aggregation virtual directory'}) == 0));
 
 # Calculate ExifTool's verbosity
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
