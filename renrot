@@ -176,7 +176,7 @@ my $isThereIM = 0;	# is there Image::Magick package?
 
 ########################################################################################
 #
-# Tags hash for injecting to EXIF when renaming
+# Tags hash for injecting to EXIFs when renaming
 #
 my %tags = (
   'RenRotProcessingTimestamp' => {
@@ -1590,7 +1590,7 @@ sub colorValidator {
 sub makeDir {
   my $new_dir = shift;
   if (not -d $new_dir) {
-    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created!\n"); }
+    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created! Perhaps the path contains nonexistent subdirectories ...\n"); }
   }
 }
 
