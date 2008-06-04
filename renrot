@@ -1997,7 +1997,7 @@ Colorizing options:
       --use-color (*)		colorized output
 
 Misc options:
-  -g, --generate-thumb		generate and write ThumbnailImage tag if absent
+  -g, --generate-thumb		generation, writing or rewriting ThumbnailImage tag
       --dry-run			do nothing, only print would have been done
       --use-ipc (*)		rotate thumbnail via pipe, rather than via file
   -v				increment debugging level by 1
