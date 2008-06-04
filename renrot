@@ -2619,6 +2619,10 @@ Colorize output. This does NOT work under Windows.
 
 Do not do anything, only print would have been done.
 
+=item B<-g> or B<--generate-thumb>
+
+Generation, writing or rewriting ThumbnailImage tag.
+
 =item B<--use-ipc>, B<--no-use-ipc>
 
 Rotate thumbnails using pipe, rather than files. This does NOT work under
