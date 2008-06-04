@@ -2571,7 +2571,9 @@ virtualization.
 
 =item B<--aggr-virtual-directory> F<DIR>
 
-Store virtual aggregation files in F<DIR>
+Virtual aggregation directory name prefix (default is I<Images.Links.Directory>),
+have to be on the same file system, relative to the current working directory and
+contain no unexistent subdirectories.
 
 =item B<--comment-file> F<FILE>
 
