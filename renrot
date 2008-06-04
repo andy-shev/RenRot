@@ -2546,7 +2546,8 @@ B<--aggr-directory> option and the directory name counter.
 
 =item B<--aggr-directory> F<DIR>
 
-Aggregation directory name prefix (default is I<Images>)
+Aggregation directory name prefix (default is I<Images>), have to be on the same
+file system, relative to the current working directory and contain no unexistent subdirectories.
 
 =item B<-a> or B<--aggr-template> I<TEMPLATE>
 
