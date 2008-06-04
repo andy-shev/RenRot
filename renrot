@@ -1608,19 +1608,39 @@ sub aggregateFile {
   my $new_dir = shift;
 
   if ($cfgOpts{'aggregation virtual'} == 0) {
+    makeDir($cfgOpts{'aggregation directory'});
+    $new_dir = $cfgOpts{'aggregation directory'} . "/" . $new_dir;
     makeDir($new_dir);
-    my $newfilename = $new_dir . "/" . $file;
-    rename ($file, $newfilename) || ( fatalmsg ("$file -> $newfilename\n"), die );
+    my $newname = $new_dir . "/" . $file;
+    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps new dir is at the different file system\n"), die );
+    dbgmsg (3, "aggregateFile(): $file moved to $newname\n");
   } else {
     makeDir($cfgOpts{'aggregation virtual directory'});
     $new_dir = $cfgOpts{'aggregation virtual directory'} . "/" . $new_dir;
     makeDir($new_dir);
-    my $newfilename = $new_dir . "/" . $file;
-    if (not -l $newfilename) {
-      my $symlink = "../../" . $file;
-      symlink ($symlink, $newfilename) || ( fatalmsg ("While linking $file -> $newfilename\n"), die );
+    my $newfile = $new_dir . "/" . $file;
+
+    my @virt_dir = split(/\//, $cfgOpts{'aggregation virtual directory'});
+
+    use Cwd;
+    my @cwd = split(/\//, getcwd);
+    my $i = 0;
+
+    my $oldfile = "../../"; # since the aggregat is placed @ the 'aggr virt dir' and the 'aggr mode' caused dir
+    while ( $virt_dir[$i] eq ".." ) { # how many levels '..' the aggregat have to be placed uper than cwd
+      $i++;
+    }
+
+    for ( $i--; $i >= 0; $i--) { # aagregat path forming according the $i value
+      $oldfile .= $cwd[$#cwd - $i] . "/";
+    }
+
+    if (not -l $newfile) {
+      $oldfile .= $file;
+      symlink ($oldfile, $newfile) || ( fatalmsg ("While linking $oldfile -> $newfile\n"), die );
+      dbgmsg (3, "aggregateFile(): link was created $newfile -> $oldfile\n");
     } else {
-      procmsg ("Link $newfilename already exists.\n");
+      procmsg ("Link $newfile already exists.\n");
     }
   }
 }
