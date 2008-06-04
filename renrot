@@ -1596,7 +1596,7 @@ sub makeDir {
 
 ########################################################################################
 # Usage      : aggregateFile($file, $NewDir);
-# Purpose    : moves file to new directory
+# Purpose    : moves or links file to the aggregation directory
 # Returns    : none
 # Parameters : $file [str] - name of file to be moved
 #            : $new_dir [str] - name of dir the file to be moved to
