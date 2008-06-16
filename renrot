@@ -1414,6 +1414,9 @@ sub contactSheetGenerator {
       saveOurHdrs($exifToolObj, $infoMontage, $montagename);
       # Writing tags.
       tagWriter($exifToolObj, $montagename);
+      # Writing ThumbnailImage tag with generated thumbnail
+      thmb_add($montagename);
+
       undef $image;
     }
   }
