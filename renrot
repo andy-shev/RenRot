@@ -1855,7 +1855,7 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
-# Usage      : thmb_add($wrkdir, $thmbname);
+# Usage      : thmb_add($thmbname);
 # Purpose    : generate thumbnail image from the original file and write it
 #            : to the ThumbnailImage tag
 # Returns    : none
@@ -1883,7 +1883,7 @@ sub thmb_add {
 
   unlink $thm_name;
 
-  dbgmsg (3, "ThumbnailImage tag generated for the file $file\n");
+  ldbg3("ThumbnailImage tag generated for the file $file\n");
 }
 
 
