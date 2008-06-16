@@ -1879,6 +1879,8 @@ sub thmb_add {
   thumbWriter($file, getFileData($thm_name));
 
   unlink $thm_name;
+
+  dbgmsg (3, "ThumbnailImage tag generated for the file $file\n");
 }
 
 
