@@ -2628,7 +2628,8 @@ Do not do anything, only print would have been done.
 
 =item B<-g> or B<--generate-thumb>
 
-Generation, writing or rewriting ThumbnailImage tag.
+Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage 
+tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
 
 =item B<--use-ipc>, B<--no-use-ipc>
 
