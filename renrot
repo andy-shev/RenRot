@@ -106,6 +106,7 @@ my %cfgOpts = (
   'contact sheet thm text' => "thumbnail\n\nNA",
   'contact sheet rank' => 0,
   'contact sheet rank file' => '.rank',
+  'generate thumbnail size' => '160x120',
 );
 
 ########################################################################################
