@@ -851,7 +851,7 @@ sub renRotProcess {
 
     # generating absent ThumbnailImage tag from the original image
     if (($isThereIM == 1) and ($gen_thm != 0) and not defined ${$$info{ThumbnailImage}}) {
-      thmb_add($file);
+      thm_gen_orig($file);
       procmsg ("ThumbnailImage was written to the file $file\n");
     }
 
@@ -1416,7 +1416,7 @@ sub contactSheetGenerator {
       # Writing tags.
       tagWriter($exifToolObj, $montagename);
       # Writing ThumbnailImage tag with generated thumbnail
-      thmb_add($montagename);
+      thm_gen_orig($montagename);
 
       undef $image;
     }
@@ -1505,7 +1505,7 @@ sub contactSheetGenerator {
   # Writing tags.
   tagWriter($exifToolObj, $montagename);
   # Writing ThumbnailImage tag with generated thumbnail
-  thmb_add($montagename);
+  thm_gen_orig($montagename);
 
   chdir $workdir;
   unlink <*>;
@@ -1856,7 +1856,7 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
-# Usage      : thmb_add($thmbname);
+# Usage      : thm_gen_orig($thmbname);
 # Purpose    : generate thumbnail image from the original file and write it
 #            : to the ThumbnailImage tag
 # Returns    : none
@@ -1864,7 +1864,7 @@ sub rotateThumbnail {
 # Throws     : no exceptions
 # Comments   : none
 # See Also   : n/a
-sub thmb_add {
+sub thm_gen_orig {
   my $file = shift;
   my $thm_name = "thm_" . $file;
   my $size = $cfgOpts{'generate thumbnail size'};
