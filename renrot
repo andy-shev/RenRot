@@ -1526,7 +1526,7 @@ sub thmbgen {
   my $workdir  = shift;
   my $thmbname = shift;
   $thmbname = $workdir . $thmbname;
-  my $size = "160x120";
+  my $size = $cfgOpts{'generate thumbnail size'};
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thmbname, quality => 95, interlace => 'Partition');
@@ -1862,12 +1862,12 @@ sub rotateThumbnail {
 # Returns    : none
 # Parameters : $file str - original image name
 # Throws     : no exceptions
-# Comments   : sie of the generated thumbnail is fixed and is 160x120
+# Comments   : none
 # See Also   : n/a
 sub thmb_add {
   my $file = shift;
   my $thm_name = "thm_" . $file;
-  my $size = "160x120";
+  my $size = $cfgOpts{'generate thumbnail size'};
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
