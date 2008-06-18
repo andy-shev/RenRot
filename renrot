@@ -1277,7 +1277,7 @@ sub contactSheetGenerator {
     } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
       procmsg ("WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
       if (not -f $workdir . "thmbstub.jpg") {
-        thmbgen ($workdir, "thmbstub.jpg");
+        thm_gen_stub ($workdir, "thmbstub.jpg");
         procmsg ("Stub thumbnail image've been created.\n");
       }
       copy ($workdir . "thmbstub.jpg", $workdir . $file);
@@ -1514,15 +1514,15 @@ sub contactSheetGenerator {
 }
 
 ########################################################################################
-# Usage      : thmbgen($wrkdir, $thmbname);
+# Usage      : thm_gen_stub($wrkdir, $thmbname);
 # Purpose    : thumbnail stub generator
 # Returns    : none
 # Parameters : $wrkdir   str - the directory, thumbnailes are kept
 #            : $thmbname str - thumbnail image name
 # Throws     : no exceptions
-# Comments   : sie of the generated thumbnail is fixed and is 160x120
+# Comments   : none
 # See Also   : contactSheetGenerator();
-sub thmbgen {
+sub thm_gen_stub {
   my $workdir  = shift;
   my $thmbname = shift;
   $thmbname = $workdir . $thmbname;
