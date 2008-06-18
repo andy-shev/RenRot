@@ -1250,7 +1250,7 @@ sub contactSheetGenerator {
     $filefull = $file;
 
     if ($contactSheetThm != 0 and defined $orientation and $orientation > 1) {
-      $filefull = rotCs ($file, $rotorient{$orientation}, $workdir);
+      $filefull = rot_thm_cs ($file, $rotorient{$orientation}, $workdir);
     } elsif ($contactSheetThm != 0 and defined $orientation and $orientation == 1) {
       # we need this since rotated img'll be @ $workdir, but others are in current
       $ThumbnailOriginal = $workdir . $file;
@@ -1270,7 +1270,7 @@ sub contactSheetGenerator {
       }
 
       if (defined $orientation and $orientation > 1) {
-        $filefull = rotCs ($ThumbnailOriginal, $orientation, "");
+        $filefull = rot_thm_cs ($ThumbnailOriginal, $orientation, "");
       } else {
         $filefull = $ThumbnailOriginal;
       }
@@ -1545,8 +1545,8 @@ sub thm_gen_stub {
 }
 
 ########################################################################################
-# Usage      : rotCs($base_orig, $angle, $workdir);
-# Purpose    : rotates thumbnails for montage
+# Usage      : rot_thm_cs($base_orig, $angle, $workdir);
+# Purpose    : rotates thumbnails for contact sheet and put it to the workdir
 # Returns    : none
 # Parameters : $base_orig str - pathless filename of the rotated file
 #            : $angle     num - rotation angle
@@ -1554,7 +1554,7 @@ sub thm_gen_stub {
 # Throws     : no exceptions
 # Comments   : works only with JPEGs
 # See Also   : contactSheetGenerator();
-sub rotCs {
+sub rot_thm_cs {
   my $base_orig = shift;
   my $angle = shift;
   my $workdir = shift;
