@@ -1889,9 +1889,14 @@ sub thm_gen_orig {
 
 
 ########################################################################################
-#
-# piper() opens two pipes for process object via cmd
-#
+# Usage      : piper();
+# Purpose    : opens two pipes for process object via the command passed as argument
+# Returns    : $pipe_obj processed via $pipe_cmd
+# Parameters : $pipe_obj bin - the object to be processed via pipe
+#            : $pipe_cmd str - the command for the processing
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
 sub piper {
   use FileHandle;
   use IPC::Open2;
