@@ -1901,25 +1901,25 @@ sub piper {
   use FileHandle;
   use IPC::Open2;
 
-  my $pipeObj = shift;	# the object to be processed via pipe
-  my $pipeCmd = shift;	# the pipe command
+  my $pipe_obj = shift;	# the object to be processed via pipe
+  my $pipe_cmd = shift;	# the pipe command
 
   local (*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
-  unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipeCmd)) {
+  unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipe_cmd)) {
     errmsg ("Unable to create the pipe.\n");
   }
 
   binmode WRITE_TO_FH;
-  print WRITE_TO_FH $pipeObj;
+  print WRITE_TO_FH $pipe_obj;
 
   unless (close(WRITE_TO_FH)) { warnmsg ("WRITE handle wasn't closed!\n"); };
 
   binmode READ_FROM_FH;
-  my @pipedArr = <READ_FROM_FH>;
+  my @piped_arr = <READ_FROM_FH>;
 
   unless (close(READ_FROM_FH)) { warnmsg ("READ handle wasn't closed!\n"); };
 
-  return join("", @pipedArr);
+  return join("", @piped_arr);
 }
 
 ########################################################################################
