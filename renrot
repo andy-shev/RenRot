@@ -1273,13 +1273,17 @@ sub contactSheetGenerator {
       } else {
         $filefull = $ThumbnailOriginal;
       }
-    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}}) {
-      procmsg ("WARNING: $filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
+    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}} and $gen_thm == 0) {
+      warnmsg ("$filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
       if (not -f $workdir . "thmbstub.jpg") {
         thm_gen_stub ($workdir, "thmbstub.jpg");
-        procmsg ("Stub thumbnail image've been created.\n");
       }
       copy ($workdir . "thmbstub.jpg", $workdir . $file);
+      $filefull = $workdir . $file;
+    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}} and $gen_thm != 0) {
+      warnmsg ("$filefull has no ThumbnailImage tag. Thumbnail image'll be generated.\n");
+
+      move (thm_gen_orig ($file, 0), $workdir . $file);
       $filefull = $workdir . $file;
     }
 
