@@ -1351,7 +1351,7 @@ sub contactSheetGenerator {
           "none"
       );
       for ($readIndex = 0, $csIter = $csIterator * $tileMul; $csIter < ($csIterator * $tileMul + $tileMul); $csIter++, $readIndex++) {
-        $readres = $image->Read("jpg:" . $thumbnailes_sorted[$csIter]);
+        $readres = $image->Read($thumbnailes_sorted[$csIter]);
         if (not $readres) {
           dbgmsg (4, "$thumbnailes_sorted[$csIter] was successfully read.\n");
         } else { errmsg ("Image::Magick error: $readres\n\n"); }
@@ -1435,7 +1435,7 @@ sub contactSheetGenerator {
   );
 
   for ($readIndex = 0, $csIteration = $csIterator * $tileMul; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
-    $readres = $image->Read("jpg:" . $thumbnailes_sorted[$csIteration]);
+    $readres = $image->Read($thumbnailes_sorted[$csIteration]);
     if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
     else { errmsg ("Image::Magick error: $readres\n\n"); }
 
