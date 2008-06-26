@@ -1524,24 +1524,65 @@ sub contactSheetGenerator {
 # See Also   : contactSheetGenerator();
 sub thm_gen_stub {
   my $workdir  = shift;
-  my $thmbname = shift;
-  $thmbname = $workdir . $thmbname;
+  my $file = shift;
+  my $thm_name = $workdir . $file;
   my $size = $cfgOpts{'generate thumbnail size'};
   my $thmb = Image::Magick->new;
 
-  $thmb->Set(size => $size, filename => $thmbname, quality => 95, interlace => 'Partition');
+  $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
   $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
   $thmb->Annotate (
-      pointsize => 25,
-      fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
-      font => $cfgOpts{'contact sheet thm font'},
-      text => $cfgOpts{'contact sheet thm text'},
-      gravity => 'Center',
-  );
+		   pointsize => 25,
+		   fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+		   font => $cfgOpts{'contact sheet thm font'},
+		   text => $cfgOpts{'contact sheet thm text'},
+		   gravity => 'Center',
+		  );
+
   my $thmbnum = $thmb->Write();
 
   if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
   undef $thmb;
+
+  procmsg ("Stub thumbnail image've been created.\n");
+}
+
+########################################################################################
+# Usage      : thm_gen_orig($thmbname);
+# Purpose    : generate thumbnail image from the original file and write it
+#            : to the ThumbnailImage tag
+# Returns    : thumbnail file name if unlink not asked
+# Parameters : $file str - original image name
+#            : $unlink bin - 0 not to kill generated thumbnail
+#            :               1 to kill generated thumbnail
+# Throws     : no exceptions
+# Comments   : none
+# See Also   : n/a
+sub thm_gen_orig {
+  my $file = shift;
+  my $unlink = shift;
+  my $thm_name = "thm_" . $file;
+  my $size = $cfgOpts{'generate thumbnail size'};
+  my $thmb = Image::Magick->new;
+
+  $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
+
+  $thmb->ReadImage($file);
+  $thmb->Thumbnail(geometry => $size);
+
+  my $thmbnum = $thmb->Write();
+
+  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
+  undef $thmb;
+
+  if ( $unlink ) {
+    ldbg3("attempt to write ThumbnailImage tag to $file\n");
+    thumbWriter($file, getFileData($thm_name));
+    unlink $thm_name;
+  } else {
+    ldbg3("ThumbnailImage was generated for $file\n");
+    return $thm_name;
+  }
 }
 
 ########################################################################################
@@ -1854,39 +1895,6 @@ sub rotateThumbnail {
     thumbWriter($file, piper($origThumb, $cmd));
   }
 }
-
-########################################################################################
-# Usage      : thm_gen_orig($thmbname);
-# Purpose    : generate thumbnail image from the original file and write it
-#            : to the ThumbnailImage tag
-# Returns    : none
-# Parameters : $file str - original image name
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
-sub thm_gen_orig {
-  my $file = shift;
-  my $thm_name = "thm_" . $file;
-  my $size = $cfgOpts{'generate thumbnail size'};
-  my $thmb = Image::Magick->new;
-
-  $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
-
-  $thmb->ReadImage($file);
-  $thmb->Thumbnail(geometry => $size);
-
-  my $thmbnum = $thmb->Write();
-
-  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
-  undef $thmb;
-
-  thumbWriter($file, getFileData($thm_name));
-
-  unlink $thm_name;
-
-  ldbg3("ThumbnailImage tag generated for the file $file\n");
-}
-
 
 ########################################################################################
 # Usage      : piper();
