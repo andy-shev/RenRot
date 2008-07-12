@@ -185,7 +185,7 @@ my %tags = (
     group => 'RenRot',
   },
   'RenRotVersion' => {
-    value => $VERSION,
+    value => $VERSION . " (r" . $REVISION . ")",
     group => 'RenRot',
   },
   'RenRotURL' => {
@@ -553,9 +553,9 @@ sub getOptions {
   # preparing Software tag according the usage or not of ImageMagick
   if ($isThereIM == 1) {
     my ($imName, $imVersion, $dummy) = split(/ /, Image::Magick->new()->Get('version'));
-    $tags{'Software'}{'value'} = sprintf("RenRot v%s, ExifTool v%s, %s v%s", $VERSION, $Image::ExifTool::VERSION, $imName, $imVersion);
+    $tags{'Software'}{'value'} = sprintf("RenRot v%s (r%s), ExifTool v%s, %s v%s", $VERSION, $REVISION, $Image::ExifTool::VERSION, $imName, $imVersion);
   } else {
-    $tags{'Software'}{'value'} = sprintf("ExifTool v%s, RenRot v%s", $Image::ExifTool::VERSION, $VERSION);
+    $tags{'Software'}{'value'} = sprintf("ExifTool v%s, RenRot v%s (r%s)", $Image::ExifTool::VERSION, $VERSION, $REVISION);
   }
   $tags{'Software'}{'group'} = 'EXIF';
 
