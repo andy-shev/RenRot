@@ -447,7 +447,6 @@ sub getOptions {
       "rotate-thumb=i" => \$rotateThumbnail,
       "sub-fileset=s" => \$subFileSet,
       "tag|t=s" => \@tmpTags,
-#      "tag-to-name|ttn=s" => \@tag_to_name,
       "trim!" => \$trim,
       "use-color!" => \$useColor,
       "use-ipc!" => \$useIPC,
@@ -3038,7 +3037,10 @@ the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Image::ExifTool(3pm)|Image::ExifTool>,L<exiftool(1)>,L<jpegtran(1)>,L<Image::Magick(3pm)|Image::Magick>
+L<Image::ExifTool(3pm)|Image::ExifTool>,
+L<exiftool(1)>,
+L<jpegtran(1)>,
+L<Image::Magick(3pm)|Image::Magick>
 
 =cut
 

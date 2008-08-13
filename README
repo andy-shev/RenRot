@@ -65,8 +65,11 @@ download script package from the following sites:
  ftp://download.gnu.org.ua/pub/release/renrot/ (home)
  ftp://ftp.dn.farlep.net/pub/misc/renrot/ (mirror)
  http://www.smile.org.ua/~andy/prj/renrot/ (mirror)
- Fedora Extras repository on any its mirror (use yum, pirut or yumex utility
- to install package)
+
+Repositories:
+ Fedora and any of its mirrors (use yum install renrot)
+ Debian and any of its mirrors (use apt-get install renrot)
+ Ubuntu (the same as for Debian)
 
 To get notifications about new releases you could subscribe on the Freshmeat
 page:
@@ -141,6 +144,9 @@ While that is not happened the messages will be colorized by default color
 scheme.
 
 8. The colorization is not working under Windows platform.
+
+All bug reports are welcome to our bugzilla which is obtained here:
+ http://puszcza.gnu.org.ua/bugs/?group=renrot
 
 
 DEBUGGING
@@ -219,25 +225,30 @@ http://opensource.org/licenses/.
 THANKS AND CREDITS
 ------ --- -------
 
-Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) for his valued
-comments and suggestions.
+People
+------
+  Phil Harvey (http://www.sno.phy.queensu.ca/~phil/exiftool/) for his valued
+  comments and suggestions.
 
-ASPLinux company (http://www.asplinux.ru) has included renrot to their
-distribution.
+  Alex Zasypkin for his help with documentation writing.
 
-Alex Zasypkin for his help with documentation writing.
+  Vyacheslav Garonin for his idea concerning the virtual aggregation.
 
-Fedora Extras Team for including RenRot to its repository.
+  Sergey Poznyakoff for help summary and manual style, English and code fixes.
 
-Debian maintainers team for including RenRot to the pool.
+  Anthony Thyssen for his help with ImageMagick/PerlMagick related questions.
 
-Vyacheslav Garonin for his idea concerning the virtual aggregation.
+  Slaven Rezic for his help with perl5.8.x "Out of memory ... sbrk()" on
+  FreeBSD-6.x
 
-Sergey Poznyakoff for help summary and manual style, English and code fixes.
+Teams
+-----
+  ASPLinux company (http://www.asplinux.ru) has included RenRot to their
+  distribution.
 
-Anthony Thyssen for his help with ImageMagick/PerlMagick related questions.
+  Fedora Team for including RenRot to its repository.
 
-Slaven Rezic for his help with perl5.8.x "Out of memory ... sbrk()" on FreeBSD-6.x
+  Debian maintainers team for including RenRot to the pool.
 
 
 ARE YOU WANT SOMETHING TO SAY?
