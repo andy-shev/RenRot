@@ -26,6 +26,7 @@ $ENV{ANSI_COLORS_DISABLED} = 1;
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
+# Versioning
 my @svnrevision = split(/ /, '$Revision$');
 our $VERSION = '1.0';             # the version of this script
 our $REVISION = $svnrevision[1];  # revision
@@ -502,7 +503,6 @@ sub getOptions {
   ldbg3("--rotate-thumb: $rotateThumbnail") if (defined $rotateThumbnail);
   ldbg3("--sub-fileset: $subFileSet") if ($subFileSet ne "");
   ldbg3("--tag:\n", join("\n", @tmpTags)) if (scalar(@tmpTags) > 0);
-#  ldbg3("--tag-to-name:\n", join("\n", @tag_to_name)) if (scalar(@tag_to_name) > 0);
   ldbg3("--trim: ", boolConv($trim)) if (defined $trim);
   ldbg3("--use-color: ", boolConv($useColor)) if (defined $useColor);
   ldbg3("--use-ipc: ", boolConv($useIPC)) if (defined $useIPC);
@@ -829,7 +829,7 @@ sub renRotProcess {
   my $trimStr = (not defined $cfgOpts{'trim'} or $cfgOpts{'trim'}) ? '-trim' : '';
   dbgmsg (1, "Trim string: '$trimStr'\n");
 
-  dbgmsg (1, "Initializing tags ...\n");
+  dbgmsg (1, "Initializing tags...\n");
   foreach my $key (sort (keys %tags)) {
     $exifToolObj->SetNewValue($key, $tags{$key}{value}, Group => $tags{$key}{group});
   }
@@ -841,7 +841,7 @@ sub renRotProcess {
   my $file_rem = 0;
   foreach my $file (@files) {
     $file_rem++;
-    procmsg ("Processing file: ($file_rem of $file_num) $file ...\n");
+    procmsg ("Processing file: ($file_rem of $file_num) $file...\n");
 
     # Setup defaults
     $info = $exifToolObj->ImageInfo($file);
@@ -891,7 +891,7 @@ sub saveOurHdrs {
 
   if (not defined $fileNameOriginal) {
     $tags{'RenRotFileNameOriginal'} = {value => $file, group => 'RenRot'};
-    dbgmsg (2, "set RenRotFileNameOriginal to $file.\n");
+    dbgmsg (2, "Set RenRotFileNameOriginal to $file.\n");
   } else {
     $tags{'RenRotFileNameOriginal'} = {
               value => $infoObj->{"RenRotFileNameOriginal"},
@@ -1058,11 +1058,10 @@ sub getFileDatLns {
     while (<XXXFILE>){
       chomp;
       @chunks = split(/\s+/);
-      $i = 0;
-      $xxxData{$chunks[0]}[$i] = 1;
-      for (++$i; $i < scalar @chunks; $i++) {
+      $xxxData{$chunks[0]}[0] = 1;
+      for ($i = 1; $i < scalar(@chunks); $i++) {
         $xxxData{$chunks[0]}[$i] = $chunks[$i];
-        dbgmsg (4, "\$xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
+        dbgmsg (4, "xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
       }
       undef @chunks;
     }
@@ -1231,9 +1230,9 @@ sub contactSheetGenerator {
   if ($cfgOpts{'contact sheet rank'} == 1 and -f $cfgOpts{'contact sheet rank file'}) {
     $ranks = getFileDatLns($cfgOpts{'contact sheet rank file'});
     if ($ranks != 0) {
-      dbgmsg (3, "ranks successfully processed.\n");
+      dbgmsg (3, "Ranks successfully processed.\n");
     } else {
-      errmsg ("ranks processing failed.\n");
+      errmsg ("Ranks processing failed.\n");
     }
   }
 
@@ -1365,7 +1364,7 @@ sub contactSheetGenerator {
           dbgmsg (4, "$substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
           $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
         } else {
-          dbgmsg (4, "$substrFile mattecolor is undefined, ", " using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
+          dbgmsg (4, "$substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
           $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
         }
       }
@@ -1578,12 +1577,12 @@ sub thm_gen_orig {
   if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
   undef $thmb;
 
-  if ( $unlink ) {
-    ldbg3("attempt to write ThumbnailImage tag to $file\n");
+  if ($unlink) {
+    dbgmsg (3, "Attempt to write ThumbnailImage tag to $file\n");
     thumbWriter($file, getFileData($thm_name));
     unlink $thm_name;
   } else {
-    ldbg3("ThumbnailImage was generated for $file\n");
+    dbgmsg (3, "ThumbnailImage was generated for $file\n");
     return $thm_name;
   }
 }
@@ -1640,7 +1639,7 @@ sub colorValidator {
 sub makeDir {
   my $new_dir = shift;
   if (not -d $new_dir) {
-    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created! Perhaps the path contains nonexistent subdirectories ...\n"); }
+    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created! Perhaps the path contains nonexistent subdirectories...\n"); }
   }
 }
 
@@ -1663,7 +1662,7 @@ sub aggregateFile {
     makeDir($new_dir);
     my $newname = $new_dir . "/" . $file;
     rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps new dir is at the different file system\n"), die );
-    dbgmsg (3, "aggregateFile(): $file moved to $newname\n");
+    dbgmsg (3, "$file moved to $newname\n");
   } else {
     makeDir($cfgOpts{'aggregation virtual directory'});
     $new_dir = $cfgOpts{'aggregation virtual directory'} . "/" . $new_dir;
@@ -1688,7 +1687,7 @@ sub aggregateFile {
     if (not -l $newfile) {
       $oldfile .= $file;
       symlink ($oldfile, $newfile) || ( fatalmsg ("While linking $oldfile -> $newfile\n"), die );
-      dbgmsg (3, "aggregateFile(): link was created $newfile -> $oldfile\n");
+      dbgmsg (3, "Following link was created $newfile -> $oldfile\n");
     } else {
       procmsg ("Link $newfile already exists.\n");
     }
@@ -1759,7 +1758,7 @@ sub getTimestamp {
   } else {
     $timestamp = timeNow();
     $exifToolObj->SetNewValue('FileModifyDate', $timestamp, Group => 'File');
-    warnmsg ("EXIF timestamp isn't correct, using timeNow()!\n");
+    warnmsg ("EXIF timestamp isn't correct, using current time!\n");
   }
   return $timestamp;
 }
@@ -2121,16 +2120,6 @@ sub template2name {
     $fileNameOriginalExtensionLess = $1;
   }
 
-#  my @tags_to_name_val = ();
-#  my $tag_to_name_index = 0;
-#  if (scalar(@tag_to_name) > 0) {
-#    for (; $tag_to_name_index < scalar(@tag_to_name); $tag_to_name_index++) {
-#      if (defined $infoObj->{$tag_to_name[$tag_to_name_index]}) {
-#	$tags_to_name_val[$tag_to_name_index] = $infoObj->{$tag_to_name[$tag_to_name_index]};
-#      }
-#    }
-#  }
-
   my @templatearea = split (//, $template);
   my %templatehash = (
       '%' => "%",
@@ -2162,7 +2151,7 @@ sub template2name {
   my $tag_to_name_val = "";
   my $tag_to_name = "";
 
-  dbgmsg (4, sprintf("'%s' (length: %d)\n", $template, scalar(@templatearea)));
+  dbgmsg (4, "'$template' (length: ", scalar(@templatearea), ")\n");
   while ($substroffset < scalar(@templatearea)) {
     $substrchar = $templatearea[$substroffset++];
     if ($substrchar eq "%" and $substroffset < scalar(@templatearea)) {
@@ -2173,20 +2162,13 @@ sub template2name {
     } elsif ($substrchar eq "#" and $substroffset < scalar(@templatearea)) {
       $substrchar = $templatearea[$substroffset++];
 
-#      if (defined $tags_to_name_val[$substrchar]) { # the array begins with 0
-#	$tags_to_name_val[$substrchar] =~ s/\s+//g;
-#	$tags_to_name_val[$substrchar] =~ s/\/+/_/g;
-#	$thename .= $tags_to_name_val[$substrchar];
-#	dbgmsg (4, "#", $substrchar, " ", $tag_to_name[$substrchar], " = ", $tags_to_name_val[$substrchar], "\n");
-#      }
-
       until ($substrchar eq "#") {
         $tag_to_name .= $substrchar;
         $substrchar = $templatearea[$substroffset++];
       }
       if (defined $infoObj->{$tag_to_name}) {
         $tag_to_name_val = $infoObj->{$tag_to_name};
-        dbgmsg (1, "Tag $tag_to_name = $tag_to_name_val\n");
+        dbgmsg (2, "Tag $tag_to_name = $tag_to_name_val\n");
         $tag_to_name_val =~ s/[\s()]//g;
         $tag_to_name_val =~ s/[\/:;\\'"]/_/g;
         $thename .= $tag_to_name_val;
@@ -2255,11 +2237,6 @@ if (not grep (/^$cfgOpts{'aggregation mode'}$/, ('none', 'delta', 'template'))) 
 
 $cfgOpts{'aggregation directory'} = dirConv($cfgOpts{'aggregation directory'});
 $cfgOpts{'aggregation virtual directory'} = dirConv($cfgOpts{'aggregation virtual directory'});
-
-#fatalmsg ("Current or multilevel directory isn't possible now, sorry. Check aggregation arguments.\n"), die
-#  if ($cfgOpts{'aggregation mode'} ne "none" and
-#      (dirValidator($cfgOpts{'aggregation directory'}) == 0 or
-#       dirValidator($cfgOpts{'aggregation virtual directory'}) == 0));
 
 # Calculate ExifTool's verbosity
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
