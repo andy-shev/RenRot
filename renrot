@@ -850,7 +850,7 @@ sub renRotProcess {
 
     # generating absent ThumbnailImage tag from the original image
     if (($isThereIM == 1) and ($gen_thm != 0) and not defined ${$$info{ThumbnailImage}}) {
-      thm_gen_orig($file,1);
+      thm_gen_orig($file, 1);
     }
 
     # analyzing whether and how to rename file
@@ -1281,7 +1281,7 @@ sub contactSheetGenerator {
     } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}} and $gen_thm != 0) {
       warnmsg ("$filefull has no ThumbnailImage tag. Thumbnail image'll be generated.\n");
 
-      move (thm_gen_orig ($file, 0), $workdir . $file);
+      move (thm_gen_orig($file, 0), $workdir . $file);
       $filefull = $workdir . $file;
     }
 
@@ -1417,7 +1417,7 @@ sub contactSheetGenerator {
       # Writing tags.
       tagWriter($exifToolObj, $montagename);
       # Writing ThumbnailImage tag with generated thumbnail
-      thm_gen_orig($montagename,1);
+      thm_gen_orig($montagename, 1);
 
       undef $image;
     }
@@ -1506,7 +1506,7 @@ sub contactSheetGenerator {
   # Writing tags.
   tagWriter($exifToolObj, $montagename);
   # Writing ThumbnailImage tag with generated thumbnail
-  thm_gen_orig($montagename,1);
+  thm_gen_orig($montagename, 1);
 
   chdir $workdir;
   unlink <*>;
@@ -1549,7 +1549,7 @@ sub thm_gen_stub {
 }
 
 ########################################################################################
-# Usage      : thm_gen_orig($thmbname);
+# Usage      : thm_gen_orig($file, $unlink);
 # Purpose    : generate thumbnail image from the original file and write it
 #            : to the ThumbnailImage tag
 # Returns    : thumbnail file name if unlink not asked
@@ -2167,9 +2167,9 @@ sub template2name {
       }
       if (defined $infoObj->{$tag_to_name}) {
         $tag_to_name_val = $infoObj->{$tag_to_name};
-        dbgmsg (2, "Tag $tag_to_name = $tag_to_name_val\n");
+        dbgmsg (2, "Tag '$tag_to_name' = $tag_to_name_val\n");
         $tag_to_name_val =~ s/[\s()]//g;
-        $tag_to_name_val =~ s/[\/:;\\'"]/_/g;
+        $tag_to_name_val =~ s/[\/\\:;\'\"]/_/g;
         $thename .= $tag_to_name_val;
       }
       $tag_to_name_val = $tag_to_name = "";
@@ -2973,32 +2973,61 @@ options as described above.
 
 =head1 FILES
 
-The main configuration file B<renrot.conf> is searched in the following locations
-(in the order of their appearence):
+=over
+
+=item
+
+The main configuration file B<renrot.conf> is searched in the following
+locations (in the order of their appearence):
 
 =over
 
 =item B<~/.renrot/>
 
+directory under user's home place
+
 =item B</usr/local/etc/renrot/>
+
+system directory
 
 =item B</etc/renrot/>
 
+system directory
+
 =back
 
-Other configuration files are:
+=item
+
+Other configuration files with additional options could be included into
+main file:
+
+=over
 
 =item B<colors.conf>
 
 colors setup for different output facilities
 
-=item B<rankfile>
-
-file with ranks (see B<--contact-sheet-rank-file>)
-
 =item B<tags.conf>
 
 different tags setup
+
+=back
+
+=item
+
+The following files which can be placed locally in the working directory:
+
+=over
+
+=item B<.keywords>
+
+file with keywords (see B<--keywords-file>)
+
+=item B<.rank>
+
+file with ranks (see B<--contact-sheet-rank-file>)
+
+=back
 
 =back
 
