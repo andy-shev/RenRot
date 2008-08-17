@@ -1411,11 +1411,15 @@ sub contactSheetGenerator {
       $writeres = $montage->Write();
       if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
       else { errmsg ("Image::Magick error: $writeres\n\n"); }
+
       $infoMontage = $exifToolObj->ImageInfo($montagename);
+
       # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
       saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+
       # Writing tags.
       tagWriter($exifToolObj, $montagename);
+
       # Writing ThumbnailImage tag with generated thumbnail
       thm_gen_orig($montagename, 1);
 
@@ -2609,7 +2613,7 @@ See the section L</TAGS>, for the detailed description
 
 =item B<--no-tags>
 
-No tags will be written. This is the default.
+No user's defined tags will be written.
 
 =item B<--use-color>, B<--no-use-color>
 
@@ -3015,7 +3019,7 @@ different tags setup
 
 =item
 
-The following files which can be placed locally in the working directory:
+The following files could be placed locally in the working directory:
 
 =over
 
