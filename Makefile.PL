@@ -21,6 +21,10 @@ rpm : tardist
 	rpmbuild -ta $(DISTVNAME).tar.$(SUFFIX)
 	$(RM_F) $(DISTVNAME).tar.$(SUFFIX)
 
+srpm : tardist
+	rpmbuild -ts $(DISTVNAME).tar.$(SUFFIX)
+	$(RM_F) $(DISTVNAME).tar.$(SUFFIX)
+
 # CVS tagging
 tag :
 	$(PERLRUN) -e 'use POSIX qw(strftime); $$date = strftime("%Y%m%d%H%M%S", localtime()); system("cvs tag $(NAME)_$$date");'
