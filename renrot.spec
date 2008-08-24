@@ -1,11 +1,14 @@
+%define rcver	rc1
+%define dotrc	.rc1
+
 Name:		renrot
-Version:	1.0
-Release:	1%{?dist}
+Version:	1.1
+Release:	0.1%{?dotrc}%{?dist}
 License:	Artistic 2.0
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
 URL:		http://puszcza.gnu.org.ua/projects/renrot/
-Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}.tar.gz
+Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}%{?rcver}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 BuildRequires:	perl(Image::ExifTool) >= 5.72
@@ -27,7 +30,7 @@ Personal details can be specified via XMP tags defined in a
 configuration file.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-%{version}%{?rcver}
 
 %build
 %{__perl} Makefile.PL PREFIX=%{_prefix}

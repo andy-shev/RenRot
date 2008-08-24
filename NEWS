@@ -1,3 +1,16 @@
+* 1.1rc1 *
+
+There is major improvement of the existent functionality. In this release the
+thumbnail generation has been added (see --generate-thumb option). An
+aggregation could be performed with absolute path now, but on the same file
+system. A thumbnail image for the contact sheet generator could be now in any
+supported format by ImageMagick. The plain documentation was expanded
+especially in contact sheet generator part. The sample directory has been
+created with the dotrank and dotkeywords files. Additionally a few bugs were
+fixed. The option --no-ren-rot-tag-mtm was renamed to the --no-renrot. Also the
+debug messages are prepended by a calling function name.
+
+
 * 1.0 *
 
 A major upgrade was done. The contact sheet generator has been implemented.
