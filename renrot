@@ -437,7 +437,7 @@ sub getOptions {
       "dry-run" => \$dryRun,
       "exclude=s" => \@excludeList,
       "extension|e=s" => \$extToProcess,
-      "generate-thumb|gen-thm|g" => \$gen_thm,
+      "generate-thumb|g" => \$gen_thm,
       "help|?"   => \$showHelp,
       "keywordize!" => \$keywordize,
       "keywords-file|k=s" => \$keywordsFile,
@@ -1512,10 +1512,13 @@ sub contactSheetGenerator {
   undef $image;
 
   $infoMontage = $exifToolObj->ImageInfo($montagename);
+
   # to save RenRotFileNameOriginal tag we have to rewrite it each time we anyhow prosess file
   saveOurHdrs($exifToolObj, $infoMontage, $montagename);
+
   # Writing tags.
   tagWriter($exifToolObj, $montagename);
+
   # Writing ThumbnailImage tag with generated thumbnail
   thm_gen_orig($montagename, 1);
 
@@ -1671,7 +1674,7 @@ sub aggregateFile {
     $new_dir = $cfgOpts{'aggregation directory'} . "/" . $new_dir;
     makeDir($new_dir);
     my $newname = $new_dir . "/" . $file;
-    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps new dir is at the different file system\n"), die );
+    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps new directory is at different file system\n"), die );
     dbgmsg (3, "$file moved to $newname\n");
   } else {
     makeDir($cfgOpts{'aggregation virtual directory'});
@@ -1682,16 +1685,16 @@ sub aggregateFile {
     my @virt_dir = split(/\//, $cfgOpts{'aggregation virtual directory'});
 
     use Cwd;
-    my @cwd = split(/\//, getcwd);
+    my @cwd = split(/\//, getcwd());
     my $i = 0;
 
     my $oldfile = "../../"; # since the aggregat is placed @ the 'aggr virt dir' and the 'aggr mode' caused dir
-    while ( $virt_dir[$i] eq ".." ) { # how many levels '..' the aggregat have to be placed uper than cwd
+    while ($virt_dir[$i] eq "..") { # how many levels '..' the aggregat have to be placed uper than cwd
       $i++;
     }
 
-    for ( $i--; $i >= 0; $i--) { # aagregat path forming according the $i value
-      $oldfile .= $cwd[$#cwd - $i] . "/";
+    for ($i; $i > 0; $i--) { # aggregat path forming according the $i value
+      $oldfile .= $cwd[scalar(@cwd) - $i] . "/";
     }
 
     if (not -l $newfile) {
@@ -2117,8 +2120,9 @@ sub template2name {
   if (defined $infoObj->{"RenRotFileNameOriginal"}) {
     $fileNameOriginal = $infoObj->{"RenRotFileNameOriginal"};
   } else {
-    # temporary stub to make renrot remember original file name for the formats
-    # ExifTool writing to doesn't sopport... reported by Neil Hooey <nhooey@gmail.com>
+    # Temporary stub to make renrot remember original file name for the formats
+    # ExifTool writing to doesn't support.
+    # Reported by Neil Hooey <nhooey@gmail.com>
     $fileNameOriginal = $infoObj->{"FileName"};
   }
 
