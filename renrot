@@ -16,6 +16,7 @@ use Time::localtime;
 use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
+use File::Spec;
 
 use Term::ANSIColor;
 
@@ -28,7 +29,7 @@ my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
 # Versioning
 my @svnrevision = split(/ /, '$Revision$');
-our $VERSION = '1.1rc1';             # the version of this script
+our $VERSION = '1.1rc1';          # the version of this script
 our $REVISION = $svnrevision[1];  # revision
 
 my $maxVerbosity = 4;                                         # our max verbosity level (internal)
@@ -550,10 +551,10 @@ sub getOptions {
     dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
   } elsif ($cfgOpts{'contact sheet'} == 1 or defined $contactSheet) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n",
-            "Contact Sheet generation disabled.\n\n");
+            "Contact Sheet generation disabled.\n");
   } elsif ($gen_thm != 0) {
     errmsg ("To use --generate-thumb functionality you need Image::Magick package!\n",
-            "ThumbnailImage generation is disabled.\n\n");
+            "ThumbnailImage generation is disabled.\n");
   }
 
   # preparing Software tag according the usage or not of ImageMagick
@@ -707,9 +708,9 @@ sub parseConfig {
   $home = $ENV{"USERPROFILE"} if (not defined $home);
 
   if (defined $home and $home ne "") {
-    push (@homeRC, $home . "/" . ".renrotrc");
-    push (@homeRC, $home . "/" . ".renrot/.renrotrc");
-    push (@homeRC, $home . "/" . ".renrot/renrot.conf");
+    push (@homeRC, File::Spec->catfile($home, ".renrotrc"));
+    push (@homeRC, File::Spec->catfile($home, ".renrot", ".renrotrc"));
+    push (@homeRC, File::Spec->catfile($home, ".renrot", "renrot.conf"));
   } else {
     warnmsg ("User's home environment variable isn't defined or empty!\n");
   }
@@ -727,41 +728,6 @@ sub parseConfig {
   @rcFiles = ($file) if (defined $file);
 
   map { %cfgOpts = parseConfigFile(0, $_, %cfgOpts) } @rcFiles;
-}
-
-########################################################################################
-# Usage      : dirConv($dir_str)
-# Purpose    : removes dotslashes, heading dotslash and trailing slashes
-# Returns    : directory name without dotslashes, heading dotslash and trailing slashes
-# Parameters : [string] $dir_str
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : N/A
-sub dirConv {
-  my $dirStr = shift;
-  $dirStr =~ s/\/*\/\.\/\/*/\//g;	# remove dotslashes
-  $dirStr =~ s/^\.\/\/*//;		# remove heading dotslash
-  $dirStr =~ s/\/+$//;			# remove trailing slashes
-  return $dirStr;
-}
-
-########################################################################################
-# Usage      : dirValidator($dir_str)
-# Purpose    : validates given string as no tree and no current directory
-# Returns    : 0 or 1
-# Parameters : [string] $dir_str
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : N/A
-sub dirValidator {
-  my $dirStr = shift;
-  if ($dirStr =~ m/\// or
-      $dirStr eq "." or
-      $dirStr eq ".." or
-      $dirStr eq "") {
-    return 0;
-  }
-  return 1;
 }
 
 ########################################################################################
@@ -1142,6 +1108,7 @@ sub aggregationProcess {
   my $counterSize = shift;
   my $file;
   my $info;
+  my $BaseDir;
   my $NewDir;
   my $file_num = scalar(keys(%filenameshash));
   my $file_rem = 0;
@@ -1149,13 +1116,18 @@ sub aggregationProcess {
   procmsg ("AGGREGATION\n");
   procmsg ("===========\n");
 
+  if ($cfgOpts{'aggregation virtual'} == 0) {
+    $BaseDir = $cfgOpts{'aggregation directory'};
+  } else {
+    $BaseDir = $cfgOpts{'aggregation virtual directory'};
+  }
+
   if ($cfgOpts{'aggregation mode'} eq "template") {
     dbgmsg (1, "Template: $cfgOpts{'aggregation template'}\n");
     my $fileCounter = $countStart;
 
     foreach $file (sort (keys %filenameshash)) {
       $file_rem++;
-      dbgmsg (4, "Processing ($file_rem of $file_num) file: $file\n");
       $info = $exifToolObj->ImageInfo($file);
       $NewDir = template2name (
           $exifToolObj,
@@ -1166,8 +1138,8 @@ sub aggregationProcess {
           $counterSize,
           "0cw"
       );
+      $NewDir = File::Spec->catdir($BaseDir, $NewDir);
       aggregateFile($file, $NewDir) if ($dryRun == 0);
-
       procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
       $fileCounter += $countStep;
     }
@@ -1180,18 +1152,17 @@ sub aggregationProcess {
     foreach $file (sort (keys %filenameshash)) {
       $filetmp = $file;
       $file_rem++;
-      dbgmsg (4, "Processing ($file_rem of $file_num) file: $file\n");
 
       if ($DirCounter == 1) {
         $timestampPrev = $filenameshash{$filetmp};
         $filePrev = $filetmp;
-        $NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+        $NewDir = $BaseDir . "." . sprintf($counterSize, $DirCounter);
         $DirCounter++;
         aggregateFile($file, $NewDir) if ($dryRun == 0);
       } else {
         # Check for new direcroty creation
         if (($filenameshash{$filetmp} - $timestampPrev) > $cfgOpts{'aggregation delta'}) {
-          $NewDir = $cfgOpts{'aggregation directory'} . "." . sprintf($counterSize, $DirCounter);
+          $NewDir = $BaseDir . "." . sprintf($counterSize, $DirCounter);
           $DirCounter++;
         }
         aggregateFile($file, $NewDir) if ($dryRun == 0);
@@ -1218,7 +1189,7 @@ sub contactSheetGenerator {
   use File::Copy;
 
   my $exifToolObj = shift;
-  my $workdir = $cfgOpts{'contact sheet dir'} . "/";
+  my $workdir = $cfgOpts{'contact sheet dir'};
   my $file;
   my $info;
   my $infothm;
@@ -1251,45 +1222,49 @@ sub contactSheetGenerator {
   foreach $file (keys %filenameshash) {
     $info = $exifToolObj->ImageInfo($file);
     $orientation = $exifToolObj->GetValue("Orientation", 'ValueConv');
+
     $filefull = $file;
 
-    if ($contactSheetThm != 0 and defined $orientation and $orientation > 1) {
-      $filefull = rot_thm_cs ($file, $rotorient{$orientation}, $workdir);
-    } elsif ($contactSheetThm != 0 and defined $orientation and $orientation == 1) {
-      # we need this since rotated img'll be @ $workdir, but others are in current
-      $ThumbnailOriginal = $workdir . $file;
-      copy ($file, $ThumbnailOriginal) or die "copy failed: $!";
-      $filefull = $ThumbnailOriginal;
-    } elsif ($contactSheetThm == 0 and defined ${$$info{ThumbnailImage}}) {
-      $ThumbnailOriginal = $workdir . $file;
-      unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
-        die "$ThumbnailOriginal wasn't opened!\n";
-      }
-      binmode OLDTHUMBNAIL;
-      print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-      unless (close (OLDTHUMBNAIL)) { warn "$ThumbnailOriginal wasn't closed!\n"; }
-
-      if (not defined $orientation) {
-        $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
-      }
-
-      if (defined $orientation and $orientation > 1) {
-        $filefull = rot_thm_cs ($ThumbnailOriginal, $orientation, "");
-      } else {
+    if ($contactSheetThm != 0 and defined $orientation) {
+      if ($orientation > 1) {
+        $filefull = rot_thm_cs ($file, $rotorient{$orientation}, $workdir);
+      } elsif ($orientation == 1) {
+        # We need this since rotated imgage will be at $workdir, but others are
+        # in current
+        $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
+        copy ($file, $ThumbnailOriginal) || ( fatalmsg ("copy failed: $!"), die );
         $filefull = $ThumbnailOriginal;
       }
-    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}} and $gen_thm == 0) {
-      warnmsg ("$filefull has no ThumbnailImage tag. Stub thumbnail image'll be used.\n");
-      if (not -f $workdir . "thmbstub.jpg") {
-        thm_gen_stub ($workdir, "thmbstub.jpg");
-      }
-      copy ($workdir . "thmbstub.jpg", $workdir . $file);
-      $filefull = $workdir . $file;
-    } elsif ($contactSheetThm == 0 and not defined ${$$info{ThumbnailImage}} and $gen_thm != 0) {
-      warnmsg ("$filefull has no ThumbnailImage tag. Thumbnail image'll be generated.\n");
+    } elsif ($contactSheetThm == 0) {
+      if (defined ${$$info{ThumbnailImage}}) {
+        $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
+        open (OLDTHUMBNAIL, ">$ThumbnailOriginal") || ( fatalmsg ("$ThumbnailOriginal wasn't opened!\n"), die );
+        binmode OLDTHUMBNAIL;
+        print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+        unless (close (OLDTHUMBNAIL)) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
 
-      move (thm_gen_orig($file, 0), $workdir . $file);
-      $filefull = $workdir . $file;
+        if (not defined $orientation) {
+          $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
+        }
+
+        if (defined $orientation and $orientation > 1) {
+          $filefull = rot_thm_cs ($ThumbnailOriginal, $orientation, File::Spec->curdir());
+        } else {
+          $filefull = $ThumbnailOriginal;
+        }
+      } else {
+        my $ffwf = File::Spec->catfile($workdir, $file);
+        if ($gen_thm == 0) {
+          warnmsg ("$filefull has no ThumbnailImage tag. Stub thumbnail image will be used.\n");
+          my $thmbstubjpg = File::Spec->catfile($workdir, "thmbstub.jpg");
+          thm_gen_stub($thmbstubjpg) if (not -f $thmbstubjpg);
+          copy ($thmbstubjpg, $ffwf);
+        } else {
+          warnmsg ("$filefull has no ThumbnailImage tag. Thumbnail image will be generated.\n");
+          move (thm_gen_orig($file, 0), $ffwf);
+        }
+        $filefull = $ffwf;
+      }
     }
 
     $infothm = $exifToolObj->ImageInfo($filefull);
@@ -1362,7 +1337,7 @@ sub contactSheetGenerator {
         $readres = $image->Read($thumbnailes_sorted[$csIter]);
         if (not $readres) {
           dbgmsg (4, "$thumbnailes_sorted[$csIter] was successfully read.\n");
-        } else { errmsg ("Image::Magick error: $readres\n\n"); }
+        } else { errmsg ("Image::Magick error: $readres\n"); }
 
         # ranking
         $substrFile = substr($thumbnailes_sorted[$csIter], length($cfgOpts{'contact sheet dir'}) + 1);
@@ -1389,7 +1364,7 @@ sub contactSheetGenerator {
           stroke => 'none',
       );
 
-      if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+      if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n"); }
       else { dbgmsg (1, "$csIterator montage've finished successfully.\n"); }
 
       $montage->Set (
@@ -1416,8 +1391,8 @@ sub contactSheetGenerator {
           text => $left_up_row[1],
       );
       $writeres = $montage->Write();
-      if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
-      else { errmsg ("Image::Magick error: $writeres\n\n"); }
+      if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n"); }
+      else { errmsg ("Image::Magick error: $writeres\n"); }
 
       $infoMontage = $exifToolObj->ImageInfo($montagename);
 
@@ -1449,10 +1424,10 @@ sub contactSheetGenerator {
   for ($readIndex = 0, $csIteration = $csIterator * $tileMul; $csIteration < $csIterationNumber; $csIteration++, $readIndex++) {
     $readres = $image->Read($thumbnailes_sorted[$csIteration]);
     if (not $readres) { dbgmsg (4, "$thumbnailes_sorted[$csIteration] was successfully red.\n"); }
-    else { errmsg ("Image::Magick error: $readres\n\n"); }
+    else { errmsg ("Image::Magick error: $readres\n"); }
 
     # ranking
-    $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'})+1);
+    $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'}) + 1);
     if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
       dbgmsg (4, "[last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
       $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
@@ -1480,7 +1455,7 @@ sub contactSheetGenerator {
       stroke => 'none',
   );
 
-  if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n\n"); }
+  if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n"); }
   else { dbgmsg (1, "Montage've finished successfully.\n"); }
 
   $montage->Set (
@@ -1507,8 +1482,8 @@ sub contactSheetGenerator {
       text => $left_up_row[1],
   );
   $writeres = $montage->Write();
-  if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n\n"); }
-  else { errmsg ("Image::Magick error: $writeres\n\n"); }
+  if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n"); }
+  else { errmsg ("Image::Magick error: $writeres\n"); }
   undef $image;
 
   $infoMontage = $exifToolObj->ImageInfo($montagename);
@@ -1529,18 +1504,15 @@ sub contactSheetGenerator {
 }
 
 ########################################################################################
-# Usage      : thm_gen_stub($wrkdir, $thmbname);
+# Usage      : thm_gen_stub($thm_name);
 # Purpose    : thumbnail stub generator
 # Returns    : none
-# Parameters : $wrkdir   str - the directory, thumbnailes are kept
-#            : $thmbname str - thumbnail image name
+# Parameters : $thm_name str - thumbnail image pathname
 # Throws     : no exceptions
 # Comments   : none
 # See Also   : contactSheetGenerator();
 sub thm_gen_stub {
-  my $workdir  = shift;
-  my $file = shift;
-  my $thm_name = $workdir . $file;
+  my $thm_name = shift;
   my $size = $cfgOpts{'generate thumbnail size'};
   my $thmb = Image::Magick->new;
 
@@ -1556,10 +1528,10 @@ sub thm_gen_stub {
 
   my $thmbnum = $thmb->Write();
 
-  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
+  if ($thmbnum) { errmsg ("$thmbnum\n"); }
   undef $thmb;
 
-  procmsg ("Stub thumbnail image've been created.\n");
+  procmsg ("Stub thumbnail image has been created.\n");
 }
 
 ########################################################################################
@@ -1587,7 +1559,7 @@ sub thm_gen_orig {
 
   my $thmbnum = $thmb->Write();
 
-  if ($thmbnum) { errmsg ("$thmbnum\n\n"); }
+  if ($thmbnum) { errmsg ("$thmbnum\n"); }
   undef $thmb;
 
   if ($unlink) {
@@ -1615,7 +1587,7 @@ sub rot_thm_cs {
   my $angle = shift;
   my $workdir = shift;
   my $image_to_rotate = Image::Magick->new;
-  my $result = $workdir . $base_orig;
+  my $result = File::Spec->catfile($workdir, $base_orig);
 
   $image_to_rotate->Read("JPEG:" . $base_orig);
   $image_to_rotate->Rotate(degrees => $angle);
@@ -1668,41 +1640,23 @@ sub makeDir {
 sub aggregateFile {
   my $file = shift;
   my $new_dir = shift;
+  my ($dummy_volume, $dummy_dir, $base_name) = File::Spec->splitpath($file);
+
+  makeDir($new_dir);
 
   if ($cfgOpts{'aggregation virtual'} == 0) {
-    makeDir($cfgOpts{'aggregation directory'});
-    $new_dir = $cfgOpts{'aggregation directory'} . "/" . $new_dir;
-    makeDir($new_dir);
-    my $newname = $new_dir . "/" . $file;
-    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps new directory is at different file system\n"), die );
+    my $newname = File::Spec->catfile($new_dir, $base_name);
+    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps a different file system is using\n"), die );
     dbgmsg (3, "$file moved to $newname\n");
   } else {
-    makeDir($cfgOpts{'aggregation virtual directory'});
-    $new_dir = $cfgOpts{'aggregation virtual directory'} . "/" . $new_dir;
-    makeDir($new_dir);
-    my $newfile = $new_dir . "/" . $file;
-
-    my @virt_dir = split(/\//, $cfgOpts{'aggregation virtual directory'});
-
-    use Cwd;
-    my @cwd = split(/\//, getcwd());
-    my $i = 0;
-
-    my $oldfile = "../../"; # since the aggregat is placed @ the 'aggr virt dir' and the 'aggr mode' caused dir
-    while ($virt_dir[$i] eq "..") { # how many levels '..' the aggregat have to be placed uper than cwd
-      $i++;
-    }
-
-    for ($i; $i > 0; $i--) { # aggregat path forming according the $i value
-      $oldfile .= $cwd[scalar(@cwd) - $i] . "/";
-    }
-
+    my $newfile = File::Spec->catfile(File::Spec->abs2rel($new_dir), $base_name);
     if (not -l $newfile) {
-      $oldfile .= $file;
+      # Make relative path to original file from new directory
+      my $oldfile = File::Spec->catfile(File::Spec->abs2rel(File::Spec->curdir(), $new_dir), $file);
       symlink ($oldfile, $newfile) || ( fatalmsg ("While linking $oldfile -> $newfile\n"), die );
       dbgmsg (3, "Following link was created $newfile -> $oldfile\n");
     } else {
-      procmsg ("Link $newfile already exists.\n");
+      warnmsg ("Link $newfile already exists.\n");
     }
   }
 }
@@ -2249,9 +2203,6 @@ if (not grep (/^$cfgOpts{'aggregation mode'}$/, ('none', 'delta', 'template'))) 
   warnmsg ("Aggregation mode isn't correct!\n");
 }
 
-$cfgOpts{'aggregation directory'} = dirConv($cfgOpts{'aggregation directory'});
-$cfgOpts{'aggregation virtual directory'} = dirConv($cfgOpts{'aggregation virtual directory'});
-
 # Calculate ExifTool's verbosity
 my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 0;
 
@@ -2576,13 +2527,14 @@ template.
 
 Aggregation time delta, in seconds. Files with DateTimeOriginal and ones of
 the previous file delta, greater than B<--aggr-delta> are placed in the
-directory, with the name constructed by concatenating the value of the
+directories, with the names are constructed by concatenating the value of the
 B<--aggr-directory> option and the directory name counter.
 
 =item B<--aggr-directory> F<DIR>
 
-Aggregation directory name prefix (default is I<Images>), have to be on the same
-file system, relative to the current working directory and contain no unexistent subdirectories.
+Aggregation directory name prefix (default is I<Images>), have to be on the
+same file system, relative to the current working directory or an absolute path
+and contain no unexistent subdirectories.
 
 =item B<-a> or B<--aggr-template> I<TEMPLATE>
 
@@ -2606,9 +2558,10 @@ virtualization.
 
 =item B<--aggr-virtual-directory> F<DIR>
 
-Virtual aggregation directory name prefix (default is I<Images.Links.Directory>),
-have to be on the same file system, relative to the current working directory and
-contain no unexistent subdirectories.
+Virtual aggregation directory name prefix (default is
+I<Images.Links.Directory>), have to be on the file system which is supported
+symbolic links, relative to the current working directory or an absolute path
+and contain no unexistent subdirectories.
 
 =item B<--comment-file> F<FILE>
 
