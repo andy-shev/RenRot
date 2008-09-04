@@ -1,9 +1,9 @@
-%define rcver	rc1
-%define dotrc	.rc1
+%define rcver	rc2
+%define dotrc	.rc2
 
 Name:		renrot
 Version:	1.1
-Release:	0.1%{?dotrc}%{?dist}
+Release:	0.2%{?dotrc}%{?dist}
 License:	Artistic 2.0
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags

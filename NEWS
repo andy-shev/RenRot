@@ -1,3 +1,13 @@
+* 1.1rc2 *
+
+Serveral bugs were fixed in the aggregation framework. The hardcoded path
+separator symbols are removed. This should bring proper path interpretation on
+other than Unix operating systems. The virtual aggregation is worked now for
+delta aggregation mode as well. In according to the last changes the
+documentation has been updated. Additionally a small optimization was done in
+the contact sheet generator.
+
+
 * 1.1rc1 *
 
 There is major improvement of the existent functionality. In this release the
