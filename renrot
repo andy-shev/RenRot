@@ -17,7 +17,7 @@ use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
-
+use File::Path;
 use Term::ANSIColor;
 
 $Term::ANSIColor::AUTORESET = 1;
@@ -1624,7 +1624,10 @@ sub colorValidator {
 sub makeDir {
   my $new_dir = shift;
   if (not -d $new_dir) {
-    unless (mkdir $new_dir) { errmsg ("$new_dir wasn't created! Perhaps the path contains nonexistent subdirectories...\n"); }
+    eval { mkpath( $new_dir, 0, 0700) };
+    if ($@) {
+      errmsg ("Couldn't create $new_dir: $@");
+    }
   }
 }
 
