@@ -29,7 +29,7 @@ my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
 # Versioning
 my @svnrevision = split(/ /, '$Revision$');
-our $VERSION = '1.1rc2';          # the version of this script
+our $VERSION = '1.1rc3';          # the version of this script
 our $REVISION = $svnrevision[1];  # revision
 
 my $maxVerbosity = 4;                                         # our max verbosity level (internal)

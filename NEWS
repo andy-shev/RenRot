@@ -1,3 +1,11 @@
+* 1.1rc3 *
+
+The option --aggr-virtual-directory was removed, you should use
+--aggr-directory instead. Now the '#' (hash) symbol could be used at the begin
+of given color value in a command line. The tree for an aggregation is created
+automatically. Documentation has been updated accordingly.
+
+
 * 1.1rc2 *
 
 Serveral bugs were fixed in the aggregation framework. The hardcoded path
