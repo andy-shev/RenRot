@@ -78,7 +78,6 @@ my %cfgOpts = (
   'aggregation mode' => 'none',
   'aggregation template' => '%Y%m%d',
   'aggregation virtual' => 0,
-  'aggregation virtual directory' => 'Images.Links.Directory',
   'keywordize' => 0,
   'keywords file' => '.keywords',
   'keywords replace' => 0,
@@ -120,7 +119,6 @@ my $aggrDir;		# counterless directory name for "delta" type aggregation
 my $aggrMode;		# define aggregation mode, possible values are: none, delta or template
 my $aggrTemplate;	# template for the files aggregation taken from CLI
 my $aggrVirtual;	# flag to do links instead real file moving while aggregation
-my $aggrVirtDir;	# directory name for virtual aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
@@ -406,7 +404,6 @@ sub getOptions {
       "aggr-mode=s" => \$aggrMode,
       "aggr-template|a=s" => \$aggrTemplate,
       "aggr-virtual!" => \$aggrVirtual,
-      "aggr-virtual-directory=s" => \$aggrVirtDir,
       "backup!" => \$backup,
       "comment-file=s" => \$comfile,
       "config-file|c=s" => \$configFile,
@@ -471,7 +468,6 @@ sub getOptions {
   ldbg3("--aggr-mode: $aggrMode") if (defined $aggrMode);
   ldbg3("--aggr-template: $aggrTemplate") if (defined $aggrTemplate);
   ldbg3("--aggr-virtual: ", boolConv($aggrVirtual)) if (defined $aggrVirtual);
-  ldbg3("--aggr-virtual-directory: $aggrVirtDir") if (defined $aggrVirtDir);
   ldbg3("--backup: ", boolConv($backup));
   ldbg3("--comment-file: $comfile") if (defined $comfile);
   ldbg3("--config-file: $configFile") if (defined $configFile);
@@ -592,8 +588,8 @@ sub trimValue {
 }
 
 ########################################################################################
-# Usage      : parsePair() gets (key, value) pair from the string
-#            : like [multiword] key = "value"
+# Usage      : parsePair() gets (key, value) pair from the string like
+#            : [multiword] key = "value"
 # Purpose    : parses pairs of data
 # Returns    : $key, $value  string
 # Parameters : string like [multiword] key = "value"
@@ -1108,7 +1104,7 @@ sub aggregationProcess {
   my $counterSize = shift;
   my $file;
   my $info;
-  my $BaseDir;
+  my $BaseDir = $cfgOpts{'aggregation directory'};
   my $NewDir;
   my $file_num = scalar(keys(%filenameshash));
   my $file_rem = 0;
@@ -1116,11 +1112,7 @@ sub aggregationProcess {
   procmsg ("AGGREGATION\n");
   procmsg ("===========\n");
 
-  if ($cfgOpts{'aggregation virtual'} == 0) {
-    $BaseDir = $cfgOpts{'aggregation directory'};
-  } else {
-    $BaseDir = $cfgOpts{'aggregation virtual directory'};
-  }
+  makeDir($BaseDir);
 
   if ($cfgOpts{'aggregation mode'} eq "template") {
     dbgmsg (1, "Template: $cfgOpts{'aggregation template'}\n");
@@ -1346,14 +1338,14 @@ sub contactSheetGenerator {
           $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
         } else {
           dbgmsg (4, "$substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
-          $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+          $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'}));
         }
       }
       dbgmsg (1, "$csIterator montage is started, wait a bit please...\n");
-      $montage = $image->Montage(background => colorValidator($cfgOpts{'contact sheet background'}),
-          bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+      $montage = $image->Montage(background => normalize_color($cfgOpts{'contact sheet background'}),
+          bordercolor => normalize_color($cfgOpts{'contact sheet bordercolor'}),
           font => $cfgOpts{'contact sheet font'},
-          fill => colorValidator($cfgOpts{'contact sheet fill'}),
+          fill => normalize_color($cfgOpts{'contact sheet fill'}),
           label => $cfgOpts{'contact sheet label'},
           frame => $cfgOpts{'contact sheet frame'},
           geometry => $size . "x" . $size . "+4+4",
@@ -1433,7 +1425,7 @@ sub contactSheetGenerator {
       $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
     } else {
       dbgmsg (4, "[last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
-      $image->[$readIndex]->Set(mattecolor => colorValidator($cfgOpts{'contact sheet mattecolor'}));
+      $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'}));
     }
   }
   dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
@@ -1441,10 +1433,10 @@ sub contactSheetGenerator {
   # the final invocation of ->Montage() method for the the rest of files didn't fit
   # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
   $montage = $image->Montage (
-      background => colorValidator($cfgOpts{'contact sheet background'}),
-      bordercolor => colorValidator($cfgOpts{'contact sheet bordercolor'}),
+      background => normalize_color($cfgOpts{'contact sheet background'}),
+      bordercolor => normalize_color($cfgOpts{'contact sheet bordercolor'}),
       font => $cfgOpts{'contact sheet font'},
-      fill => colorValidator($cfgOpts{'contact sheet fill'}),
+      fill => normalize_color($cfgOpts{'contact sheet fill'}),
       label => $cfgOpts{'contact sheet label'},
       frame => $cfgOpts{'contact sheet frame'},
       geometry => $size . "x" . $size . "+4+4",
@@ -1517,10 +1509,10 @@ sub thm_gen_stub {
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
-  $thmb->ReadImage("gradient:" . colorValidator($cfgOpts{'contact sheet thm grad fr'}) . "-" . colorValidator($cfgOpts{'contact sheet thm grad to'}));
+  $thmb->ReadImage("gradient:" . normalize_color($cfgOpts{'contact sheet thm grad fr'}) . "-" . normalize_color($cfgOpts{'contact sheet thm grad to'}));
   $thmb->Annotate (
 		   pointsize => 25,
-		   fill => colorValidator($cfgOpts{'contact sheet thm fill'}),
+		   fill => normalize_color($cfgOpts{'contact sheet thm fill'}),
 		   font => $cfgOpts{'contact sheet thm font'},
 		   text => $cfgOpts{'contact sheet thm text'},
 		   gravity => 'Center',
@@ -1597,20 +1589,19 @@ sub rot_thm_cs {
 }
 
 ########################################################################################
-# Usage      : colorValidator($color);
+# Usage      : normalize_color($color);
 # Purpose    : validates given string as color suitable for ImageMagick
 # Returns    : none
 # Parameters : $color str - color
 # Throws     : no exceptions
 # Comments   : none
 # See Also   : convert -list color
-sub colorValidator {
+sub normalize_color {
   my $color = shift;
-  if ($color =~ /^#.*$/) {
-    errmsg("You have not use \"#\" in color index definition.\n");
-  } elsif ($color =~ /^[A-Fa-f0-9]{3}$/ or $color =~ /^[A-Fa-f0-9]{6}$/) {
-    return "#" . $color;
-  } else { return $color; }
+  if ($color =~ /^#?([[:xdigit:]]{3})$/ or $color =~ /^#?([[:xdigit:]]{6})$/) {
+    return "#" . $1;
+  }
+  return $color;
 }
 
 ########################################################################################
@@ -1624,7 +1615,7 @@ sub colorValidator {
 sub makeDir {
   my $new_dir = shift;
   if (not -d $new_dir) {
-    eval { mkpath( $new_dir, 0, 0700) };
+    eval { mkpath($new_dir, 0, 0700) };
     if ($@) {
       errmsg ("Couldn't create $new_dir: $@");
     }
@@ -1951,8 +1942,6 @@ Aggregating options:
       --aggr-directory <DIR>	aggregation directory name
   -a, --aggr-template <TPL>	aggregation template (see manual for details)
       --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
-      --aggr-virtual-directory <DIR>
-                                root directory for virtual aggregation
 
 Contact Sheet options (CS):
       --cs (*)			create the CS
@@ -2165,7 +2154,6 @@ $cfgOpts{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
 $cfgOpts{'aggregation mode'}	        = $aggrMode if (defined $aggrMode);
 $cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $cfgOpts{'aggregation virtual'}	        = $aggrVirtual if (defined $aggrVirtual);
-$cfgOpts{'aggregation virtual directory'} = $aggrVirtDir if (defined $aggrVirtDir);
 $cfgOpts{'keywordize'}                  = $keywordize if (defined $keywordize);
 $cfgOpts{'keywords file'}       	= $keywordsFile if (defined $keywordsFile);
 $cfgOpts{'keywords replace'}    	= $keywordsReplace if (defined $keywordsReplace);
@@ -2536,8 +2524,9 @@ B<--aggr-directory> option and the directory name counter.
 =item B<--aggr-directory> F<DIR>
 
 Aggregation directory name prefix (default is I<Images>), have to be on the
-same file system, relative to the current working directory or an absolute path
-and contain no unexistent subdirectories.
+same file system (or on the file system which supports symbolic links in case
+of virtual aggregation), relative to the current working directory or an
+absolute path.
 
 =item B<-a> or B<--aggr-template> I<TEMPLATE>
 
@@ -2550,21 +2539,10 @@ option. For practical uses, see L</TEMPLATE EXAMPLES> section.
 
 =item B<--aggr-virtual>, B<--no-aggr-virtual>
 
-Defines virtualization for existent aggregation modes. If set, resulting files
-are placed into the directory given by the command line option
-B<--aggr-virtual-directory> or configuration file option B<aggregation virtual
-directory> then any changes required by the current aggregation mode are
-applied. The main effect of B<--aggr-virtual> is that any files to be
-aggregated remain untouched in their places, and symlinks pointing to them are
-stored in the directory tree created. Use B<--no-aggr-virtual> to prevent
-virtualization.
-
-=item B<--aggr-virtual-directory> F<DIR>
-
-Virtual aggregation directory name prefix (default is
-I<Images.Links.Directory>), have to be on the file system which is supported
-symbolic links, relative to the current working directory or an absolute path
-and contain no unexistent subdirectories.
+Defines virtualization for existent aggregation modes. The main effect of
+B<--aggr-virtual> is that any files to be aggregated remain untouched in their
+places, and relative symbolic links pointing to them are stored in the
+directory tree created. Use B<--no-aggr-virtual> to prevent virtualization.
 
 =item B<--comment-file> F<FILE>
 
@@ -2592,7 +2570,7 @@ Do not do anything, only print would have been done.
 
 =item B<-g> or B<--generate-thumb>
 
-Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage 
+Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage
 tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
 
 =item B<--use-ipc>, B<--no-use-ipc>
@@ -2838,11 +2816,6 @@ B<--aggr-template>, for the description).
 
 Defines virtualization for the existing aggregation modes (see the
 B<--aggr-virtual> option).
-
-=item B<aggregation virtual directory>
-
-Defines a directory for virtual aggregation (see the
-B<--aggr-virtual-directory> option>).
 
 =item B<Tag>, B<TagFile>
 
