@@ -1,3 +1,10 @@
+* 1.1 *
+
+The dying is less informative now, when verbosity level set to zero. All
+messages which are not related to the 'info' or 'process' category will be put
+to the standard error stream.
+
+
 * 1.1rc3 *
 
 The option --aggr-virtual-directory was removed, you should use
