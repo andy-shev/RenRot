@@ -11,6 +11,7 @@ URL:		http://puszcza.gnu.org.ua/projects/renrot/
 Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}%{?rcver}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
+BuildRequires:	perl(ExtUtils::MakeMaker)
 BuildRequires:	perl(Image::ExifTool) >= 5.72
 BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))

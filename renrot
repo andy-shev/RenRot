@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use diagnostics;
 require 5.006;
+use Pod::Usage;
 use Time::localtime;
 use Time::Local;
 use Image::ExifTool;
@@ -122,6 +123,7 @@ my $aggrVirtual;	# flag to do links instead real file moving while aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
+
 my $contactSheet;	# contact sheet generation
 my $contactSheetTile;	# tile in the montage
 my $contactSheetTitle;	# title for the montage
@@ -144,6 +146,7 @@ my $contactSheetThmGrTo;# thumbnail background gradient to
 my $contactSheetThmText;# thumbnail text
 my $contactSheetRank;	# ranking
 my $contactSheetRankFile;	# file with images ranks
+
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
 my $countStep = 1;	# Step for counter
@@ -151,9 +154,11 @@ my $dryRun = 0;		# show what would have been happened
 my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $gen_thm = 0;	# to not to generate ThumbnailImage if empty
+
 my $keywordize;		# keywordize or not
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
 my $keywordsFile;	# file with keyword set
+
 my $mtime;		# mtime taken from CLI
 my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
@@ -248,6 +253,9 @@ my @files = ();		# array of the sorted filenames to process
 my %filenameshash = ();	# hash for old file names
 
 ########################################################################################
+###                                 MESSAGING                                        ###
+########################################################################################
+
 #
 # Colors hash
 #
@@ -337,6 +345,10 @@ sub ldbg3 {
 };
 
 ########################################################################################
+###                               COMMON HELPERS                                     ###
+########################################################################################
+
+########################################################################################
 # Usage      : die_renrot()
 # Purpose    : dies differently depend on verbose level
 # Returns    : nothing
@@ -400,6 +412,10 @@ sub isTherePackage {
 }
 
 ########################################################################################
+###                         GETTINNG OPTIONS FROM CLI                                ###
+########################################################################################
+
+########################################################################################
 # Usage      : getOptions(...)
 # Purpose    : parses command line arguments
 # Returns    : nothing
@@ -417,9 +433,11 @@ sub getOptions {
       "aggr-mode=s" => \$aggrMode,
       "aggr-template|a=s" => \$aggrTemplate,
       "aggr-virtual!" => \$aggrVirtual,
+
       "backup!" => \$backup,
       "comment-file=s" => \$comfile,
       "config-file|c=s" => \$configFile,
+
       "contact-sheet|cs!" => \$contactSheet,
       "contact-sheet-tile|cs-tile=s" => \$contactSheetTile,
       "contact-sheet-title|cs-title=s" => \$contactSheetTitle,
@@ -499,15 +517,19 @@ sub getOptions {
   ldbg3("--contact-sheet-fr: $contactSheetFr") if (defined $contactSheetFr);
   ldbg3("--contact-sheet-rank: ", boolConv($contactSheetRank)) if (defined $contactSheetRank);
   ldbg3("--contact-sheet-rank-file: $contactSheetRankFile") if (defined $contactSheetRankFile);
+
   ldbg3("--counter-start: $countStart",
     "   --counter-step: $countStep",
     "   --counter-fixed-field: ", boolConv($countFF));
   ldbg3("--dry-run: ", boolConv($dryRun)) if (defined $dryRun);
   ldbg3("--exclude:\n", join("\n", @excludeList)) if (scalar(@excludeList) > 0);
   ldbg3("--extension: '$extToProcess'");
+  ldbg3("--generate-thumb: ", boolConv($gen_thm));
+
   ldbg3("--keywordize: ", boolConv($keywordize)) if (defined $keywordize);
   ldbg3("--keywords-replace: ", boolConv($keywordsReplace)) if (defined $keywordsReplace);
   ldbg3("--keywords-file: $keywordsFile") if (defined $keywordsFile);
+
   ldbg3("--mtime: ", boolConv($mtime)) if (defined $mtime);
   ldbg3("--name-template: $nameTemplate") if (defined $nameTemplate);
   ldbg3("--no-rename: ", boolConv($noRename),
@@ -587,6 +609,10 @@ sub getOptions {
 }
 
 ########################################################################################
+###                          CONFIGURATION FRAMEWORK                                 ###
+########################################################################################
+
+########################################################################################
 # Usage      : trimValue($value)
 # Purpose    : removes heading and trailing spaces
 # Returns    : trimmed $value
@@ -604,7 +630,7 @@ sub trimValue {
 # Usage      : parsePair() gets (key, value) pair from the string like
 #            : [multiword] key = "value"
 # Purpose    : parses pairs of data
-# Returns    : $key, $value  string
+# Returns    : $key, $value string
 # Parameters : string like [multiword] key = "value"
 # Throws     : no exceptions
 # Comments   : none
@@ -655,7 +681,7 @@ sub strToHash {
 sub getConfig {
   my $fc = shift;
   my $file = shift;
-  my %hConfig = ();
+  my $hash = {};
 
   if (open (CFGFILE, "<$file")) {
     my @cfgfile = <CFGFILE>;
@@ -675,11 +701,11 @@ sub getConfig {
         $key = lc($key);
         if ($key eq "include" and not $incFiles{$value}) {
           dbgmsg (2, "Parsing included file: '$value'\n");
-          %hConfig = parseConfigFile($fc, $value, %hConfig);
+          parseConfigFile($fc, $value, $hash);
         }
         $key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
-        $hConfig{$key} = boolConverter($value);
-        dbgmsg (3, "Parsed line($i): '$key' <- '$hConfig{$key}'\n");
+        $hash->{$key} = boolConverter($value);
+        dbgmsg (3, "Parsed line($i): '$key' <- '$hash->{$key}'\n");
       } else {
         warnmsg ("Unparsed line $i in configuration file.\n");
       }
@@ -687,7 +713,7 @@ sub getConfig {
   } else {
     errmsg ("Can't open configuration file: $file\n");
   }
-  return %hConfig;
+  return $hash;
 }
 
 ########################################################################################
@@ -697,12 +723,11 @@ sub getConfig {
 sub parseConfigFile {
   my $fc = shift;
   my $file = shift;
-  my %hConfig = @_;
+  my $hash = shift;
   if (-f $file) {
-    my %tmpConfig = getConfig($fc + 1, $file);
-    map { $hConfig{$_} = $tmpConfig{$_} } keys %tmpConfig;
+    my $tmpConfig = getConfig($fc + 1, $file);
+    map { $hash->{$_} = $tmpConfig->{$_} } keys %$tmpConfig;
   }
-  return %hConfig;
 }
 
 ########################################################################################
@@ -711,6 +736,9 @@ sub parseConfigFile {
 #
 sub parseConfig {
   my $file = shift;
+  my $hash = shift;
+
+  return parseConfigFile(0, $file, $hash) if (defined $file);
 
   my $home = $ENV{"HOME"};
   my @homeRC = ();
@@ -734,9 +762,7 @@ sub parseConfig {
       @homeRC,
   );
 
-  @rcFiles = ($file) if (defined $file);
-
-  map { %cfgOpts = parseConfigFile(0, $_, %cfgOpts) } @rcFiles;
+  map { parseConfigFile(0, $_, $hash) } @rcFiles;
 }
 
 ########################################################################################
@@ -1105,6 +1131,10 @@ sub exifWriter {
   }
   return $result;
 }
+
+########################################################################################
+###                           AGGREGATION FRAMEWORK                                  ###
+########################################################################################
 
 ########################################################################################
 #
@@ -2158,7 +2188,7 @@ sub template2name {
 #
 
 getOptions();
-parseConfig($configFile);
+parseConfig($configFile, \%cfgOpts);
 switchColor();
 
 # redefining options set in configuration file with set via CLI ones
@@ -2609,6 +2639,8 @@ Output version information and exit.
 
 =head1 B<CONTACT SHEET GENERATOR>
 
+=over
+
 =item B<--contact-sheet>, B<--no-contact-sheet> or B<--cs>, B<--no-cs>
 
 Create the contact sheet. Currently it works with ThumbnailImage EXIFs and the
@@ -2627,7 +2659,7 @@ end of the process)
 
 Files for the montage are already thumbnails
 
-=over
+=back
 
 Options bellow are native ImageMagic montage options look ImageMagick
 documentation for montage options: I<montage --help> and
@@ -2636,7 +2668,7 @@ I<http://www.imagemagick.org/>
 Note please, for I<COLOR> use RGB triplets only like I<000> for the I<black>
 or I<F00> for the I<red>.
 
-=back
+=over
 
 =item B<--contact-sheet-tile> or B<--cs-tile> I<GEOMETRY>
 
@@ -2727,7 +2759,7 @@ Filename separated from the color by space or tabulation.
 
 Only the files found in the file will be ranked.
 
-=over
+=back
 
 =head1 B<TEMPLATE EXAMPLES>
 
@@ -2935,7 +2967,7 @@ options as described above.
 =item
 
 The main configuration file B<renrot.conf> is searched in the following
-locations (in the order of their appearence):
+locations (in the order of their appearance):
 
 =over
 
@@ -2952,6 +2984,9 @@ system directory
 system directory
 
 =back
+
+Take into consideration, the files which are found will be loaded and
+parsed in the order when user's configuration has maximal priority.
 
 =item
 
@@ -2993,16 +3028,17 @@ file with ranks (see B<--contact-sheet-rank-file>)
 If you found some bug or have some nice propositions, you are welcome.
 Additionally, please, read the section RESTRICTIONS in file README.
 
-1. It seems that on FreeBSD 6, Perl versions 5.8.x exhibits a bug that causes
+=over
+
+=item 1.
+
+It seems that on FreeBSD 6, Perl versions 5.8.x exhibits a bug that causes
 B<renrot> to crash. The overal amount of memory for the perl process
 increasing up to the user datasize limit (in FreeBSD default is 512M).
 
 It seems to be a bug in perl's own malloc implementation. The bug should not
 occur in any perl which uses the system malloc (unless the system malloc has
 the same bug).
-
-2. Some versions of ImageMagick render contact sheets incorrectly. it seems
-it is the question to ImageMagick.
 
 B<renrot> aborts with the error message:
 
@@ -3013,6 +3049,13 @@ Out of memory during "large" request for XXXX bytes ...
 =back
 
 This, however, does not happen with Perl v.5.6.x
+
+=item 2.
+
+Some versions of ImageMagick render contact sheets incorrectly. it seems
+it is the question to ImageMagick.
+
+=back
 
 =head1 AUTHORS
 
