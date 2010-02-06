@@ -389,7 +389,7 @@ sub boolConv {
 # Comments   : none
 # See Also   : boolConv()
 sub boolConverter {
-  my $value = shift;
+  my $value = trim_value(shift);
   if ($value =~ m/^(0|No|False|Off)$/i) {
     return 0;
   } elsif ($value =~ m/^(1|Yes|True|On)$/i) {
@@ -613,14 +613,14 @@ sub getOptions {
 ########################################################################################
 
 ########################################################################################
-# Usage      : trimValue($value)
+# Usage      : trim_value($value)
 # Purpose    : removes heading and trailing spaces
 # Returns    : trimmed $value
 # Parameters : $value string
 # Throws     : no exceptions
 # Comments   : none
 # See Also   : N/A
-sub trimValue {
+sub trim_value {
   my $value = shift;
   $value =~ s/\s*([^\s]+.*[^\s]+)\s*/$1/;
   return $value;
@@ -639,11 +639,11 @@ sub parsePair {
   my $str = shift;
   my ($key, $value) = (undef, shift);
   if ($str =~ m/^([^=]+)=(.+)/) {
-    ($key, $value) = (trimValue($1), trimValue($2));
+    ($key, $value) = (trim_value($1), trim_value($2));
     $value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
     dbgmsg (4, "Parsed: '$key' <- '$value'\n");
   } elsif ($str =~ m/^([^=]+)=$/) {
-    $key = trimValue($1);
+    $key = trim_value($1);
     dbgmsg (4, "Parsed empty '$key', applying default value: ", defined $value ? "'$value'" : "undef", "\n");
   }
   return ($key, $value);
@@ -795,7 +795,7 @@ sub keywordizer {
   my @keywordArr = getFileDataLines($file);
   for (my $i = 0; $i < scalar(@keywordArr); $i++) {
     $keywordArr[$i] =~ s/\r?\n$//;	# remove CR and LF symbols
-    push (@result, trimValue($keywordArr[$i])) if ($keywordArr[$i] !~ m/^\s*$/);
+    push (@result, trim_value($keywordArr[$i])) if ($keywordArr[$i] !~ m/^\s*$/);
   }
   return @result;
 }
