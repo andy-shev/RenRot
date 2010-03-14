@@ -79,7 +79,7 @@ my %cfgOpts = (
   'aggregation mode' => 'none',
   'aggregation template' => '%Y%m%d',
   'aggregation virtual' => 0,
-  'keywordize' => 0,
+  'keywords' => 0,
   'keywords file' => '.keywords',
   'keywords replace' => 0,
   'mtime' => 1,
@@ -155,7 +155,7 @@ my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $gen_thm = 0;	# to not to generate ThumbnailImage if empty
 
-my $keywordize;		# keywordize or not
+my $keywords;		# whether or not to fill Keywords tag
 my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
 my $keywordsFile;	# file with keyword set
 
@@ -468,7 +468,7 @@ sub getOptions {
       "extension|e=s" => \$extToProcess,
       "generate-thumb|g" => \$gen_thm,
       "help|?"   => \$showHelp,
-      "keywordize!" => \$keywordize,
+      "keywords!" => \$keywords,
       "keywords-file|k=s" => \$keywordsFile,
       "keywords-replace!" => \$keywordsReplace,
       "mtime!" => \$mtime,
@@ -526,7 +526,7 @@ sub getOptions {
   ldbg3("--extension: '$extToProcess'");
   ldbg3("--generate-thumb: ", boolConv($gen_thm));
 
-  ldbg3("--keywordize: ", boolConv($keywordize)) if (defined $keywordize);
+  ldbg3("--keywords: ", boolConv($keywords)) if (defined $keywords);
   ldbg3("--keywords-replace: ", boolConv($keywordsReplace)) if (defined $keywordsReplace);
   ldbg3("--keywords-file: $keywordsFile") if (defined $keywordsFile);
 
@@ -818,7 +818,7 @@ sub renRotProcess {
   my $info;			# ImageInfo object
   my @keywordArr = ();		# array for keywords
 
-  if ($cfgOpts{'keywordize'} != 0) {
+  if ($cfgOpts{'keywords'} != 0) {
     @keywordArr = keywordizer ($cfgOpts{'keywords file'});
     errmsg ("Keywords file doesn't exist!\n") if (not -e $cfgOpts{'keywords file'});
   }
@@ -1974,7 +1974,7 @@ Rotating options:
                                 tag
 
 Keywordizing options:
-      --keywordize (*)		set Keywords tag
+      --keywords (*)		set Keywords tag
       --keywords-replace (*)	replace Keywords tag rather than add values to
                                 it
   -k, --keywords-file <FILE>	read keywords from FILE
@@ -2197,7 +2197,7 @@ $cfgOpts{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
 $cfgOpts{'aggregation mode'}	        = $aggrMode if (defined $aggrMode);
 $cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
 $cfgOpts{'aggregation virtual'}	        = $aggrVirtual if (defined $aggrVirtual);
-$cfgOpts{'keywordize'}                  = $keywordize if (defined $keywordize);
+$cfgOpts{'keywords'}                  = $keywords if (defined $keywords);
 $cfgOpts{'keywords file'}       	= $keywordsFile if (defined $keywordsFile);
 $cfgOpts{'keywords replace'}    	= $keywordsReplace if (defined $keywordsReplace);
 $cfgOpts{'mtime'}	        	= $mtime if (defined $mtime);
@@ -2534,9 +2534,9 @@ Use B<--no-mtime> to set it to current time stamp after processing.
 Do not rename, rotate, tag and mtime images. It saves files from any changes
 while allows to do aggregation, contact sheet generation e.t.c.
 
-=item B<--keywordize>, B<--no-keywordize>
+=item B<--keywords>, B<--no-keywords>
 
-Whether to keywordize. Default is to not. Be careful, since with this option
+Whether to fill Keywords tag. Default is to not. Be careful, since with this option
 enabled, the existing keywords are rewriten. The keywords are taken from
 F<.keywords> file or file specified with option B<--keywords-file>.
 

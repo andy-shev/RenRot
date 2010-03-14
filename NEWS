@@ -1,3 +1,7 @@
+* 1.2.0 *
+The option --keywordize was renamed to --keywords.
+
+
 * 1.1.0 *
 
 The current post release contains two small fixes. One of them is for a
