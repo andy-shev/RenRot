@@ -167,6 +167,7 @@ my $co_kw = {
 };
 
 my $co_rs = {
+  'clone'   => { type => '!', default => 0 },
   'dir'     => { type => 's', default => 'Resize' },
   'enabled' => { type => '!', default => 0 },
   'size'    => { type => 'i', default => 640 },
@@ -1571,7 +1572,9 @@ sub resizer {
   use File::Copy;
 
   my $exifToolObj = shift;
-  my $rs_dir = get_cfg_value($co_rs, 'dir');
+  my $rs_dir = get_cfg_value($co_rs, 'clone') ?
+                  basename(File::Spec->rel2abs(File::Spec->curdir())) :
+                      get_cfg_value($co_rs, 'dir');
   my $rs_size = get_cfg_value($co_rs, 'size');
   my $file_num = scalar(keys %filenameshash);
   my $file_rem = 0;
