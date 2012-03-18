@@ -166,11 +166,18 @@ my $co_kw = {
   'replace' => { type => '!', default => 0 },
 };
 
+my $co_rs = {
+  'dir'     => { type => 's', default => 'Resize' },
+  'enabled' => { type => '!', default => 0 },
+  'size'    => { type => 'i', default => 640 },
+};
+
 my $config_opts = {
   'aggregation'     => $co_aggr,
   'contact sheet'   => $co_cs,
   'general'         => $co_g,
   'keywords'        => $co_kw,
+  'resize'          => $co_rs,
 };
 
 ########################################################################################
@@ -305,10 +312,14 @@ sub getOptions {
   my $s_kw_opts;
   my %h_kw_opts;
 
+  # For 'resize'
+  my $s_rs_opts;
+
   my $ll_opts = {
     'aggregation'   => { 's' => \$s_aggr_opts, 'h' => \%h_aggr_opts },
     'contact sheet' => { 's' => \$s_cs_opts,   'h' => \%h_cs_opts },
     'keywords'      => { 's' => \$s_kw_opts,   'h' => \%h_kw_opts },
+    'resize'        => { 's' => \$s_rs_opts,   'h' => undef },
   };
 
   GetOptions (
@@ -357,6 +368,9 @@ sub getOptions {
       "keywords!"         => \$h_kw_opts{'enabled'},
       "keywords-file|k=s" => \$h_kw_opts{'file'},
       "keywords-replace!" => \$h_kw_opts{'replace'},
+
+      # RESIZER
+      "resize-opts=s"     => \$s_rs_opts,
 
       # RENAMIMG
       "counter-fixed-field!" => \$countFF,
@@ -1549,6 +1563,63 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
+# Usage      : resizer($exif_tool_obj);
+# See Also   : n/a
+sub resizer {
+  return if (get_cfg_value($co_rs, 'enabled') == 0);
+
+  use File::Copy;
+
+  my $exifToolObj = shift;
+  my $rs_dir = get_cfg_value($co_rs, 'dir');
+  my $rs_size = get_cfg_value($co_rs, 'size');
+  my $file_num = scalar(keys %filenameshash);
+  my $file_rem = 0;
+
+  procmsg ("RESIZING\n");
+  procmsg ("========\n");
+
+  makedir($rs_dir) if ($dryRun == 0);
+
+  foreach my $file (sort (keys %filenameshash)) {
+    $file_rem++;
+
+    my $infoObj = $exifToolObj->ImageInfo($file);
+    my ($ox, $oy) = ($$infoObj{ImageWidth}, $$infoObj{ImageHeight});
+    my $newname = File::Spec->catfile($rs_dir, basename($file));
+    my ($rx, $ry);
+
+    # calculate new geometry
+    if ($ox >= $oy) {
+      if ($ox > $rs_size) {
+        $rx = $rs_size;
+        $ry = int($rx * $oy / $ox);
+      }
+    } else {
+      if ($oy > $rs_size) {
+        $ry = $rs_size;
+        $rx = int($ry * $ox / $oy);
+      }
+    }
+
+    # resize or copy
+    if ($dryRun == 0) {
+      if (defined $rx or defined $ry) {
+        dbgmsg (2, "Resize: $file [$ox:$oy] -> [$rx:$ry]\n");
+        my $image = Image::Magick->new;
+        $image->Read($file);
+        $image->Resize(width => $rx, height => $ry);
+        $image->Write($newname);
+        undef $image;
+      } else {
+        copy ($file, $newname) || die_renrot("While copying $file -> $newname: $!\n");
+      }
+    }
+    procmsg ("Resize: ($file_rem of $file_num) $file [$ox:$oy] -> $newname\n", "\n");
+  }
+}
+
+########################################################################################
 #
 # usage() prints the instructions how to use the script
 #
@@ -1852,6 +1923,8 @@ renRotProcess($exifTool, $counterSize);
 contactSheetGenerator($exifTool) if ($isThereIM);
 
 aggregationProcess($exifTool, $counterSize);
+
+resizer($exifTool) if ($isThereIM);
 
 __END__
 
