@@ -590,7 +590,7 @@ sub getOptions {
 
   # preparing Software tag according the usage or not of ImageMagick
   if ($isThereIM == 1) {
-    my ($imName, $imVersion, $dummy) = split(/ /, Image::Magick->new()->Get('version'));
+    my ($imName, $imVersion) = (split(/ /, Image::Magick->new()->Get('version')))[0,1];
     $tags{'Software'}{'value'} = sprintf("RenRot v%s (r%s), ExifTool v%s, %s v%s", $VERSION, $REVISION, $Image::ExifTool::VERSION, $imName, $imVersion);
   } else {
     $tags{'Software'}{'value'} = sprintf("ExifTool v%s, RenRot v%s (r%s)", $Image::ExifTool::VERSION, $VERSION, $REVISION);
@@ -1677,7 +1677,7 @@ sub makeDir {
 sub aggregateFile {
   my $file = shift;
   my $new_dir = shift;
-  my ($dummy_volume, $dummy_dir, $base_name) = File::Spec->splitpath($file);
+  my $base_name = (File::Spec->splitpath($file))[2];
 
   makeDir($new_dir);
 
