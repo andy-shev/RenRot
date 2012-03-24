@@ -657,7 +657,7 @@ sub strToHash {
   my $str = shift;
   my $default = shift;
   my %hash = ();
-  $str =~ s/:/=/;		# change first entrance of ':' to '='
+  $str =~ s/:/=/;		# change first occurrence of ':' to '='
   my ($key, $value) = parsePair($str, $default);
   if (defined $key) {
     $key =~ s/\s*[\(\[]([^\(\)\[\]]*)[\)\]]$//;
