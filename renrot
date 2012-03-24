@@ -42,7 +42,7 @@ my $homeURL = 'http://puszcza.gnu.org.ua/projects/renrot/';   # homepage of the 
 # %Image::ExifTool::UserDefined::RenRot defines XMP-RenRot tags which could be
 # added to mark the file as processed with RenRot.
 #
-if (defined %Image::ExifTool::UserDefined::RenRot) {
+if (%Image::ExifTool::UserDefined::RenRot) {
   fatalmsg ("Won't redefine Image::ExifTool::UserDefined::RenRot.\n"), die_renrot();
 }
 
