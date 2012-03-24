@@ -577,8 +577,7 @@ sub getOptions {
   }
 
   # is there ImageMagick?
-  if (defined isTherePackage("Image::Magick")) {
-    $isThereIM = 1;
+  if ($isThereIM == 1) {
     dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
   } elsif ($cfgOpts{'contact sheet'} == 1 or defined $contactSheet) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n",
@@ -2187,6 +2186,9 @@ sub template2name {
 #
 # MAIN() renames and rotates given files
 #
+
+# Check for modules
+$isThereIM = 1 if (defined isTherePackage("Image::Magick"));
 
 getOptions();
 parseConfig($configFile, \%cfgOpts);
