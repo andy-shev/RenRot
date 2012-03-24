@@ -30,8 +30,8 @@ my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
 
 # Versioning
 my @svnrevision = split(/ /, '$Revision$');
-our $VERSION = '1.1.0';           # the version of this script
-our $REVISION = $svnrevision[1];  # revision
+our $VERSION = '1.1.0';
+our $REVISION = defined $svnrevision[1] ? $svnrevision[1] : '0';
 
 my $maxVerbosity = 4;                                         # our max verbosity level (internal)
 my $homeURL = 'http://puszcza.gnu.org.ua/projects/renrot/';   # homepage of the project
