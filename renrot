@@ -390,9 +390,9 @@ sub boolConv {
 # See Also   : boolConv()
 sub boolConverter {
   my $value = trim_value(shift);
-  if ($value =~ m/^(0|No|False|Off)$/i) {
+  if ($value =~ m/^(0|No|False|Off|Disable)$/i) {
     return 0;
-  } elsif ($value =~ m/^(1|Yes|True|On)$/i) {
+  } elsif ($value =~ m/^(1|Yes|True|On|Enable)$/i) {
     return 1;
   }
   return $value;
