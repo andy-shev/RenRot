@@ -622,7 +622,8 @@ sub getOptions {
 # See Also   : N/A
 sub trim_value {
   my $value = shift;
-  $value =~ s/\s*([^\s]+.*[^\s]+)\s*/$1/;
+  $value =~ s/^\s*//; # heading
+  $value =~ s/\s*$//; # trailing
   return $value;
 }
 
