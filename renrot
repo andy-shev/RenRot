@@ -72,80 +72,114 @@ if (%Image::ExifTool::UserDefined::RenRot) {
 ########################################################################################
 #
 # Parsed configuration file in hash
+# Note: unfortunately we still need manual adaptation in getOptions()
 #
-my %cfgOpts = (
-  'aggregation delta' => 900,
-  'aggregation directory' => 'Images',
-  'aggregation mode' => 'none',
-  'aggregation template' => '%Y%m%d',
-  'aggregation virtual' => 0,
-  'keywords' => 0,
-  'keywords file' => '.keywords',
-  'keywords replace' => 0,
-  'mtime' => 1,
-  'name template' => '%Y%m%d%H%M%S',
-  'trim' => 1,
-  'use color' => 0,
-  'use ipc' => 0,
-  'contact sheet' => 0,
-  'contact sheet tile' => '7x5',
-  'contact sheet title' => 'Default Contact Sheet Title',
-  'contact sheet dir' => 'Contact.Sheet',
-  'contact sheet file' => 'cs-%c.jpg',
-  'contact sheet background' => 'FFF',
-  'contact sheet bordercolor' => 'DDD',
-  'contact sheet mattecolor' => 'CCC',
-  'contact sheet fill' => '000',
-  'contact sheet font' => 'Helvetica',
-  'contact sheet label' => '%t',
-  'contact sheet frame' => '3',
-  'contact sheet pointsize' => '11',
-  'contact sheet shadow' => 1,
-  'contact sheet thm font' => 'Helvetica',
-  'contact sheet thm fill' => 'gray34',
-  'contact sheet thm grad fr' => 'FFFFFF',
-  'contact sheet thm grad to' => '909090',
-  'contact sheet thm text' => "thumbnail\n\nNA",
-  'contact sheet rank' => 0,
-  'contact sheet rank file' => '.rank',
-  'generate thumbnail size' => '160x120',
+my $co_aggr = {
+  # aggregation time delta in seconds (file with delta > $delta is placed in new DIR)
+  'delta'     => { type => 'i', default => 900 },
+  # counterless directory name for "delta" type aggregation
+  'directory' => { type => 's', default => 'Images' },
+  # aggregation framework
+  'enabled'   => { type => '!', default => 0},
+  # define aggregation mode, possible values are: none, delta or template
+  'mode'      => { type => 's', default => 'none' },
+  # template for the files aggregation taken from CLI
+  'template'  => { type => 's', default => '%Y%m%d' },
+  # flag to do links instead real file moving while aggregation
+  'virtual'   => { type => '!', default => 0 },
+};
+
+my $co_cs = {
+  # background, look ImageMagick documentation for montage options
+  'background'  => { type => 's', default => 'FFF' },
+  # bordercolor, look ImageMagick documentation for montage options
+  'bordercolor' => { type => 's', default => 'DDD' },
+  # tmp directory for the montage operations
+  'dir'         => { type => 's', default => 'Contact.Sheet' },
+  # contact sheet generation
+  'enabled'     => { type => '!', default => 0 },
+  # file name for the montage
+  'file'        => { type => 's', default => 'cs-%c.jpg' },
+  # fill, look ImageMagick documentation for montage options
+  'fill'        => { type => 's', default => '000' },
+  # font, look ImageMagick documentation for montage options
+  'font'        => { type => 's', default => 'Helvetica' },
+  # frame, look ImageMagick documentation for montage options
+  'frame'       => { type => 's', default => '3' },
+  # label, look ImageMagick documentation for montage options
+  'label'       => { type => 's', default => '%t' },
+  # mattecolor, look ImageMagick documentation for montage options
+  'mattecolor'  => { type => 's', default => 'CCC' },
+  # pointsize, look ImageMagick documentation for montage options
+  'pointsize'   => { type => 's', default => '11' },
+  # ranking
+  'rank'        => { type => '!', default => 0 },
+  # file with images ranks
+  'rank file'   => { type => 's', default => '.rank' },
+  # shadow, look ImageMagick documentation for montage options
+  'shadow'      => { type => '!', default => 1 },
+  # is $extToProcess files are the thumbnails?
+  'thm'         => { type => '!', default => 0 },
+  # font, look ImageMagick documentation for montage options
+  'thm font'    => { type => 's', default => 'Helvetica' },
+  # fill, look ImageMagick documentation for montage options
+  'thm fill'    => { type => 's', default => 'gray34' },
+  # thumbnail background gradient from
+  'thm grad fr' => { type => 's', default => 'FFFFFF' },
+  # thumbnail background gradient to
+  'thm grad to' => { type => 's', default => '909090' },
+  # thumbnail text
+  'thm text'    => { type => 's', default => "thumbnail\n\nNA" },
+  # tile in the montage
+  'tile'        => { type => 's', default => '7x5' },
+  # title for the montage
+  'title'       => { type => 's', default => 'Default Contact Sheet Title' },
+};
+
+my $co_g = {
+  'generate thumbnail size' => { type => 's', default => '160x120' },
+  # mtime taken from CLI
+  'mtime'                   => { type => '!', default => 1 },
+  # template for the filename taken from CLI
+  'name template'           => { type => 's', default => '%Y%m%d%H%M%S' },
+  # jpegtran -trim
+  'trim'                    => { type => '!', default => 1 },
+  # colorized output
+  'use color'               => { type => '!', default => 0 },
+  # rotate thumbnail via pipe
+  'use ipc'                 => { type => '!', default => 0 },
+};
+
+my $co_kw = {
+  # whether or not to fill Keywords tag
+  'enabled' => { type => '!', default => 0 },
+  # file with keyword set
+  'file'    => { type => 's', default => '.keywords' },
+  # whether to add keywords to the existent ones or replace them
+  'replace' => { type => '!', default => 0 },
+};
+
+my $config_opts = {
+  'aggregation'     => $co_aggr,
+  'contact sheet'   => $co_cs,
+  'general'         => $co_g,
+  'keywords'        => $co_kw,
+};
+
+my @config_sections = (
+  'aggregation',
+  'contact sheet',
+  'general',
+  'keywords',
 );
 
 ########################################################################################
 #
 # Command line options
 #
-my $aggrDelta;		# aggregation time delta in seconds (file with delta > $aggrDelta is placed in new DIR)
-my $aggrDir;		# counterless directory name for "delta" type aggregation
-my $aggrMode;		# define aggregation mode, possible values are: none, delta or template
-my $aggrTemplate;	# template for the files aggregation taken from CLI
-my $aggrVirtual;	# flag to do links instead real file moving while aggregation
 my $backup = 1;		# make or not a backup of the original files
 my $comfile;		# file with commentary
 my $configFile;		# configuration file
-
-my $contactSheet;	# contact sheet generation
-my $contactSheetTile;	# tile in the montage
-my $contactSheetTitle;	# title for the montage
-my $contactSheetFile;	# file name for the montage
-my $contactSheetDir;	# tmp directory for the montage operations
-my $contactSheetThm = 0;# is $extToProcess files are the thumbnails?
-my $contactSheetBg;	# background, look ImageMagick documentation for montage options
-my $contactSheetBd;	# bordercolor, look ImageMagick documentation for montage options
-my $contactSheetMt;	# mattecolor, look ImageMagick documentation for montage options
-my $contactSheetLb;	# label, look ImageMagick documentation for montage options
-my $contactSheetFn;	# font, look ImageMagick documentation for montage options
-my $contactSheetFl;	# fill, look ImageMagick documentation for montage options
-my $contactSheetFr;	# frame, look ImageMagick documentation for montage options
-my $contactSheetPntSz;	# pointsize, look ImageMagick documentation for montage options
-my $contactSheetShadow;	# shadow, look ImageMagick documentation for montage options
-my $contactSheetThmFn;	# font, look ImageMagick documentation for montage options
-my $contactSheetThmFl;	# fill, look ImageMagick documentation for montage options
-my $contactSheetThmGrFr;# thumbnail background gradient from
-my $contactSheetThmGrTo;# thumbnail background gradient to
-my $contactSheetThmText;# thumbnail text
-my $contactSheetRank;	# ranking
-my $contactSheetRankFile;	# file with images ranks
 
 my $countFF = 1;	# use fixed field for counter
 my $countStart = 1;	# Start value for counter
@@ -155,12 +189,6 @@ my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
 my $gen_thm = 0;	# to not to generate ThumbnailImage if empty
 
-my $keywords;		# whether or not to fill Keywords tag
-my $keywordsReplace;	# whether to add keywords to the existent ones or replace them
-my $keywordsFile;	# file with keyword set
-
-my $mtime;		# mtime taken from CLI
-my $nameTemplate;	# template for the filename taken from CLI
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation = 0;	# no rotation needed, default is to rotate
 my $noTags = 0;		# no tags writing needed
@@ -172,9 +200,6 @@ my $rotateThumbnail;	# define the angle to rotate on 90, 180 or 270
 my $subFileSet = '';	# subset of files to process, given in file rather than in commandline
 my %tagsFromCli = ();	# tags are got from CLI
 my @tag_to_name = ();	# tags for name building, theirs values to be used (in theory any EXIF)
-my $trim;		# jpegtran -trim
-my $useColor;		# colorized output
-my $useIPC;		# rotate thumbnail via pipe
 my $userComment;	# text to put into UserComment tag
 my $verbose = 0;	# verbosity of output
 my $workDir = './';	# we'll work ONLY in current directory
@@ -272,7 +297,7 @@ my %colors = (
 sub printColored {
   my $facility = shift;
 
-  if ($cfgOpts{'use color'} != 0) {
+  if (get_cfg_value($co_g, 'use color') != 0) {
     if (defined $facility and defined $colors{$facility}) {
       # Put process and info messages to StdOut, otherwise to StdErr
       if ($facility eq "process" or $facility eq "info") {
@@ -343,6 +368,32 @@ sub ldbg3 {
     printColored('debug', "DEBUG[3]: ", $funcname, "(): ", @_, "\n");
   }
 };
+
+########################################################################################
+#
+# ldbg3opts() prints option values from given hash
+#
+sub ldbg3opts {
+  my $hash = shift;
+  my $option = shift;
+  foreach my $key (keys %{$hash->{$option}}) {
+    next if (not defined $hash->{$option}{$key}{value});
+    my ($value, $default);
+    my $type = defined $hash->{$option}{$key}{type} ? $hash->{$option}{$key}{type} : "s";
+    if ($type ne "!") {
+      $value = $hash->{$option}{$key}{value};
+      $default = $hash->{$option}{$key}{default};
+    } else {
+      $value = boolConv($hash->{$option}{$key}{value});
+      $default = boolConv($hash->{$option}{$key}{default});
+    }
+    if (not defined $default) {
+      ldbg3("--> '$option $key': $value");
+    } else {
+      ldbg3("--> '$option $key': $value (default: $default)");
+    }
+  }
+}
 
 ########################################################################################
 ###                               COMMON HELPERS                                     ###
@@ -427,96 +478,124 @@ sub getOptions {
   my $showVersion = 0;  # need version
   my $showHelp = 0;     # need help
   my @tmpTags = ();
+
+  # For 'aggregation'
+  my $s_aggr_opts;
+  my %h_aggr_opts;
+
+  # For 'contact sheet'
+  my $s_cs_opts;
+  my %h_cs_opts;
+
+  # For 'general'
+  my %h_g_opts;
+
+  # For 'keywords'
+  my $s_kw_opts;
+  my %h_kw_opts;
+
+  my $ll_opts = {
+    'aggregation'   => { 's' => \$s_aggr_opts, 'h' => \%h_aggr_opts },
+    'contact sheet' => { 's' => \$s_cs_opts,   'h' => \%h_cs_opts },
+    'keywords'      => { 's' => \$s_kw_opts,   'h' => \%h_kw_opts },
+  };
+
   my $getOptions = GetOptions (
-      "aggr-delta=i" => \$aggrDelta,
-      "aggr-directory=s" => \$aggrDir,
-      "aggr-mode=s" => \$aggrMode,
-      "aggr-template|a=s" => \$aggrTemplate,
-      "aggr-virtual!" => \$aggrVirtual,
+      # AGGREGATION
+      "aggr-opts=s"       => \$s_aggr_opts,
+      "aggr-delta=i"      => \$h_aggr_opts{'delta'},
+      "aggr-directory=s"  => \$h_aggr_opts{'directory'},
+      "aggr-mode=s"       => \$h_aggr_opts{'mode'},
+      "aggr-template|a=s" => \$h_aggr_opts{'template'},
+      "aggr-virtual!"     => \$h_aggr_opts{'virtual'},
 
-      "backup!" => \$backup,
-      "comment-file=s" => \$comfile,
-      "config-file|c=s" => \$configFile,
+      # CONTACT SHEET
+      "contact-sheet-opts|cs-opts=s"           => \$s_cs_opts,
+      "contact-sheet-bg|cs-bg=s"               => \$h_cs_opts{'background'},
+      "contact-sheet-bd|cs-bd=s"               => \$h_cs_opts{'bordercolor'},
+      "contact-sheet-dir|cs-dir=s"             => \$h_cs_opts{'dir'},
+      "contact-sheet|cs!"                      => \$h_cs_opts{'enabled'},
+      "contact-sheet-file|cs-file=s"           => \$h_cs_opts{'file'},
+      "contact-sheet-fl|cs-fl=s"               => \$h_cs_opts{'fill'},
+      "contact-sheet-fn|cs-fn=s"               => \$h_cs_opts{'font'},
+      "contact-sheet-fr|cs-fr=s"               => \$h_cs_opts{'frame'},
+      "contact-sheet-lb|cs-lb=s"               => \$h_cs_opts{'label'},
+      "contact-sheet-mt|cs-mt=s"               => \$h_cs_opts{'mattecolor'},
+      "contact-sheet-pntsz|cs-pntsz=i"         => \$h_cs_opts{'pointsize'},
+      "contact-sheet-rank|cs-rank!"            => \$h_cs_opts{'rank'},
+      "contact-sheet-rank-file|cs-rank-file=s" => \$h_cs_opts{'rank file'},
+      "contact-sheet-shadow|cs-shadow"         => \$h_cs_opts{'shadow'},
+      "contact-sheet-thm|cs-thm"               => \$h_cs_opts{'thm'},
+      "contact-sheet-thm-fl|cs-thm-fl=s"       => \$h_cs_opts{'thm fill'},
+      "contact-sheet-thm-fn|cs-thm-fn=s"       => \$h_cs_opts{'thm font'},
+      "contact-sheet-thm-grfr|cs-thm-grfr=s"   => \$h_cs_opts{'thm grad fr'},
+      "contact-sheet-thm-grto|cs-thm-grto=s"   => \$h_cs_opts{'thm grad to'},
+      "contact-sheet-thm-text|cs-thm-text=s"   => \$h_cs_opts{'thm text'},
+      "contact-sheet-tile|cs-tile=s"           => \$h_cs_opts{'tile'},
+      "contact-sheet-title|cs-title=s"         => \$h_cs_opts{'title'},
 
-      "contact-sheet|cs!" => \$contactSheet,
-      "contact-sheet-tile|cs-tile=s" => \$contactSheetTile,
-      "contact-sheet-title|cs-title=s" => \$contactSheetTitle,
-      "contact-sheet-file|cs-file=s" => \$contactSheetFile,
-      "contact-sheet-dir|cs-dir=s" => \$contactSheetDir,
-      "contact-sheet-thm|cs-thm" => \$contactSheetThm,
-      "contact-sheet-bg|cs-bg=s" => \$contactSheetBg,
-      "contact-sheet-bd|cs-bd=s" => \$contactSheetBd,
-      "contact-sheet-mt|cs-mt=s" => \$contactSheetMt,
-      "contact-sheet-fl|cs-fl=s" => \$contactSheetFl,
-      "contact-sheet-fn|cs-fn=s" => \$contactSheetFn,
-      "contact-sheet-lb|cs-lb=s" => \$contactSheetLb,
-      "contact-sheet-fr|cs-fr=s" => \$contactSheetFr,
-      "contact-sheet-pntsz|cs-pntsz=i" => \$contactSheetPntSz,
-      "contact-sheet-shadow|cs-shadow" => \$contactSheetShadow,
-      "contact-sheet-thm-fl|cs-thm-fl=s" => \$contactSheetThmFl,
-      "contact-sheet-thm-fn|cs-thm-fn=s" => \$contactSheetThmFn,
-      "contact-sheet-thm-grfr|cs-thm-grfr=s" => \$contactSheetThmGrFr,
-      "contact-sheet-thm-grto|cs-thm-grto=s" => \$contactSheetThmGrTo,
-      "contact-sheet-thm-text|cs-thm-text=s" => \$contactSheetThmText,
-      "contact-sheet-rank|cs-rank!" => \$contactSheetRank,
-      "contact-sheet-rank-file|cs-rank-file=s" => \$contactSheetRankFile,
+      # GENERAL
+      "mtime!"               => \$h_g_opts{'mtime'},
+      "name-template|n=s"    => \$h_g_opts{'name template'},
+      "trim!"                => \$h_g_opts{'trim'},
+      "use-color!"           => \$h_g_opts{'use color'},
+      "use-ipc!"             => \$h_g_opts{'use ipc'},
+
+      # KEYWORDIZER
+      "kw-opts=s"         => \$s_kw_opts,
+      "keywords!"         => \$h_kw_opts{'enabled'},
+      "keywords-file|k=s" => \$h_kw_opts{'file'},
+      "keywords-replace!" => \$h_kw_opts{'replace'},
+
+      # OTHERS
+      "backup!"              => \$backup,
+      "comment-file=s"       => \$comfile,
+      "config-file|c=s"      => \$configFile,
       "counter-fixed-field!" => \$countFF,
-      "counter-start=i" => \$countStart,
-      "counter-step=i" => \$countStep,
-      "dry-run" => \$dryRun,
-      "exclude=s" => \@excludeList,
-      "extension|e=s" => \$extToProcess,
-      "generate-thumb|g" => \$gen_thm,
-      "help|?"   => \$showHelp,
-      "keywords!" => \$keywords,
-      "keywords-file|k=s" => \$keywordsFile,
-      "keywords-replace!" => \$keywordsReplace,
-      "mtime!" => \$mtime,
-      "name-template|n=s" => \$nameTemplate,
-      "no-rename|norename" => \$noRename,
-      "no-rotate|norotate" => \$noRotation,
-      "no-tags|notags" => \$noTags,
-      "no-renrot|nochg" => \$noRenRoTagMtm,
-      "only-orientation" => \$orientTag,
-      "quiet|q" => \$quiet,
-      "rotate-angle|r=i" => \$rotateAngle,
-      "rotate-thumb=i" => \$rotateThumbnail,
-      "sub-fileset=s" => \$subFileSet,
-      "tag|t=s" => \@tmpTags,
-      "trim!" => \$trim,
-      "use-color!" => \$useColor,
-      "use-ipc!" => \$useIPC,
-      "user-comment=s" => \$userComment,
-      "v+" => \$verbose,
-      "version" => \$showVersion,
-      "work-directory|d=s" => \$workDir,
+      "counter-start=i"      => \$countStart,
+      "counter-step=i"       => \$countStep,
+      "dry-run"              => \$dryRun,
+      "exclude=s"            => \@excludeList,
+      "extension|e=s"        => \$extToProcess,
+      "generate-thumb|g"     => \$gen_thm,
+      "help|?"               => \$showHelp,
+      "no-rename|norename"   => \$noRename,
+      "no-rotate|norotate"   => \$noRotation,
+      "no-tags|notags"       => \$noTags,
+      "no-renrot|nochg"      => \$noRenRoTagMtm,
+      "only-orientation"     => \$orientTag,
+      "quiet|q"              => \$quiet,
+      "rotate-angle|r=i"     => \$rotateAngle,
+      "rotate-thumb=i"       => \$rotateThumbnail,
+      "sub-fileset=s"        => \$subFileSet,
+      "tag|t=s"              => \@tmpTags,
+      "user-comment=s"       => \$userComment,
+      "v+"                   => \$verbose,
+      "version"              => \$showVersion,
+      "work-directory|d=s"   => \$workDir,
   );
 
   my $fileCount = scalar(@ARGV);
 
-  ldbg3("--aggr-delta: $aggrDelta") if (defined $aggrDelta);
-  ldbg3("--aggr-directory: $aggrDir") if (defined $aggrDir);
-  ldbg3("--aggr-mode: $aggrMode") if (defined $aggrMode);
-  ldbg3("--aggr-template: $aggrTemplate") if (defined $aggrTemplate);
-  ldbg3("--aggr-virtual: ", boolConv($aggrVirtual)) if (defined $aggrVirtual);
+  foreach my $key (keys %$ll_opts) {
+    # Parse long list option
+    if (defined ${$ll_opts->{$key}{'s'}}) {
+      update_config_option_value($config_opts->{$key}{'enabled'}, 1);
+      parse_many_pairs(${$ll_opts->{$key}{'s'}}, $config_opts, $key);
+    }
+    # Override long list option by set of standalone ones before any other action
+    assign_hash_values($config_opts, $key, $ll_opts->{$key}{'h'});
+    # Debug result
+    ldbg3opts($config_opts, $key);
+  }
+
+  # For 'general' section
+  assign_hash_values($config_opts, 'general', \%h_g_opts);
+  ldbg3opts($config_opts, 'general');
+
   ldbg3("--backup: ", boolConv($backup));
   ldbg3("--comment-file: $comfile") if (defined $comfile);
   ldbg3("--config-file: $configFile") if (defined $configFile);
-  ldbg3("--contact-sheet: ", boolConv($contactSheet)) if (defined $contactSheet);
-  ldbg3("--contact-sheet-tile: $contactSheetTile") if (defined $contactSheetTile);
-  ldbg3("--contact-sheet-title: $contactSheetTitle") if (defined $contactSheetTitle);
-  ldbg3("--contact-sheet-file: $contactSheetFile") if (defined $contactSheetFile);
-  ldbg3("--contact-sheet-dir: $contactSheetDir") if (defined $contactSheetDir);
-  ldbg3("--generate-thumb: ", boolConv($gen_thm));
-  ldbg3("--contact-sheet-thm: ", boolConv($contactSheetThm));
-  ldbg3("--contact-sheet-bg: $contactSheetBg") if (defined $contactSheetBg);
-  ldbg3("--contact-sheet-bd: $contactSheetBd") if (defined $contactSheetBd);
-  ldbg3("--contact-sheet-mt: $contactSheetMt") if (defined $contactSheetMt);
-  ldbg3("--contact-sheet-fn: $contactSheetFn") if (defined $contactSheetFn);
-  ldbg3("--contact-sheet-lb: $contactSheetLb") if (defined $contactSheetLb);
-  ldbg3("--contact-sheet-fr: $contactSheetFr") if (defined $contactSheetFr);
-  ldbg3("--contact-sheet-rank: ", boolConv($contactSheetRank)) if (defined $contactSheetRank);
-  ldbg3("--contact-sheet-rank-file: $contactSheetRankFile") if (defined $contactSheetRankFile);
 
   ldbg3("--counter-start: $countStart",
     "   --counter-step: $countStep",
@@ -526,12 +605,6 @@ sub getOptions {
   ldbg3("--extension: '$extToProcess'");
   ldbg3("--generate-thumb: ", boolConv($gen_thm));
 
-  ldbg3("--keywords: ", boolConv($keywords)) if (defined $keywords);
-  ldbg3("--keywords-replace: ", boolConv($keywordsReplace)) if (defined $keywordsReplace);
-  ldbg3("--keywords-file: $keywordsFile") if (defined $keywordsFile);
-
-  ldbg3("--mtime: ", boolConv($mtime)) if (defined $mtime);
-  ldbg3("--name-template: $nameTemplate") if (defined $nameTemplate);
   ldbg3("--no-rename: ", boolConv($noRename),
     "   --no-rotate: ", boolConv($noRotation),
     "   --no-tags: ", boolConv($noTags),
@@ -541,9 +614,6 @@ sub getOptions {
   ldbg3("--rotate-thumb: $rotateThumbnail") if (defined $rotateThumbnail);
   ldbg3("--sub-fileset: $subFileSet") if ($subFileSet ne "");
   ldbg3("--tag:\n", join("\n", @tmpTags)) if (scalar(@tmpTags) > 0);
-  ldbg3("--trim: ", boolConv($trim)) if (defined $trim);
-  ldbg3("--use-color: ", boolConv($useColor)) if (defined $useColor);
-  ldbg3("--use-ipc: ", boolConv($useIPC)) if (defined $useIPC);
   ldbg3("--work-directory: $workDir");
   ldbg3("ARGV:\n", join("\n", @ARGV)) if ($fileCount > 0);
 
@@ -573,13 +643,13 @@ sub getOptions {
 
   if ($noRenRoTagMtm != 0) {
     $noRename = $noRotation = $noTags = 1;
-    $mtime = 0;
+    update_config_option_value($config_opts->{'general'}{'mtime'}, 0);
   }
 
   # is there ImageMagick?
   if ($isThereIM == 1) {
     dbgmsg (1, "We have Image::Magick package and could proceed with --contact-sheet related functionality.\n");
-  } elsif ($cfgOpts{'contact sheet'} == 1 or defined $contactSheet) {
+  } elsif (get_cfg_value($co_cs, 'enabled') == 1) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n",
             "Contact Sheet generation disabled.\n");
   } elsif ($gen_thm != 0) {
@@ -651,6 +721,73 @@ sub parsePair {
 
 ########################################################################################
 #
+# update_config_option_value()
+#
+sub update_config_option_value {
+  my $hash = shift;
+  my $value = shift;
+  return if (not defined $value);
+  if (not defined $hash->{default}) {
+    $hash->{default} = $hash->{value};
+  }
+  $hash->{value} = $value;
+}
+
+########################################################################################
+# Usage      : parse_many_pairs() gets hash with (key, value) pairs from the string like
+#            : key1="value1":key2="value2":...:keyM="valueN"
+# Purpose    : parses pairs of data
+# Returns    : filled hash %hash
+# Parameters : $str    [str] string like key1="value1":key2="value2":...:keyM="valueN"
+#              $hash   [ref] reference to hash
+#              $option [str] subtree in the hash
+# Throws     : no exceptions
+# Comments   : "value1", "value2", ..., "valueN" should not contain ':' symbol
+# See Also   : parsePair()
+sub parse_many_pairs {
+  my $str = shift;
+  my $hash = shift;
+  my $sect = shift;
+  return if (not defined $str);
+  my @k = keys %{$hash->{$sect}};
+  foreach my $pair (split(/:/, $str)) {
+    my ($key, $value) = parsePair($pair);
+    next if (not defined $key);
+    if (not grep (/^$key$/, @k)) {
+      warnmsg ("Invalid key '$key' in '$sect'. Skiping...\n");
+      next;
+    }
+    $value = boolConverter($value) if ($hash->{$sect}{$key}{type} eq "!");
+    update_config_option_value($hash->{$sect}{$key}, $value);
+    dbgmsg (4, "Parsed: '$sect' -> '$key': '$value'\n");
+  }
+}
+
+########################################################################################
+#
+# assign_hash_values() assignes given values to a hash
+#
+sub assign_hash_values {
+  my $hash = shift;
+  my $sect = shift;
+  my $values = shift;
+  return if (not defined $values);
+  map { update_config_option_value($hash->{$sect}{$_}, $values->{$_}) } keys %$values;
+}
+
+########################################################################################
+#
+# get_cfg_value() returnes value of the given configuration option
+#
+sub get_cfg_value {
+  my $hash = shift;
+  my $key = shift;
+  return $hash->{$key}{value} if (defined $hash->{$key}{value});
+  return $hash->{$key}{default};
+}
+
+########################################################################################
+#
 # strToHash() parses given string to a hash
 #
 sub strToHash {
@@ -704,6 +841,7 @@ sub getConfig {
           parseConfigFile($fc, $value, $hash);
         }
         $key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
+        $key .= ' ' . 'enabled' if (grep (/^$key$/, @config_sections));
         $hash->{$key} = boolConverter($value);
         dbgmsg (3, "Parsed line($i): '$key' <- '$hash->{$key}'\n");
       } else {
@@ -767,13 +905,53 @@ sub parseConfig {
 
 ########################################################################################
 #
+# apply_config_values() applies values by priority:
+#     default -> config -> CLI new -> CLI old
+#
+sub apply_config_values {
+  my $hash = shift;
+  my $value;
+
+  foreach my $option (keys %$hash) {
+    next if (ref($hash->{$option}) ne "");   # Skip non-SCALAR
+    next if ($option =~ m/^[^#]+#\d+#\d+$/); # Skip multi-option
+
+    my ($sect, $key) = undef;
+    foreach my $s (@config_sections) {
+      if ($option =~ m/^$s(.*)/) {
+        ($sect, $key) = ($s, trim_value($1));
+        last;
+      }
+    }
+    ($sect, $key) = ('general', $option) if (not defined $sect);
+    next if (not defined $hash->{$sect}{$key});
+
+    dbgmsg (4, "Option '$option' will be put into '$sect'\n");
+
+    # Get default value
+    $value = $hash->{$sect}{$key}{default};
+    my $vdef = (defined $value) ? $value : "undef";           # For debug message
+
+    # Apply value from configuration file
+    $value = $hash->{$option} if (defined $hash->{$option});
+    my $vcfg = (defined $hash->{$option}) ? $value : "undef"; # For debug message
+
+    # Apply value from command line
+    $hash->{$sect}{$key}{value} = $value if (not defined $hash->{$sect}{$key}{value});
+
+    dbgmsg (4, "'$vdef' -> '$vcfg' -> '$hash->{$sect}{$key}{value}'\n");
+  }
+}
+
+########################################################################################
+#
 # switchColor() switches to user defined color scheme
 #
 sub switchColor {
   # Parse configuration file color set
-  foreach my $cKey (keys %cfgOpts) {
+  foreach my $cKey (keys %$config_opts) {
     next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
-    my %color = strToHash($cfgOpts{$cKey}, 'reset');
+    my %color = strToHash($config_opts->{$cKey}, 'reset');
     map { $colors{$_} = $color{$_} } keys %color;
   }
   dbgmsg (1, "Switch to user defined color scheme.\n");
@@ -818,14 +996,14 @@ sub renRotProcess {
   my $info;			# ImageInfo object
   my @keywordArr = ();		# array for keywords
 
-  if ($cfgOpts{'keywords'} != 0) {
-    @keywordArr = keywordizer ($cfgOpts{'keywords file'});
-    errmsg ("Keywords file doesn't exist!\n") if (not -e $cfgOpts{'keywords file'});
+  if (get_cfg_value($co_kw, 'enabled') != 0) {
+    @keywordArr = keywordizer (get_cfg_value($co_kw, 'file'));
+    errmsg ("Keywords file doesn't exist!\n") if (not -e get_cfg_value($co_kw, 'file'));
   }
 
   if (scalar(@keywordArr) > 0) {
     dbgmsg (2, "Keywords count: ", scalar(@keywordArr), "\n");
-    if ($cfgOpts{'keywords replace'} != 0) {
+    if (get_cfg_value($co_kw, 'replace') != 0) {
       $exifToolObj->SetNewValue(Keywords => \@keywordArr);
     } else {
       $exifToolObj->SetNewValue(Keywords => \@keywordArr, AddValue => 1);
@@ -833,7 +1011,7 @@ sub renRotProcess {
   }
 
   # Convert trim boolean value to string
-  my $trimStr = (not defined $cfgOpts{'trim'} or $cfgOpts{'trim'}) ? '-trim' : '';
+  my $trimStr = get_cfg_value($co_g, 'trim') ? '-trim' : '';
   dbgmsg (1, "Trim string: '$trimStr'\n");
 
   dbgmsg (1, "Initializing tags...\n");
@@ -978,7 +1156,7 @@ sub renameFile {
     $newFileName = template2name (
         $exifToolObj,
         $infoObj,
-        $cfgOpts{'name template'},
+        get_cfg_value($co_g, 'name template'),
         $fileCounter,
         $file,
         $counterSize,
@@ -1088,7 +1266,7 @@ sub mtimeSet {
   my $exifToolObj = shift;
   my $infoObj = shift;
   my $file = shift;
-  if ($cfgOpts{'mtime'} != 0) {
+  if (get_cfg_value($co_g, 'mtime') != 0) {
     my $mTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
     if ($dryRun == 0) { utime $mTime, $mTime, $file; }
     else { procmsg ("Setting mtime.\n"); }
@@ -1141,13 +1319,13 @@ sub exifWriter {
 # aggregationProcess() aggregates files to separate directories by request
 #
 sub aggregationProcess {
-  return if ($cfgOpts{'aggregation mode'} eq "none");
+  return if (get_cfg_value($co_aggr, 'mode') eq "none");
 
   my $exifToolObj = shift;
   my $counterSize = shift;
   my $file;
   my $info;
-  my $BaseDir = $cfgOpts{'aggregation directory'};
+  my $BaseDir = get_cfg_value($co_aggr, 'directory');
   my $NewDir;
   my $file_num = scalar(keys(%filenameshash));
   my $file_rem = 0;
@@ -1157,8 +1335,8 @@ sub aggregationProcess {
 
   makeDir($BaseDir) if ($dryRun == 0);
 
-  if ($cfgOpts{'aggregation mode'} eq "template") {
-    dbgmsg (1, "Template: $cfgOpts{'aggregation template'}\n");
+  if (get_cfg_value($co_aggr, 'mode') eq "template") {
+    dbgmsg (1, "Template: ", get_cfg_value($co_aggr, 'template'), "\n");
     my $fileCounter = $countStart;
 
     foreach $file (sort (keys %filenameshash)) {
@@ -1167,7 +1345,7 @@ sub aggregationProcess {
       $NewDir = template2name (
           $exifToolObj,
           $info,
-          $cfgOpts{'aggregation template'},
+          get_cfg_value($co_aggr, 'template'),
           $fileCounter,
           $file,
           $counterSize,
@@ -1178,7 +1356,7 @@ sub aggregationProcess {
       procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
       $fileCounter += $countStep;
     }
-  } elsif ($cfgOpts{'aggregation mode'} eq "delta") {
+  } elsif (get_cfg_value($co_aggr, 'mode') eq "delta") {
     my $DirCounter = 1;
     my $timestampPrev;
     my $filePrev;
@@ -1196,7 +1374,7 @@ sub aggregationProcess {
         aggregateFile($file, $NewDir) if ($dryRun == 0);
       } else {
         # Check for new direcroty creation
-        if (($filenameshash{$filetmp} - $timestampPrev) > $cfgOpts{'aggregation delta'}) {
+        if (($filenameshash{$filetmp} - $timestampPrev) > get_cfg_value($co_aggr, 'delta')) {
           $NewDir = $BaseDir . "." . sprintf($counterSize, $DirCounter);
           $DirCounter++;
         }
@@ -1206,7 +1384,7 @@ sub aggregationProcess {
       procmsg ("Aggregate: ($file_rem of $file_num) $file -> $NewDir\n", "\n");
     }
   } else {
-    errmsg ("Aggregation mode $cfgOpts{'aggregation mode'} isn't implemented!\n");
+    errmsg ("Aggregation mode ", get_cfg_value($co_aggr, 'mode'), " isn't implemented!\n");
   }
 }
 
@@ -1219,12 +1397,12 @@ sub aggregationProcess {
 # Comments   : requires --ext; --counter-start is valid
 # See Also   : template2name()
 sub contactSheetGenerator {
-  return if (not $cfgOpts{'contact sheet'});
+  return if (not get_cfg_value($co_cs, 'enabled'));
 
   use File::Copy;
 
   my $exifToolObj = shift;
-  my $workdir = $cfgOpts{'contact sheet dir'};
+  my $workdir = get_cfg_value($co_cs, 'dir');
   my $file;
   my $info;
   my $infothm;
@@ -1239,8 +1417,8 @@ sub contactSheetGenerator {
   my $ranks;              # reference to the hash of files ranks
 
   # ranks file processing
-  if ($cfgOpts{'contact sheet rank'} == 1 and -f $cfgOpts{'contact sheet rank file'}) {
-    $ranks = getFileDatLns($cfgOpts{'contact sheet rank file'});
+  if (get_cfg_value($co_cs, 'rank') == 1 and -f get_cfg_value($co_cs, 'rank file')) {
+    $ranks = getFileDatLns(get_cfg_value($co_cs, 'rank file'));
     if ($ranks != 0) {
       dbgmsg (3, "Ranks successfully processed.\n");
     } else {
@@ -1260,7 +1438,7 @@ sub contactSheetGenerator {
 
     $filefull = $file;
 
-    if ($contactSheetThm != 0 and defined $orientation) {
+    if (get_cfg_value($co_cs, 'thm') != 0 and defined $orientation) {
       if ($orientation > 1) {
         $filefull = rot_thm_cs ($file, $rotorient{$orientation}, $workdir);
       } elsif ($orientation == 1) {
@@ -1272,7 +1450,7 @@ sub contactSheetGenerator {
         }
         $filefull = $ThumbnailOriginal;
       }
-    } elsif ($contactSheetThm == 0) {
+    } elsif (get_cfg_value($co_cs, 'thm') == 0) {
       if (defined ${$$info{ThumbnailImage}}) {
         $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
         if ($dryRun == 0) {
@@ -1320,19 +1498,8 @@ sub contactSheetGenerator {
   }
   @thumbnailes_sorted = sort {$a cmp $b} @thumbnailes;
 
-  ldbg3("contact sheet background = \"$cfgOpts{'contact sheet background'}\"");
-  ldbg3("contact sheet bordercolor = \"$cfgOpts{'contact sheet bordercolor'}\"");
-  ldbg3("contact sheet mattecolor = \"$cfgOpts{'contact sheet mattecolor'}\"");
-  ldbg3("contact sheet font = \"$cfgOpts{'contact sheet font'}\"");
-  ldbg3("contact sheet label = \"$cfgOpts{'contact sheet label'}\"");
-  ldbg3("contact sheet frame = \"$cfgOpts{'contact sheet frame'}\"");
-  ldbg3("contact sheet pointsize = \"$cfgOpts{'contact sheet pointsize'}\"");
-  ldbg3("contact sheet shadow = \"$cfgOpts{'contact sheet shadow'}\"");
-  ldbg3("contact sheet title = \"$cfgOpts{'contact sheet title'}\"");
-  ldbg3("contact sheet tile = \"$cfgOpts{'contact sheet tile'}\"");
-
   # here it's iteration by tile
-  my ($tileX, $tileY) = split ("x", $cfgOpts{'contact sheet tile'});
+  my ($tileX, $tileY) = split ("x", get_cfg_value($co_cs, 'tile'));
   my $tileMul = $tileX * $tileY;
   my $csIterationNumber = scalar @thumbnailes_sorted;
   my $csFullIterations = int($csIterationNumber/$tileMul);
@@ -1370,7 +1537,7 @@ sub contactSheetGenerator {
       $montagename = template2name (
           $exifToolObj,
           $info,
-          $cfgOpts{'contact sheet file'},
+          get_cfg_value($co_cs, 'file'),
           $fileCounter,
           "stub",
           $counter_size,
@@ -1383,27 +1550,27 @@ sub contactSheetGenerator {
         } else { errmsg ("Image::Magick error: $readres\n"); }
 
         # ranking
-        $substrFile = substr($thumbnailes_sorted[$csIter], length($cfgOpts{'contact sheet dir'}) + 1);
+        $substrFile = substr($thumbnailes_sorted[$csIter], length(get_cfg_value($co_cs, 'dir')) + 1);
         if (defined $ranks->{$substrFile}->[1]) {
           dbgmsg (4, "$substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
           $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
         } else {
-          dbgmsg (4, "$substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config\n");
-          $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'}));
+          dbgmsg (4, "$substrFile mattecolor is undefined, using \"", get_cfg_value($co_cs, 'mattecolor'), "\" from config\n");
+          $image->[$readIndex]->Set(mattecolor => normalize_color(get_cfg_value($co_cs, 'mattecolor')));
         }
       }
       dbgmsg (1, "$csIterator montage is started, wait a bit please...\n");
-      $montage = $image->Montage(background => normalize_color($cfgOpts{'contact sheet background'}),
-          bordercolor => normalize_color($cfgOpts{'contact sheet bordercolor'}),
-          font => $cfgOpts{'contact sheet font'},
-          fill => normalize_color($cfgOpts{'contact sheet fill'}),
-          label => $cfgOpts{'contact sheet label'},
-          frame => $cfgOpts{'contact sheet frame'},
+      $montage = $image->Montage(background => normalize_color(get_cfg_value($co_cs, 'background')),
+          bordercolor => normalize_color(get_cfg_value($co_cs, 'bordercolor')),
+          font => get_cfg_value($co_cs, 'font'),
+          fill => normalize_color(get_cfg_value($co_cs, 'fill')),
+          label => get_cfg_value($co_cs, 'label'),
+          frame => get_cfg_value($co_cs, 'frame'),
           geometry => $size . "x" . $size . "+4+4",
-          pointsize => $cfgOpts{'contact sheet pointsize'},
-          shadow => $cfgOpts{'contact sheet shadow'},
-          title => $cfgOpts{'contact sheet title'},
-          tile => $cfgOpts{'contact sheet tile'},
+          pointsize => get_cfg_value($co_cs, 'pointsize'),
+          shadow => get_cfg_value($co_cs, 'shadow'),
+          title => get_cfg_value($co_cs, 'title'),
+          tile => get_cfg_value($co_cs, 'tile'),
           stroke => 'none',
       );
 
@@ -1418,7 +1585,7 @@ sub contactSheetGenerator {
           stroke => 'none',
       );
       $montage->Annotate (
-          font => $cfgOpts{'contact sheet font'},
+          font => get_cfg_value($co_cs, 'font'),
           pointsize => 9,
           x => 5,
           y => 13,
@@ -1426,7 +1593,7 @@ sub contactSheetGenerator {
           text => $left_up_row[0],
       );
       $montage->Annotate (
-          font => $cfgOpts{'contact sheet font'},
+          font => get_cfg_value($co_cs, 'font'),
           pointsize => 9,
           x => 5,
           y => 23,
@@ -1457,7 +1624,7 @@ sub contactSheetGenerator {
   $montagename = template2name (
       $exifToolObj,
       $info,
-      $cfgOpts{'contact sheet file'},
+      get_cfg_value($co_cs, 'file'),
       $fileCounter,
       "stub",
       $counter_size,
@@ -1470,13 +1637,13 @@ sub contactSheetGenerator {
     else { errmsg ("Image::Magick error: $readres\n"); }
 
     # ranking
-    $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'}) + 1);
+    $substrFile = substr($thumbnailes_sorted[$csIteration], length(get_cfg_value($co_cs, 'dir')) + 1);
     if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
       dbgmsg (4, "[last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
       $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]) if ($dryRun == 0);
     } else {
-      dbgmsg (4, "[last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
-      $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'})) if ($dryRun == 0);
+      dbgmsg (4, "[last] $substrFile mattecolor is undefined, using \"", get_cfg_value($co_cs, 'mattecolor'), "\" from config.\n");
+      $image->[$readIndex]->Set(mattecolor => normalize_color(get_cfg_value($co_cs, 'mattecolor'))) if ($dryRun == 0);
     }
   }
   dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
@@ -1484,17 +1651,17 @@ sub contactSheetGenerator {
   # the final invocation of ->Montage() method for the the rest of files didn't fit
   # previous loop	->Montage() calls when  $csIterationNumber < $tileX * $tileY
   $montage = $image->Montage (
-      background => normalize_color($cfgOpts{'contact sheet background'}),
-      bordercolor => normalize_color($cfgOpts{'contact sheet bordercolor'}),
-      font => $cfgOpts{'contact sheet font'},
-      fill => normalize_color($cfgOpts{'contact sheet fill'}),
-      label => $cfgOpts{'contact sheet label'},
-      frame => $cfgOpts{'contact sheet frame'},
+      background => normalize_color(get_cfg_value($co_cs, 'background')),
+      bordercolor => normalize_color(get_cfg_value($co_cs, 'bordercolor')),
+      font => get_cfg_value($co_cs, 'font'),
+      fill => normalize_color(get_cfg_value($co_cs, 'fill')),
+      label => get_cfg_value($co_cs, 'label'),
+      frame => get_cfg_value($co_cs, 'frame'),
       geometry => $size . "x" . $size . "+4+4",
-      pointsize => $cfgOpts{'contact sheet pointsize'},
-      shadow => $cfgOpts{'contact sheet shadow'},
-      title => $cfgOpts{'contact sheet title'},
-      tile => $cfgOpts{'contact sheet tile'},
+      pointsize => get_cfg_value($co_cs, 'pointsize'),
+      shadow => get_cfg_value($co_cs, 'shadow'),
+      title => get_cfg_value($co_cs, 'title'),
+      tile => get_cfg_value($co_cs, 'tile'),
       stroke => 'none',
   );
 
@@ -1510,7 +1677,7 @@ sub contactSheetGenerator {
         stroke => 'none',
     );
     $montage->Annotate (
-        font => $cfgOpts{'contact sheet font'},
+        font => get_cfg_value($co_cs, 'font'),
         pointsize => 9,
         x => 5,
         y => 13,
@@ -1518,7 +1685,7 @@ sub contactSheetGenerator {
         text => $left_up_row[0],
     );
     $montage->Annotate (
-        font => $cfgOpts{'contact sheet font'},
+        font => get_cfg_value($co_cs, 'font'),
         pointsize => 9,
         x => 5,
         y => 23,
@@ -1562,19 +1729,19 @@ sub contactSheetGenerator {
 # See Also   : contactSheetGenerator();
 sub thm_gen_stub {
   my $thm_name = shift;
-  my $size = $cfgOpts{'generate thumbnail size'};
+  my $size = get_cfg_value($co_g, 'generate thumbnail size');
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
 
-  my $gf = normalize_color($cfgOpts{'contact sheet thm grad fr'});
-  my $gt = normalize_color($cfgOpts{'contact sheet thm grad to'});
+  my $gf = normalize_color(get_cfg_value($co_cs, 'thm grad fr'));
+  my $gt = normalize_color(get_cfg_value($co_cs, 'thm grad to'));
   $thmb->ReadImage("gradient:$gf-$gt");
   $thmb->Annotate(
 	   pointsize => 25,
-	   fill => normalize_color($cfgOpts{'contact sheet thm fill'}),
-	   font => $cfgOpts{'contact sheet thm font'},
-	   text => $cfgOpts{'contact sheet thm text'},
+	   fill => normalize_color(get_cfg_value($co_cs, 'thm fill')),
+	   font => get_cfg_value($co_cs, 'thm font'),
+	   text => get_cfg_value($co_cs, 'thm text'),
 	   gravity => 'Center',
   );
 
@@ -1607,7 +1774,7 @@ sub thm_gen_orig {
   my $file = shift;
   my $unlink = shift;
   my $thm_name = "thm_" . $file;
-  my $size = $cfgOpts{'generate thumbnail size'};
+  my $size = get_cfg_value($co_g, 'generate thumbnail size');
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
@@ -1712,7 +1879,7 @@ sub aggregateFile {
 
   makeDir($new_dir);
 
-  if ($cfgOpts{'aggregation virtual'} == 0) {
+  if (get_cfg_value($co_aggr, 'virtual') == 0) {
     my $newname = File::Spec->catfile($new_dir, $base_name);
     rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps a different file system is using\n"), die_renrot() );
     dbgmsg (3, "$file moved to $newname\n");
@@ -1911,7 +2078,7 @@ sub rotateThumbnail {
 
   my $origThumb = ${$$infoObj{ThumbnailImage}};
 
-  if ($cfgOpts{'use ipc'} == 0) {
+  if (get_cfg_value($co_g, 'use ipc') == 0) {
     # extracting the thumbnail image
     my $ThumbnailOriginal = $file . "_thumborig";
     unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
@@ -2237,52 +2404,20 @@ sub template2name {
 $isThereIM = 1 if (defined isTherePackage("Image::Magick"));
 
 getOptions();
-parseConfig($configFile, \%cfgOpts);
+parseConfig($configFile, $config_opts);
 switchColor();
 
 # redefining options set in configuration file with set via CLI ones
-$cfgOpts{'aggregation delta'}	        = $aggrDelta if (defined $aggrDelta);
-$cfgOpts{'aggregation directory'}	= $aggrDir if (defined $aggrDir);
-$cfgOpts{'aggregation mode'}	        = $aggrMode if (defined $aggrMode);
-$cfgOpts{'aggregation template'}	= $aggrTemplate if (defined $aggrTemplate);
-$cfgOpts{'aggregation virtual'}	        = $aggrVirtual if (defined $aggrVirtual);
-$cfgOpts{'keywords'}                  = $keywords if (defined $keywords);
-$cfgOpts{'keywords file'}       	= $keywordsFile if (defined $keywordsFile);
-$cfgOpts{'keywords replace'}    	= $keywordsReplace if (defined $keywordsReplace);
-$cfgOpts{'mtime'}	        	= $mtime if (defined $mtime);
-$cfgOpts{'name template'}       	= $nameTemplate if (defined $nameTemplate);
-$cfgOpts{'trim'}	        	= $trim if (defined $trim);
-$cfgOpts{'use color'}	        	= $useColor if (defined $useColor);
-$cfgOpts{'use ipc'}	        	= $useIPC if (defined $useIPC);
-$cfgOpts{'contact sheet'}	        = $contactSheet if (defined $contactSheet);
-$cfgOpts{'contact sheet tile'}  	= $contactSheetTile if (defined $contactSheetTile);
-$cfgOpts{'contact sheet title'}  	= $contactSheetTitle if (defined $contactSheetTitle);
-$cfgOpts{'contact sheet file'}   	= $contactSheetFile if (defined $contactSheetFile);
-$cfgOpts{'contact sheet dir'}	        = $contactSheetDir if (defined $contactSheetDir);
-$cfgOpts{'contact sheet background'}	= $contactSheetBg if (defined $contactSheetBg);
-$cfgOpts{'contact sheet bordercolor'}	= $contactSheetBd if (defined $contactSheetBd);
-$cfgOpts{'contact sheet mattecolor'}	= $contactSheetMt if (defined $contactSheetMt);
-$cfgOpts{'contact sheet fill'}		= $contactSheetFl if (defined $contactSheetFl);
-$cfgOpts{'contact sheet font'}		= $contactSheetFn if (defined $contactSheetFn);
-$cfgOpts{'contact sheet label'}		= $contactSheetLb if (defined $contactSheetLb);
-$cfgOpts{'contact sheet frame'}		= $contactSheetFr if (defined $contactSheetFr);
-$cfgOpts{'contact sheet pointsize'}	= $contactSheetPntSz if (defined $contactSheetPntSz);
-$cfgOpts{'contact sheet shadow'}	= $contactSheetShadow if (defined $contactSheetShadow);
-$cfgOpts{'contact sheet thm fill'}	= $contactSheetThmFl if (defined $contactSheetThmFl);
-$cfgOpts{'contact sheet thm font'}	= $contactSheetThmFn if (defined $contactSheetThmFn);
-$cfgOpts{'contact sheet thm grad fr'}	= $contactSheetThmGrFr if (defined $contactSheetThmGrFr);
-$cfgOpts{'contact sheet thm grad to'}	= $contactSheetThmGrTo if (defined $contactSheetThmGrTo);
-$cfgOpts{'contact sheet thm text'}	= $contactSheetThmText if (defined $contactSheetThmText);
-$cfgOpts{'contact sheet rank'}	        = $contactSheetRank if (defined $contactSheetRank);
-$cfgOpts{'contact sheet rank file'}	= $contactSheetRankFile if (defined $contactSheetRankFile);
+apply_config_values($config_opts);
 
 # Remove this variable before any screen output
-delete $ENV{ANSI_COLORS_DISABLED} if ($cfgOpts{'use color'} != 0);
+delete $ENV{ANSI_COLORS_DISABLED} if (get_cfg_value($co_g, 'use color') != 0);
 
 dbgmsg (1, "Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
 # Validate aggregation mode possible values
-if (not grep (/^$cfgOpts{'aggregation mode'}$/, ('none', 'delta', 'template'))) {
+my $aggr_mode = get_cfg_value($co_aggr, 'mode');
+if (not grep (/^$aggr_mode$/, ('none', 'delta', 'template'))) {
   warnmsg ("Aggregation mode isn't correct!\n");
 }
 
@@ -2326,9 +2461,9 @@ if (scalar(@filenames) == 0) {
 }
 
 # Parse configuration file tag set
-foreach my $cKey (keys %cfgOpts) {
+foreach my $cKey (keys %$config_opts) {
   next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
-  my %tag = strToHash($cfgOpts{$cKey});
+  my %tag = strToHash($config_opts->{$cKey});
   foreach my $key (keys %tag) {
     $tags{$key} = $tag{$key};
     if ($cKey =~ m/^tagfile/) {
