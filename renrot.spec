@@ -11,11 +11,11 @@ URL:		http://puszcza.gnu.org.ua/projects/renrot/
 Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}%{?rcver}.tar.gz
 BuildArch:	noarch
 BuildRequires:	perl(ExtUtils::MakeMaker)
-BuildRequires:	perl(Image::ExifTool) >= 5.72
 BuildRequires:	perl(Getopt::Long) >= 2.34
+BuildRequires:	perl(Image::ExifTool) >= 5.72
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:	perl(Image::Magick)
 Requires:	/usr/bin/jpegtran
-#Requires(hint):	perl(Image::Magick)
 
 %description
 Renrot renames files according the DateTimeOriginal and FileModifyDate
@@ -60,7 +60,7 @@ if [ -f %{_sysconfdir}/renrot.rc ]; then
 fi
 
 %files
-%doc AUTHORS README ChangeLog NEWS TODO
+%doc AUTHORS ChangeLog NEWS README TODO
 %lang(ru) %doc README.russian
 %{_bindir}/renrot
 %{_mandir}/man1/*.1*
@@ -71,6 +71,9 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/tags.conf
 
 %changelog
+* Sun Jul 15 2012 Andy Shevchenko <andy.shevchenko@gmail.com>
+- explicitly require perl-Image-Magick
+
 * Mon Jun 20 2011 Petr Sabata <contyk@redhat.com> - 1.1-3
 - Perl mass rebuild
 - Dropping now obsolete Buildroot and defattr
