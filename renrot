@@ -166,6 +166,10 @@ my $co_kw = {
   'replace' => { type => '!', default => 0 },
 };
 
+my $co_pc = {
+  'enabled' => { type => '!', default => 0 },
+};
+
 my $co_rs = {
   'clone'   => { type => '!', default => 0 },
   'dir'     => { type => 's', default => 'Resize' },
@@ -178,6 +182,7 @@ my $config_opts = {
   'contact sheet'   => $co_cs,
   'general'         => $co_g,
   'keywords'        => $co_kw,
+  'picasa'          => $co_pc,
   'resize'          => $co_rs,
 };
 
@@ -313,6 +318,9 @@ sub getOptions {
   my $s_kw_opts;
   my %h_kw_opts;
 
+  # For 'picasa'
+  my $s_pc_opts;
+
   # For 'resize'
   my $s_rs_opts;
 
@@ -320,6 +328,7 @@ sub getOptions {
     'aggregation'   => { 's' => \$s_aggr_opts, 'h' => \%h_aggr_opts },
     'contact sheet' => { 's' => \$s_cs_opts,   'h' => \%h_cs_opts },
     'keywords'      => { 's' => \$s_kw_opts,   'h' => \%h_kw_opts },
+    'picasa'        => { 's' => \$s_pc_opts,   'h' => undef },
     'resize'        => { 's' => \$s_rs_opts,   'h' => undef },
   };
 
@@ -369,6 +378,9 @@ sub getOptions {
       "keywords!"         => \$h_kw_opts{'enabled'},
       "keywords-file|k=s" => \$h_kw_opts{'file'},
       "keywords-replace!" => \$h_kw_opts{'replace'},
+
+      # PICASA
+      "picasa-opts=s"     => \$s_pc_opts,
 
       # RESIZER
       "resize-opts=s"     => \$s_rs_opts,
@@ -1564,6 +1576,60 @@ sub rotateThumbnail {
 }
 
 ########################################################################################
+# Usage      : picasa($exif_tool_obj);
+# See Also   : n/a
+sub picasa {
+  return if (get_cfg_value($co_pc, 'enabled') == 0);
+
+  my $exifToolObj = shift;
+  my @files = sort (keys %filenameshash);
+  my $file_num = scalar(@files);
+  my $file_rem = 0;
+
+  if ($file_num == 0) {
+    warnmsg("No files to proceed\n");
+    return;
+  }
+
+  use Net::Netrc;
+
+  my $site = "picasaweb.google.com";
+  my $machine = Net::Netrc->lookup($site);
+  if (not $machine) {
+    errmsg("No credentials are found in the ~/.netrc for $site\n");
+    return;
+  }
+
+  use Net::Google::PicasaWeb;
+
+  my $srv = Net::Google::PicasaWeb->new();
+  $srv->login($machine->login, $machine->password);
+
+  my $atitle = basename(File::Spec->rel2abs(File::Spec->curdir()));
+  dbgmsg(2, "Using '$atitle' as a title of a new album\n");
+  my $album = $srv->add_album(
+                title => $atitle,
+                access => 'public',
+                timestamp => $filenameshash{$files[0]} * 1000,  # msec
+              ) if ($dryRun == 0);
+
+  procmsg ("UPLOAD TO THE PICASAWEB\n");
+  procmsg ("=======================\n");
+
+  foreach my $file (@files) {
+    $file_rem++;
+    if ($dryRun == 0) {
+      $srv->add_photo(
+        album_id => $album->entry_id,
+        title => basename($file),
+        data => Image::RenRot::FileUtil->getFileData($file),
+      );
+    }
+    procmsg ("Uploaded: ($file_rem of $file_num) $file\n", "\n");
+  }
+}
+
+########################################################################################
 # Usage      : resizer($exif_tool_obj);
 # See Also   : n/a
 sub resizer {
@@ -1928,6 +1994,8 @@ contactSheetGenerator($exifTool) if ($isThereIM);
 aggregationProcess($exifTool, $counterSize);
 
 resizer($exifTool) if ($isThereIM);
+
+picasa($exifTool);
 
 __END__
 
