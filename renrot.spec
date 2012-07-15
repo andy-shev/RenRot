@@ -3,20 +3,19 @@
 
 Name:		renrot
 Version:	1.1.0
-Release:	1%{?dotrc}%{?dist}
+Release:	3%{?dotrc}%{?dist}
 License:	Artistic 2.0
 Group:		Applications/Multimedia
 Summary:	A program to rename and rotate files according to EXIF tags
 URL:		http://puszcza.gnu.org.ua/projects/renrot/
 Source0:	ftp://download.gnu.org.ua/pub/release/renrot/%{name}-%{version}%{?rcver}.tar.gz
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:	noarch
 BuildRequires:	perl(ExtUtils::MakeMaker)
 BuildRequires:	perl(Image::ExifTool) >= 5.72
 BuildRequires:	perl(Getopt::Long) >= 2.34
 Requires:	perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires:	libjpeg >= 6b
-Requires(hint):	perl(Image::Magick)
+Requires:	/usr/bin/jpegtran
+#Requires(hint):	perl(Image::Magick)
 
 %description
 Renrot renames files according the DateTimeOriginal and FileModifyDate
@@ -38,7 +37,6 @@ configuration file.
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
 
 # Fix renrot permissions
@@ -55,9 +53,6 @@ install -m644 etc/tags.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}
 find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
 find $RPM_BUILD_ROOT -type f -name perllocal.pod -exec rm -f {} \;
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %triggerin -- renrot < 0.21-0.2.rc2
 if [ -f %{_sysconfdir}/renrot.rc ]; then
     /bin/mkdir -p %{_sysconfdir}/%{name}
@@ -65,7 +60,6 @@ if [ -f %{_sysconfdir}/renrot.rc ]; then
 fi
 
 %files
-%defattr(-,root,root,-)
 %doc AUTHORS README ChangeLog NEWS TODO
 %lang(ru) %doc README.russian
 %{_bindir}/renrot
@@ -77,10 +71,24 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/tags.conf
 
 %changelog
-* Sun Jun 01 2008 Andy Shevchenko <andy@smile.org.ua>
+* Mon Jun 20 2011 Petr Sabata <contyk@redhat.com> - 1.1-3
+- Perl mass rebuild
+- Dropping now obsolete Buildroot and defattr
+- Commenting Requires(hint) out since fedpkg refuses to work with it
+
+* Thu Jul 01 2010 Adam Tkac <atkac redhat com> - 1.1-2
+- Require /usr/bin/jpegtran instead of libjpeg; compatible with both
+  libjpeg and libjpeg-turbo
+
+* Mon Oct 06 2008 Andy Shevchenko <andy@smile.org.ua> - 1.1-0.3.rc3
+- update to 1.1rc3
 - change License to Artistic 2.0 accordingly to mainstream
 - update URLs
 - require (optional) Image::Magick
+
+* Tue Sep 04 2007 Andy Shevchenko <andy@smile.org.ua> 0.25-3.1
+- Fix License tag
+- Add BuildRequires: perl(ExtUtils::MakeMaker)
 
 * Tue Aug 22 2006 Andy Shevchenko <andy@smile.org.ua>
 - add colors.conf
@@ -88,7 +96,7 @@ fi
 * Wed Jun 07 2006 Andy Shevchenko <andriy@asplinux.com.ua>
 - relocate configuration to %_sysconfdir/%name
 
-* Sat Jun 03 2006 Andy Shevchenko <andriy@asplinux.com.ua>
+* Sat Jun 03 2006 Andy Shevchenko <andriy@asplinux.com.ua> 0.20-2
 - remove BR: perl
 - fix renrot permissions
 
