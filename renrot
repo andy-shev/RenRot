@@ -1155,7 +1155,7 @@ sub aggregationProcess {
   procmsg ("AGGREGATION\n");
   procmsg ("===========\n");
 
-  makeDir($BaseDir);
+  makeDir($BaseDir) if ($dryRun == 0);
 
   if ($cfgOpts{'aggregation mode'} eq "template") {
     dbgmsg (1, "Template: $cfgOpts{'aggregation template'}\n");
@@ -1212,7 +1212,7 @@ sub aggregationProcess {
 
 ########################################################################################
 # Usage      : contactSheetGenerator();
-# Purpose    : builds contact sheet/s
+# Purpose    : builds contact sheet(s)
 # Returns    : none
 # Parameters : $exifTool ref    -
 # Throws     : no exceptions
@@ -1248,7 +1248,7 @@ sub contactSheetGenerator {
     }
   }
 
-  makeDir($workdir);
+  makeDir($workdir) if ($dryRun == 0);
 
   procmsg ("CONTACT SHEET GENERATION\n");
   procmsg ("========================\n");
@@ -1267,16 +1267,20 @@ sub contactSheetGenerator {
         # We need this since rotated imgage will be at $workdir, but others are
         # in current
         $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
-        copy ($file, $ThumbnailOriginal) || ( fatalmsg ("copy failed: $!"), die_renrot() );
+        if ($dryRun == 0) {
+          copy ($file, $ThumbnailOriginal) || ( fatalmsg ("copy failed: $!"), die_renrot() );
+        }
         $filefull = $ThumbnailOriginal;
       }
     } elsif ($contactSheetThm == 0) {
       if (defined ${$$info{ThumbnailImage}}) {
         $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
-        open (OLDTHUMBNAIL, ">$ThumbnailOriginal") || ( fatalmsg ("$ThumbnailOriginal wasn't opened!\n"), die_renrot() );
-        binmode OLDTHUMBNAIL;
-        print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
-        unless (close (OLDTHUMBNAIL)) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
+        if ($dryRun == 0) {
+          open (OLDTHUMBNAIL, ">$ThumbnailOriginal") || ( fatalmsg ("$ThumbnailOriginal wasn't opened!\n"), die_renrot() );
+          binmode OLDTHUMBNAIL;
+          print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
+          unless (close (OLDTHUMBNAIL)) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
+        }
 
         if (not defined $orientation) {
           $orientation = $exifToolObj->GetValue("Rotation", 'ValueConv');
@@ -1293,20 +1297,24 @@ sub contactSheetGenerator {
           warnmsg ("$filefull has no ThumbnailImage tag. Stub thumbnail image will be used.\n");
           my $thmbstubjpg = File::Spec->catfile($workdir, "thmbstub.jpg");
           thm_gen_stub($thmbstubjpg) if (not -f $thmbstubjpg);
-          copy ($thmbstubjpg, $ffwf);
+          copy ($thmbstubjpg, $ffwf) if ($dryRun == 0);
         } else {
           warnmsg ("$filefull has no ThumbnailImage tag. Thumbnail image will be generated.\n");
-          move (thm_gen_orig($file, 0), $ffwf);
+          move (thm_gen_orig($file, 0), $ffwf) if ($dryRun == 0);
         }
         $filefull = $ffwf;
       }
     }
 
-    $infothm = $exifToolObj->ImageInfo($filefull);
-    $width = $exifToolObj->GetValue("ImageWidth");
-    $height = $exifToolObj->GetValue("ImageHeight");
-    if ($width > $size) { $size = $width; }
-    if ($height > $size) { $size = $height; }
+    if ($dryRun == 0) {
+      $infothm = $exifToolObj->ImageInfo($filefull);
+
+      $width = $exifToolObj->GetValue("ImageWidth");
+      if ($width > $size) { $size = $width; }
+
+      $height = $exifToolObj->GetValue("ImageHeight");
+      if ($height > $size) { $size = $height; }
+    }
 
     push (@thumbnailes, $filefull);
   }
@@ -1465,10 +1473,10 @@ sub contactSheetGenerator {
     $substrFile = substr($thumbnailes_sorted[$csIteration], length($cfgOpts{'contact sheet dir'}) + 1);
     if (defined $ranks->{$substrFile}->[1] and length($ranks->{$substrFile}->[1]) > 1) {
       dbgmsg (4, "[last] $substrFile mattecolor is \"$ranks->{$substrFile}->[1]\"\n");
-      $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]);
+      $image->[$readIndex]->Set(mattecolor => $ranks->{$substrFile}->[1]) if ($dryRun == 0);
     } else {
       dbgmsg (4, "[last] $substrFile mattecolor is undefined, using \"$cfgOpts{'contact sheet mattecolor'}\" from config.\n");
-      $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'}));
+      $image->[$readIndex]->Set(mattecolor => normalize_color($cfgOpts{'contact sheet mattecolor'})) if ($dryRun == 0);
     }
   }
   dbgmsg (1, "Final, $csIterator montage is started, wait a bit please...\n");
@@ -1493,30 +1501,32 @@ sub contactSheetGenerator {
   if (not ref($montage)) { errmsg ("Image::Magick error: $montage\n"); }
   else { dbgmsg (1, "Montage've finished successfully.\n"); }
 
-  $montage->Set (
-      filename => 'jpg:' . $montagename,
-      quality => 95,
-      interlace => 'Partition',
-      gravity => 'Center',
-      stroke => 'none',
-  );
-  $montage->Annotate (
-      font => $cfgOpts{'contact sheet font'},
-      pointsize => 9,
-      x => 5,
-      y => 13,
-      fill => 'lightgray',
-      text => $left_up_row[0],
-  );
-  $montage->Annotate (
-      font => $cfgOpts{'contact sheet font'},
-      pointsize => 9,
-      x => 5,
-      y => 23,
-      fill => 'lightgray',
-      text => $left_up_row[1],
-  );
-  $writeres = $montage->Write();
+  if ($dryRun == 0) {
+    $montage->Set (
+        filename => 'jpg:' . $montagename,
+        quality => 95,
+        interlace => 'Partition',
+        gravity => 'Center',
+        stroke => 'none',
+    );
+    $montage->Annotate (
+        font => $cfgOpts{'contact sheet font'},
+        pointsize => 9,
+        x => 5,
+        y => 13,
+        fill => 'lightgray',
+        text => $left_up_row[0],
+    );
+    $montage->Annotate (
+        font => $cfgOpts{'contact sheet font'},
+        pointsize => 9,
+        x => 5,
+        y => 23,
+        fill => 'lightgray',
+        text => $left_up_row[1],
+    );
+    $writeres = $montage->Write();
+  }
   if (not $writeres) { dbgmsg (1, "Successfully written $montagename file.\n"); }
   else { errmsg ("Image::Magick error: $writeres\n"); }
   undef $image;
@@ -1532,10 +1542,14 @@ sub contactSheetGenerator {
   # Writing ThumbnailImage tag with generated thumbnail
   thm_gen_orig($montagename, 1);
 
-  chdir $workdir;
-  unlink <*>;
-  chdir "..";
+  if (-d $workdir) {
+    chdir $workdir;
+    unlink <*>;
+    chdir "..";
+  }
   rmdir $workdir;
+
+  procmsg ("\n");
 }
 
 ########################################################################################
@@ -1552,18 +1566,27 @@ sub thm_gen_stub {
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
-  $thmb->ReadImage("gradient:" . normalize_color($cfgOpts{'contact sheet thm grad fr'}) . "-" . normalize_color($cfgOpts{'contact sheet thm grad to'}));
-  $thmb->Annotate (
-		   pointsize => 25,
-		   fill => normalize_color($cfgOpts{'contact sheet thm fill'}),
-		   font => $cfgOpts{'contact sheet thm font'},
-		   text => $cfgOpts{'contact sheet thm text'},
-		   gravity => 'Center',
-		  );
 
-  my $thmbnum = $thmb->Write();
+  my $gf = normalize_color($cfgOpts{'contact sheet thm grad fr'});
+  my $gt = normalize_color($cfgOpts{'contact sheet thm grad to'});
+  $thmb->ReadImage("gradient:$gf-$gt");
+  $thmb->Annotate(
+	   pointsize => 25,
+	   fill => normalize_color($cfgOpts{'contact sheet thm fill'}),
+	   font => $cfgOpts{'contact sheet thm font'},
+	   text => $cfgOpts{'contact sheet thm text'},
+	   gravity => 'Center',
+  );
 
-  if ($thmbnum) { errmsg ("$thmbnum\n"); }
+  if ($dryRun == 0) {
+    my $thmbnum = $thmb->Write();
+    if ($thmbnum) {
+      errmsg ("$thmbnum\n");
+      undef $thmb;
+      return;
+    }
+  }
+
   undef $thmb;
 
   procmsg ("Stub thumbnail image has been created.\n");
@@ -1592,17 +1615,25 @@ sub thm_gen_orig {
   $thmb->ReadImage($file);
   $thmb->Thumbnail(geometry => $size);
 
-  my $thmbnum = $thmb->Write();
+  if ($dryRun == 0) {
+    my $thmbnum = $thmb->Write();
+    if ($thmbnum) {
+      errmsg ("$thmbnum\n");
+      undef $thmb;
+      return;
+    }
+  }
 
-  if ($thmbnum) { errmsg ("$thmbnum\n"); }
   undef $thmb;
+
+  procmsg ("ThumbnailImage was generated for $file\n");
 
   if ($unlink) {
     dbgmsg (3, "Attempt to write ThumbnailImage tag to $file\n");
     thumbWriter($file, getFileData($thm_name));
     unlink $thm_name;
+    return;
   } else {
-    dbgmsg (3, "ThumbnailImage was generated for $file\n");
     return $thm_name;
   }
 }
@@ -1821,7 +1852,10 @@ sub rotateImg {
   # jpegtran the image
   my $cmd = "jpegtran -copy none @addon -outfile \"$newfile\" \"$oldfile\"";
   dbgmsg (3, "$cmd\n");
-  system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+
+  if ($dryRun == 0) {
+    system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+  }
 
   # preparing to write tags to the just rotated file
   my $exifAfterRot = new Image::ExifTool;
@@ -1829,13 +1863,17 @@ sub rotateImg {
   $exifAfterRot->SetNewValuesFromFile($oldfile, '*:*');
   $exifAfterRot->SetNewValue("Orientation", 1, Type => 'ValueConv');
 
-  if ($backup != 0) {
-    rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die_renrot() );
+  if ($dryRun == 0) {
+    if ($backup != 0) {
+      rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die_renrot() );
+    }
+    rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die_renrot() );
   }
-  rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die_renrot() );
+
+  procmsg ("$oldfile was rotated\n");
 
   # writing the changes to the EXIFs
-  exifWriter($exifAfterRot, $oldfile);
+  exifWriter($exifAfterRot, $oldfile) if ($dryRun == 0);
 }
 
 ########################################################################################
@@ -1852,7 +1890,8 @@ sub thumbWriter {
   $exifThumbnailed->SetNewValue("ThumbnailImage", $thethumb, Type => 'ValueConv');
 
   # writing the changes to the EXIFs
-  exifWriter($exifThumbnailed, $file);
+  procmsg ("Writing thumbnail to $file...\n");
+  exifWriter($exifThumbnailed, $file) if ($dryRun == 0);
 }
 
 ########################################################################################
@@ -1877,6 +1916,7 @@ sub rotateThumbnail {
     my $ThumbnailOriginal = $file . "_thumborig";
     unless (open (OLDTHUMBNAIL, ">$ThumbnailOriginal")) {
       errmsg ("$ThumbnailOriginal wasn't opened!\n");
+      return;
     }
     binmode OLDTHUMBNAIL;
     print OLDTHUMBNAIL $origThumb;
@@ -1886,12 +1926,17 @@ sub rotateThumbnail {
     my $ThumbnailOriginalRotated = $ThumbnailOriginal . "_rotated";
     my $cmd = "jpegtran -copy none @addon -outfile \"$ThumbnailOriginalRotated\" \"$ThumbnailOriginal\"";
     dbgmsg (3, "$cmd\n");
-    system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+
+    if ($dryRun == 0) {
+      system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+    }
 
     # write the just rotated thumbnail back to file
     thumbWriter($file, getFileData($ThumbnailOriginalRotated));
 
-    unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die_renrot() );
+    if ($dryRun == 0) {
+      unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die_renrot() );
+    }
     unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die_renrot() );
   } else {
     my $cmd = "jpegtran -copy none @addon";
@@ -1921,6 +1966,7 @@ sub piper {
   local (*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
   unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipe_cmd)) {
     errmsg ("Unable to create the pipe.\n");
+    return;
   }
 
   binmode WRITE_TO_FH;
