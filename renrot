@@ -2160,87 +2160,87 @@ sub usage {
           [[--] FILE1 FILE2 ...]
 
 Options:
-  -c, --config-file <FILE>	configuration file to use
-  -d, --work-directory <DIR>	set working directory
-      --exclude <FILE> ...	files exclude from processing; no wildcards
-      --sub-fileset <FILE>	read names of the files to be processed from
+  -c, --config-file <FILE>      configuration file to use
+  -d, --work-directory <DIR>    set working directory
+      --exclude <FILE> ...      files exclude from processing; no wildcards
+      --sub-fileset <FILE>      read names of the files to be processed from
                                 FILE
-  -e, --extension <EXTENSION>	extension of files to process: JPG, jpeg, ...
+  -e, --extension <EXTENSION>   extension of files to process: JPG, jpeg, ...
 
 Renaming options:
-  -n, --name-template <TPL>	filename template (see manual for details)
-      --no-rename		do not rename files (default is to rename)
-      --counter-fixed-field (*)	set fixed field width for counter (used in
+  -n, --name-template <TPL>     filename template (see manual for details)
+      --no-rename               do not rename files (default is to rename)
+      --counter-fixed-field (*) set fixed field width for counter (used in
                                 templates)
-      --counter-start <NUMBER>	start value for the counter of renamed files
-      --counter-step <NUMBER>	increment value for the counter of renamed
+      --counter-start <NUMBER>  start value for the counter of renamed files
+      --counter-step <NUMBER>   increment value for the counter of renamed
                                 files
 
 Rotating options:
-  -r, --rotate-angle <ANGLE>	angle to rotate files and thumbnails by 90,
+  -r, --rotate-angle <ANGLE>    angle to rotate files and thumbnails by 90,
                                 180, 270
-      --rotate-thumb <ANGLE>	rotate only thumbnails by 90, 180, 270
-      --only-orientation	change Orientation tag (no real rotation)
-      --no-rotate		do not rotate (default is to rotate)
-      --trim (*)		pass -trim to jpegtran
-      --mtime (*)		set file mtime according to DateTimeOriginal
+      --rotate-thumb <ANGLE>    rotate only thumbnails by 90, 180, 270
+      --only-orientation        change Orientation tag (no real rotation)
+      --no-rotate               do not rotate (default is to rotate)
+      --trim (*)                pass -trim to jpegtran
+      --mtime (*)               set file mtime according to DateTimeOriginal
                                 tag
 
 Keywordizing options:
-      --keywords (*)		set Keywords tag
-      --keywords-replace (*)	replace Keywords tag rather than add values to
+      --keywords (*)            set Keywords tag
+      --keywords-replace (*)    replace Keywords tag rather than add values to
                                 it
-  -k, --keywords-file <FILE>	read keywords from FILE
+  -k, --keywords-file <FILE>    read keywords from FILE
 
 Aggregating options:
-      --aggr-mode <MODE>	run aggregation (MODE: none, delta, template)
-      --aggr-delta <INTERVAL>	aggregation time delta
-      --aggr-directory <DIR>	aggregation directory name
-  -a, --aggr-template <TPL>	aggregation template (see manual for details)
-      --aggr-virtual (*)	virtual aggregation (symlinks instead of files)
+      --aggr-mode <MODE>        run aggregation (MODE: none, delta, template)
+      --aggr-delta <INTERVAL>   aggregation time delta
+      --aggr-directory <DIR>    aggregation directory name
+  -a, --aggr-template <TPL>     aggregation template (see manual for details)
+      --aggr-virtual (*)        virtual aggregation (symlinks instead of files)
 
 Contact Sheet options (CS):
-      --cs (*)			create the CS
-      --cs-tile <MxN>		tile in montage
-      --cs-title		set title of the montage
-      --cs-file <FILE>		name of the montage files
-      --cs-dir <DIR>		temporary montage DIR
-      --cs-thm			montage files are thumbnails
-      --cs-bg <COLOR>		background color (IM: -background)
-      --cs-bd <COLOR>		border color (IM: -bordercolor)
-      --cs-mt <COLOR>		frame color (IM: -mattecolor)
-      --cs-fn <STRING>		text render font (IM: -font)
-      --cs-fl <COLOR>		color to fill the text (IM: -fill)
-      --cs-lb <STRING>		image label (IM: -label)
-      --cs-fr <NUMBER>		thickness of border (IM: -frame)
-      --cs-pntsz <NUMBER>	font point size (IM: -pointsize)
-      --cs-shadow		set shadow (IM: -shadow)
-      --cs-thm-fl <STRING>	generated thumbnail text fill color
-      --cs-thm-fn <STRING>	generated thumbnail font
-      --cs-thm-grfr <COLOR>	generated thumbnail background gradient
+      --cs (*)                  create the CS
+      --cs-tile <MxN>           tile in montage
+      --cs-title                set title of the montage
+      --cs-file <FILE>          name of the montage files
+      --cs-dir <DIR>            temporary montage DIR
+      --cs-thm                  montage files are thumbnails
+      --cs-bg <COLOR>           background color (IM: -background)
+      --cs-bd <COLOR>           border color (IM: -bordercolor)
+      --cs-mt <COLOR>           frame color (IM: -mattecolor)
+      --cs-fn <STRING>          text render font (IM: -font)
+      --cs-fl <COLOR>           color to fill the text (IM: -fill)
+      --cs-lb <STRING>          image label (IM: -label)
+      --cs-fr <NUMBER>          thickness of border (IM: -frame)
+      --cs-pntsz <NUMBER>       font point size (IM: -pointsize)
+      --cs-shadow               set shadow (IM: -shadow)
+      --cs-thm-fl <STRING>      generated thumbnail text fill color
+      --cs-thm-fn <STRING>      generated thumbnail font
+      --cs-thm-grfr <COLOR>     generated thumbnail background gradient
                                 COLOR-from
-      --cs-thm-grto <COLOR>	generated thumbnail background gradient
+      --cs-thm-grto <COLOR>     generated thumbnail background gradient
                                 COLOR-to
-      --cs-thm-text <STRING>	generated thumbnail text
-      --cs-rank			to do CS ranking
-      --cs-rank-file <FILE>	file with CS ranks
+      --cs-thm-text <STRING>    generated thumbnail text
+      --cs-rank                 to do CS ranking
+      --cs-rank-file <FILE>     file with CS ranks
 
 Tag writing options:
-      --comment-file <FILE>	file with text to put into Commentary tag
-      --user-comment <COMMENT>	file with text to put into UserComment tag
-  -t, --tag <TAG> ...		existing EXIF tag to set in renamed files
-      --no-tags			do not write tags
+      --comment-file <FILE>     file with text to put into Commentary tag
+      --user-comment <COMMENT>  file with text to put into UserComment tag
+  -t, --tag <TAG> ...           existing EXIF tag to set in renamed files
+      --no-tags                 do not write tags
 
 Colorizing options:
-      --use-color (*)		colorized output
+      --use-color (*)           colorized output
 
 Misc options:
-  -g, --generate-thumb		generation, writing or rewriting ThumbnailImage tag
-      --dry-run			do nothing, only print would have been done
-      --use-ipc (*)		rotate thumbnail via pipe, rather than via file
-  -v				increment debugging level by 1
-  -h, --help			display this help and exit
-      --version			output version and exit
+  -g, --generate-thumb          generation, writing or rewriting ThumbnailImage tag
+      --dry-run                 do nothing, only print would have been done
+      --use-ipc (*)             rotate thumbnail via pipe, rather than via file
+  -v                            increment debugging level by 1
+  -h, --help                    display this help and exit
+      --version                 output version and exit
 
 (*) The options marked with this sign do not take arguments and can be negated,
 i.e. prefixed by 'no'. E.g. '--mtime' sets file mtime value, while '--nomtime'
