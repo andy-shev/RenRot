@@ -371,29 +371,35 @@ sub getOptions {
       "keywords-file|k=s" => \$h_kw_opts{'file'},
       "keywords-replace!" => \$h_kw_opts{'replace'},
 
-      # OTHERS
-      "backup!"              => \$backup,
-      "comment-file=s"       => \$comfile,
-      "config-file|c=s"      => \$configFile,
+      # RENAMIMG
       "counter-fixed-field!" => \$countFF,
       "counter-start=i"      => \$countStart,
       "counter-step=i"       => \$countStep,
+      "no-rename|norename"   => \$noRename,
+
+      # ROTATIMG
+      "no-rotate|norotate"   => \$noRotation,
+      "only-orientation"     => \$orientTag,
+      "rotate-angle|r=i"     => \$rotateAngle,
+      "rotate-thumb=i"       => \$rotateThumbnail,
+
+      # TAG WRITER
+      "comment-file=s"       => \$comfile,
+      "no-tags|notags"       => \$noTags,
+      "tag|t=s"              => \@tmpTags,
+      "user-comment=s"       => \$userComment,
+
+      # OTHERS
+      "backup!"              => \$backup,
+      "config-file|c=s"      => \$configFile,
       "dry-run"              => \$dryRun,
       "exclude=s"            => \@excludeList,
       "extension|e=s"        => \$extToProcess,
       "generate-thumb|g"     => \$gen_thm,
       "help|?"               => sub { usage(0, 2) },
-      "no-rename|norename"   => \$noRename,
-      "no-rotate|norotate"   => \$noRotation,
-      "no-tags|notags"       => \$noTags,
       "no-renrot|nochg"      => \$noRenRoTagMtm,
-      "only-orientation"     => \$orientTag,
       "quiet|q"              => \$quiet,
-      "rotate-angle|r=i"     => \$rotateAngle,
-      "rotate-thumb=i"       => \$rotateThumbnail,
       "sub-fileset=s"        => \$subFileSet,
-      "tag|t=s"              => \@tmpTags,
-      "user-comment=s"       => \$userComment,
       "v+"                   => \$verbose,
       "version"              => sub { usage(0, 0) },
       "work-directory|d=s"   => \$workDir,
@@ -1946,121 +1952,6 @@ Process the files with given I<EXTENSION> (JPG, jpeg, CRW, crw, etc).
 Depending on the operating system, the extension search might or might not be
 case-sensitive.
 
-=item B<-n> or B<--name-template> I<TEMPLATE>
-
-A template to use for creating new file names while renaming. It can also be
-defined in the configuration file (variable Name Template). The default is
-I<%Y%m%d%H%M%S>. For practical uses, see L</TEMPLATE EXAMPLES> section.
-
-Interpreted sequences are:
-
-=over
-
-B<%%>	a literal %
-
-B<%#>	a literal #
-
-B<%C>	Numeric part of the original file name. Implemented for the sake
-of cameras, that do not supply FileNumber EXIF tag (currently all makes,
-except I<Canon>). Such cameras generate file names starting with letters
-and ended with digits. No other symbols are allowed in file names, except
-C<->, C<.> and C<_>.
-
-B<%c>	Ordinal number of file in the processed file set (see also
-B<--counter-fixed-field> option).
-
-B<%d>	Day of month (01-31).
-
-B<%E>	The value of ExposureTime tag, if defined.
-
-B<%e>	Old file extension
-
-B<%F>	The value of FNumber tag, if defined.
-
-B<%H>	Hour (00-23).
-
-B<%I>	The value of ISO tag, if defined.
-
-B<%i>	FileNumber tag if exists (otherwise, it is replaced by string
-C<NA>).
-
-B<%M>	Minute (00-59).
-
-B<%m>	Month (01-12).
-
-B<%n>	Previous filename (the one before B<renrot> started processing).
-
-B<%O>	Base part of the original filename (see B<%o>). In other words, the
-first part from the beginning to the last dot character.
-
-B<%o>	The name file had before it was processed by B<renrot> for the first
-time. If the file was processed only once, the tag RenRotFileNameOriginal is
-set to the original file name.
-
-B<%S>	Second (00-59)
-
-B<%W>	The value of WhiteBalance tag, if defined.
-
-B<%Y>	Year with the century (1900, 1901, and so on)
-
-B<%y>	Year without a century (00..99)
-
-You can use value of any EXIF tag to be included as name part. To do that you
-need to embrace tag name with sign B<"#">, while building name template
-(see L</TEMPLATE EXAMPLES>).
-
-Be careful, since any binary EXIF (like ThumbnaiImage) can produce totally
-unexpected results.
-
-=back
-
-=item B<--no-rename>
-
-Do not rename files (default is to rename them to YYYYmmddHHMMSS.ext)
-
-=item B<--counter-fixed-field>, B<--no-counter-fixed-field>
-
-Set fixed length for file counter, used in file name templates (see B<%c>).
-It is enabled by default. Use B<--no-counter-fixed-field> to undo its effect.
-
-=item B<--counter-start> I<NUMBER>
-
-Initial value for the file counter (default is I<1>)
-
-=item B<--counter-step> I<NUMBER>
-
-Step to increment file counter with (default is I<1>)
-
-=item B<-r> or B<--rotate-angle> I<ANGLE>
-
-Define the angle to rotate files and thumbnails. Allowed values for I<ANGLE>
-are 90, 180 or 270. It is useful for files not having Orientation tag.
-
-=item B<--rotate-thumb> I<ANGLE>
-
-Rotate only thumbnails. Allowed values for I<ANGLE> are 90, 180 or 270 degrees.
-Use if the files which were already rotated, but their thumbnails were not.
-
-=item B<--only-orientation>
-
-Rotate by changing the value of Orientation tag, no real rotation will be
-made. The sequence of values to rotate an image from normal (0 degrees) by
-90 degrees clockwise is: 0 -> 90 -> 180 -> 270 -> 0. It means. set Orientation
-tag to 90cw after the first rotation, and increase that value by 90 each time
-the rotation is applied. For 270cw the rotation algorithm uses the reverted
-sequence. Rotation by 180cw triggers values in two pairs: 0 <-> 180
-and 90 <-> 270. This option cannot be applied to mirror values of Orientation
-tag.
-
-=item B<--trim>, B<--no-trim>
-
-Pass the C<-trim> option to L<jpegtran(1)>, to trim if needed. By default,
-trimming is enabled. Use B<--no-trim> to disable it.
-
-=item B<--no-rotate>
-
-Do not rotate images (default is to rotate according to EXIF data).
-
 =item B<--mtime>, B<--no-mtime>
 
 Defines whether to set the file's mtime, using DateTimeOriginal tag value.
@@ -2071,23 +1962,43 @@ Use B<--no-mtime> to set it to current time stamp after processing.
 Do not rename, rotate, tag and mtime images. It saves files from any changes
 while allows to do aggregation, contact sheet generation e.t.c.
 
-=item B<--keywords>, B<--no-keywords>
+=item B<--use-color>, B<--no-use-color>
 
-Whether to fill Keywords tag. Default is to not. Be careful, since with this option
-enabled, the existing keywords are rewriten. The keywords are taken from
-F<.keywords> file or file specified with option B<--keywords-file>.
+Colorize output. This does NOT work under Windows.
 
-=item B<-k> or B<--keywords-file> F<FILE>
+=item B<--dry-run>
 
-Path to the file with keywords. Its format is a keyword per line. The CR and
-LF symbols are removed. Empty (only whitespace) lines are ignored. Any leading
-and trailing whitespace is removed. For example, the line C<  _Test_  CRLF> is
-read as C<_Test_>.
+Do not do anything, only print would have been done.
 
-=item B<--keywords-replace>, B<--no-keywords-replace>
+=item B<-g> or B<--generate-thumb>
 
-Replace existing Keywords tag list rather than add new values to it. Default
-is not to replace.
+Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage
+tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
+
+=item B<--use-ipc>, B<--no-use-ipc>
+
+Rotate thumbnails using pipe, rather than files. This does NOT work under
+Windows.
+
+=item B<-v>
+
+Increase debugging level by 1. Debugging levels from 1 to 4 are internal
+levels, the levels from 5 till 9 are equivalent to levels 1-5 levels ExifTool
+with the maximum verbosity for B<renrot>.
+
+=item B<-?> or B<--help>
+
+Display short usage summary and exit.
+
+=item B<--version>
+
+Output version information and exit.
+
+=back
+
+=head1 B<AGGREGATION>
+
+=over
 
 =item B<--aggr-mode> I<MODE>
 
@@ -2123,54 +2034,6 @@ Defines virtualization for existent aggregation modes. The main effect of
 B<--aggr-virtual> is that any files to be aggregated remain untouched in their
 places, and relative symbolic links pointing to them are stored in the
 directory tree created. Use B<--no-aggr-virtual> to prevent virtualization.
-
-=item B<--comment-file> F<FILE>
-
-File with commentaries. It is a low priority alias to I<TagFile = Comment: FILE>.
-
-=item B<--user-comment> I<STRING>
-
-A low priority alias to I<--tag UserComment: STRING>
-
-=item B<-t> or B<--tag> I<TAG>
-
-See the section L</TAGS>, for the detailed description
-
-=item B<--no-tags>
-
-No user's defined tags will be written.
-
-=item B<--use-color>, B<--no-use-color>
-
-Colorize output. This does NOT work under Windows.
-
-=item B<--dry-run>
-
-Do not do anything, only print would have been done.
-
-=item B<-g> or B<--generate-thumb>
-
-Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage
-tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
-
-=item B<--use-ipc>, B<--no-use-ipc>
-
-Rotate thumbnails using pipe, rather than files. This does NOT work under
-Windows.
-
-=item B<-v>
-
-Increase debugging level by 1. Debugging levels from 1 to 4 are internal
-levels, the levels from 5 till 9 are equivalent to levels 1-5 levels ExifTool
-with the maximum verbosity for B<renrot>.
-
-=item B<-?> or B<--help>
-
-Display short usage summary and exit.
-
-=item B<--version>
-
-Output version information and exit.
 
 =back
 
@@ -2295,6 +2158,179 @@ Filename separated from the color by space or tabulation.
 =back
 
 Only the files found in the file will be ranked.
+
+=back
+
+=head1 B<KEYWORDIZER>
+
+=over
+
+=item B<--keywords>, B<--no-keywords>
+
+Whether to fill Keywords tag. Default is to not. Be careful, since with this option
+enabled, the existing keywords are rewriten. The keywords are taken from
+F<.keywords> file or file specified with option B<--keywords-file>.
+
+=item B<-k> or B<--keywords-file> F<FILE>
+
+Path to the file with keywords. Its format is a keyword per line. The CR and
+LF symbols are removed. Empty (only whitespace) lines are ignored. Any leading
+and trailing whitespace is removed. For example, the line C<  _Test_  CRLF> is
+read as C<_Test_>.
+
+=item B<--keywords-replace>, B<--no-keywords-replace>
+
+Replace existing Keywords tag list rather than add new values to it. Default
+is not to replace.
+
+=back
+
+=head1 B<RENAMING>
+
+=over
+
+=item B<-n> or B<--name-template> I<TEMPLATE>
+
+A template to use for creating new file names while renaming. It can also be
+defined in the configuration file (variable Name Template). The default is
+I<%Y%m%d%H%M%S>. For practical uses, see L</TEMPLATE EXAMPLES> section.
+
+Interpreted sequences are:
+
+=over
+
+B<%%>	a literal %
+
+B<%#>	a literal #
+
+B<%C>	Numeric part of the original file name. Implemented for the sake
+of cameras, that do not supply FileNumber EXIF tag (currently all makes,
+except I<Canon>). Such cameras generate file names starting with letters
+and ended with digits. No other symbols are allowed in file names, except
+C<->, C<.> and C<_>.
+
+B<%c>	Ordinal number of file in the processed file set (see also
+B<--counter-fixed-field> option).
+
+B<%d>	Day of month (01-31).
+
+B<%E>	The value of ExposureTime tag, if defined.
+
+B<%e>	Old file extension
+
+B<%F>	The value of FNumber tag, if defined.
+
+B<%H>	Hour (00-23).
+
+B<%I>	The value of ISO tag, if defined.
+
+B<%i>	FileNumber tag if exists (otherwise, it is replaced by string
+C<NA>).
+
+B<%M>	Minute (00-59).
+
+B<%m>	Month (01-12).
+
+B<%n>	Previous filename (the one before B<renrot> started processing).
+
+B<%O>	Base part of the original filename (see B<%o>). In other words, the
+first part from the beginning to the last dot character.
+
+B<%o>	The name file had before it was processed by B<renrot> for the first
+time. If the file was processed only once, the tag RenRotFileNameOriginal is
+set to the original file name.
+
+B<%S>	Second (00-59)
+
+B<%W>	The value of WhiteBalance tag, if defined.
+
+B<%Y>	Year with the century (1900, 1901, and so on)
+
+B<%y>	Year without a century (00..99)
+
+You can use value of any EXIF tag to be included as name part. To do that you
+need to embrace tag name with sign B<"#">, while building name template
+(see L</TEMPLATE EXAMPLES>).
+
+Be careful, since any binary EXIF (like ThumbnaiImage) can produce totally
+unexpected results.
+
+=back
+
+=item B<--no-rename>
+
+Do not rename files (default is to rename them to YYYYmmddHHMMSS.ext)
+
+=item B<--counter-fixed-field>, B<--no-counter-fixed-field>
+
+Set fixed length for file counter, used in file name templates (see B<%c>).
+It is enabled by default. Use B<--no-counter-fixed-field> to undo its effect.
+
+=item B<--counter-start> I<NUMBER>
+
+Initial value for the file counter (default is I<1>)
+
+=item B<--counter-step> I<NUMBER>
+
+Step to increment file counter with (default is I<1>)
+
+=back
+
+=head1 B<ROTATING>
+
+=over
+
+=item B<-r> or B<--rotate-angle> I<ANGLE>
+
+Define the angle to rotate files and thumbnails. Allowed values for I<ANGLE>
+are 90, 180 or 270. It is useful for files not having Orientation tag.
+
+=item B<--rotate-thumb> I<ANGLE>
+
+Rotate only thumbnails. Allowed values for I<ANGLE> are 90, 180 or 270 degrees.
+Use if the files which were already rotated, but their thumbnails were not.
+
+=item B<--only-orientation>
+
+Rotate by changing the value of Orientation tag, no real rotation will be
+made. The sequence of values to rotate an image from normal (0 degrees) by
+90 degrees clockwise is: 0 -> 90 -> 180 -> 270 -> 0. It means. set Orientation
+tag to 90cw after the first rotation, and increase that value by 90 each time
+the rotation is applied. For 270cw the rotation algorithm uses the reverted
+sequence. Rotation by 180cw triggers values in two pairs: 0 <-> 180
+and 90 <-> 270. This option cannot be applied to mirror values of Orientation
+tag.
+
+=item B<--trim>, B<--no-trim>
+
+Pass the C<-trim> option to L<jpegtran(1)>, to trim if needed. By default,
+trimming is enabled. Use B<--no-trim> to disable it.
+
+=item B<--no-rotate>
+
+Do not rotate images (default is to rotate according to EXIF data).
+
+=back
+
+=head1 B<TAG WRITER>
+
+=over
+
+=item B<--comment-file> F<FILE>
+
+File with commentaries. It is a low priority alias to I<TagFile = Comment: FILE>.
+
+=item B<--user-comment> I<STRING>
+
+A low priority alias to I<--tag UserComment: STRING>
+
+=item B<-t> or B<--tag> I<TAG>
+
+See the section L</TAGS>, for the detailed description
+
+=item B<--no-tags>
+
+No user's defined tags will be written.
 
 =back
 
