@@ -399,6 +399,7 @@ sub getOptions {
 
       # TAG WRITER
       "comment-file=s"       => \$comfile,
+      "generate-thumb|g"     => \$gen_thm,
       "no-tags|notags"       => \$noTags,
       "tag|t=s"              => \@tmpTags,
       "user-comment=s"       => \$userComment,
@@ -409,7 +410,6 @@ sub getOptions {
       "dry-run"              => \$dryRun,
       "exclude=s"            => \@excludeList,
       "extension|e=s"        => \$extToProcess,
-      "generate-thumb|g"     => \$gen_thm,
       "help|?"               => sub { usage(0, 2) },
       "no-renrot|nochg"      => \$noRenRoTagMtm,
       "quiet|q"              => \$quiet,
@@ -643,11 +643,6 @@ sub renRotProcess {
     # analyzing whether to rotate
     my $angleSuffix = rotateFile($exifToolObj, $info, $file, $trimStr);
 
-    # generating absent ThumbnailImage tag from the original image
-    if (($isThereIM == 1) and ($gen_thm != 0) and not defined ${$$info{ThumbnailImage}}) {
-      thm_gen_orig($file, 1);
-    }
-
     # analyzing whether and how to rename file
     $newFileName = renameFile($exifToolObj, $info, $file, $fileCounter, $counterSize, $angleSuffix);
 
@@ -655,7 +650,7 @@ sub renRotProcess {
     saveOurHdrs($exifToolObj, $info, $file);
 
     # Writing tags.
-    tagWriter($exifToolObj, $newFileName) if ($noTags == 0);
+    tagWriter($exifToolObj, $newFileName, ($gen_thm and not defined ${$$info{ThumbnailImage}})) if ($noTags == 0);
 
     # seting mtime for the file if been asked for
     mtimeSet($exifToolObj, $info, $newFileName);
@@ -818,10 +813,14 @@ sub mtimeSet {
 sub tagWriter {
   my $exifToolObj = shift;
   my $file = shift;
+  my $thmbgen = shift;
 
   # writing the changes to the EXIFs
   if ($dryRun == 0) { exifWriter($exifToolObj, $file); }
   else { procmsg ("Writing user defined EXIF tags to $file.\n"); }
+
+  # Writing ThumbnailImage tag with generated thumbnail
+  thm_gen_orig($file, 1) if ($thmbgen and $isThereIM);
 }
 
 ########################################################################################
@@ -1147,10 +1146,7 @@ sub contactSheetGenerator {
       saveOurHdrs($exifToolObj, $infoMontage, $montagename);
 
       # Writing tags.
-      tagWriter($exifToolObj, $montagename);
-
-      # Writing ThumbnailImage tag with generated thumbnail
-      thm_gen_orig($montagename, 1);
+      tagWriter($exifToolObj, $montagename, 1);
 
       undef $image;
     }
@@ -1241,10 +1237,7 @@ sub contactSheetGenerator {
   saveOurHdrs($exifToolObj, $infoMontage, $montagename);
 
   # Writing tags.
-  tagWriter($exifToolObj, $montagename);
-
-  # Writing ThumbnailImage tag with generated thumbnail
-  thm_gen_orig($montagename, 1);
+  tagWriter($exifToolObj, $montagename, 1);
 
   if (-d $workdir) {
     chdir $workdir;
@@ -2092,11 +2085,6 @@ Colorize output. This does NOT work under Windows.
 
 Do not do anything, only print would have been done.
 
-=item B<-g> or B<--generate-thumb>
-
-Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage
-tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
-
 =item B<--use-ipc>, B<--no-use-ipc>
 
 Rotate thumbnails using pipe, rather than files. This does NOT work under
@@ -2445,6 +2433,11 @@ File with commentaries. It is a low priority alias to I<TagFile = Comment: FILE>
 =item B<--user-comment> I<STRING>
 
 A low priority alias to I<--tag UserComment: STRING>
+
+=item B<-g> or B<--generate-thumb>
+
+Generation and writing ThumbnailImage tag. The original value of the ThumbnailImage
+tag remains intact. To rewrite it you need to delete it first (look exiftool examples).
 
 =item B<-t> or B<--tag> I<TAG>
 
