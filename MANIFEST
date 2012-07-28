@@ -17,5 +17,6 @@ lib/Image/RenRot/TimeUtil.pm
 lib/Image/RenRot/Util.pm
 lib/Image/RenRot/Config.pm
 lib/Image/RenRot/Logging.pm
+lib/Image/RenRot/FileUtil.pm
 sample/dotkeywords                       Sample of a .keywords file
 sample/dotrank                           Sample of a .rank file

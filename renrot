@@ -16,7 +16,6 @@ use Pod::Usage;
 use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
-use File::Path;
 
 # add our 'lib' directory to the include list
 my $exeDir;
@@ -29,6 +28,7 @@ use Image::RenRot::Util;
 use Image::RenRot::Logging;
 use Image::RenRot::Config;
 use Image::RenRot::TimeUtil;
+use Image::RenRot::FileUtil;
 
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
@@ -576,7 +576,7 @@ sub keywordizer {
   return if (not (-R $file and -f $file and -T $file));
   dbgmsg (2, "Reading keywords from file: $file\n");
   my @result = ();
-  my @keywordArr = getFileDataLines($file);
+  my @keywordArr = Image::RenRot::FileUtil->getFileDataLines($file);
   for (my $i = 0; $i < scalar(@keywordArr); $i++) {
     $keywordArr[$i] =~ s/\r?\n$//;	# remove CR and LF symbols
     push (@result, trim($keywordArr[$i])) if ($keywordArr[$i] !~ m/^\s*$/);
@@ -792,80 +792,6 @@ sub renameFile {
 
 ########################################################################################
 #
-# getFileData() gets data from a given file in one-line string
-#
-sub getFileData {
-  my $file = shift;
-  my @result = getFileDataLines($file);
-  return join ("", @result) if (scalar(@result) > 0);
-  return undef;
-}
-
-########################################################################################
-#
-# getFileDataLines() gets data from a given file in array of lines
-#
-sub getFileDataLines {
-  my $file = shift;
-
-  if (not defined $file or $file eq "") {
-    warnmsg ("Can't read file with empty name!\n");
-    return;
-  }
-
-  if (open(XXXFILE, "<$file")) {
-    binmode XXXFILE;
-    my @xxxData = <XXXFILE>;
-    unless (close(XXXFILE)) { errmsg ("$file wasn't closed!\n"); }
-    return @xxxData;
-  }
-
-  warnmsg ("Can't read file: $file!\n");
-  return;
-}
-
-########################################################################################
-#
-# getFileDatLns() gets data from a given file in array of lines. it returns hash
-#                 of format: $hash{'field1'}[0] => 1
-#                            ...
-#                            $hash{'field1'}[N] => fieldN
-#                 where N is the number of fields, starting from 1
-#
-sub getFileDatLns {
-  my $file = shift; # name of the file to be processed
-
-  if (not defined $file or $file eq "") {
-    warnmsg ("Can't read file with empty name!\n");
-    return;
-  }
-
-  if (open(XXXFILE, "<$file")) {
-    binmode XXXFILE;
-    my %xxxData; # splited line hash
-    my @chunks = ();  # arr, chunks to be placed to
-    my ($i, $j);
-
-    while (<XXXFILE>){
-      chomp;
-      @chunks = split(/\s+/);
-      $xxxData{$chunks[0]}[0] = 1;
-      for ($i = 1; $i < scalar(@chunks); $i++) {
-        $xxxData{$chunks[0]}[$i] = $chunks[$i];
-        dbgmsg (4, "xxxData{$chunks[0]}[$i] = $chunks[$i]\n");
-      }
-      undef @chunks;
-    }
-    unless (close(XXXFILE)) { errmsg ("$file wasn't closed!\n"); }
-    return \%xxxData;
-  }
-
-  warnmsg ("Can't read file: $file!\n");
-  return;
-}
-
-########################################################################################
-#
 # mtimeSet() sets mtime for the given file
 #
 sub mtimeSet {
@@ -939,7 +865,7 @@ sub aggregationProcess {
   procmsg ("AGGREGATION\n");
   procmsg ("===========\n");
 
-  makeDir($BaseDir) if ($dryRun == 0);
+  makedir($BaseDir) if ($dryRun == 0);
 
   if (get_cfg_value($co_aggr, 'mode') eq "template") {
     dbgmsg (1, "Template: ", get_cfg_value($co_aggr, 'template'), "\n");
@@ -1024,7 +950,7 @@ sub contactSheetGenerator {
 
   # ranks file processing
   if (get_cfg_value($co_cs, 'rank') == 1 and -f get_cfg_value($co_cs, 'rank file')) {
-    $ranks = getFileDatLns(get_cfg_value($co_cs, 'rank file'));
+    $ranks = Image::RenRot::FileUtil->getFileDatLns(get_cfg_value($co_cs, 'rank file'));
     if ($ranks != 0) {
       dbgmsg (3, "Ranks successfully processed.\n");
     } else {
@@ -1032,7 +958,7 @@ sub contactSheetGenerator {
     }
   }
 
-  makeDir($workdir) if ($dryRun == 0);
+  makedir($workdir) if ($dryRun == 0);
 
   procmsg ("CONTACT SHEET GENERATION\n");
   procmsg ("========================\n");
@@ -1403,7 +1329,7 @@ sub thm_gen_orig {
 
   if ($unlink) {
     dbgmsg (3, "Attempt to write ThumbnailImage tag to $file\n");
-    thumbWriter($file, getFileData($thm_name));
+    thumbWriter($file, Image::RenRot::FileUtil->getFileData($thm_name));
     unlink $thm_name;
     return;
   } else {
@@ -1452,24 +1378,6 @@ sub normalize_color {
 }
 
 ########################################################################################
-# Usage      : makeDir($dir);
-# Purpose    : makes one level directory
-# Returns    : none
-# Parameters : $dir str - directory to make
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
-sub makeDir {
-  my $new_dir = shift;
-  if (not -d $new_dir) {
-    eval { mkpath($new_dir, 0, 0700) };
-    if ($@) {
-      errmsg ("Couldn't create $new_dir: $@");
-    }
-  }
-}
-
-########################################################################################
 # Usage      : aggregateFile($file, $NewDir);
 # Purpose    : moves or links file to the aggregation directory
 # Returns    : none
@@ -1483,7 +1391,7 @@ sub aggregateFile {
   my $new_dir = shift;
   my $base_name = (File::Spec->splitpath($file))[2];
 
-  makeDir($new_dir);
+  makedir($new_dir);
 
   if (get_cfg_value($co_aggr, 'virtual') == 0) {
     my $newname = File::Spec->catfile($new_dir, $base_name);
@@ -1647,7 +1555,7 @@ sub rotateThumbnail {
     }
 
     # write the just rotated thumbnail back to file
-    thumbWriter($file, getFileData($ThumbnailOriginalRotated));
+    thumbWriter($file, Image::RenRot::FileUtil->getFileData($ThumbnailOriginalRotated));
 
     if ($dryRun == 0) {
       unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die_renrot() );
@@ -1658,43 +1566,8 @@ sub rotateThumbnail {
     dbgmsg (3, "$cmd\n");
 
     # write the just rotated thumbnail back to file
-    thumbWriter($file, piper($origThumb, $cmd));
+    thumbWriter($file, Image::RenRot::FileUtil->piper($origThumb, $cmd));
   }
-}
-
-########################################################################################
-# Usage      : piper();
-# Purpose    : opens two pipes for process object via the command passed as argument
-# Returns    : $pipe_obj processed via $pipe_cmd
-# Parameters : $pipe_obj bin - the object to be processed via pipe
-#            : $pipe_cmd str - the command for the processing
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
-sub piper {
-  use FileHandle;
-  use IPC::Open2;
-
-  my $pipe_obj = shift;	# the object to be processed via pipe
-  my $pipe_cmd = shift;	# the pipe command
-
-  local (*READ_FROM_FH, *WRITE_TO_FH);	# file handlers
-  unless (open2(\*READ_FROM_FH, \*WRITE_TO_FH, $pipe_cmd)) {
-    errmsg ("Unable to create the pipe.\n");
-    return;
-  }
-
-  binmode WRITE_TO_FH;
-  print WRITE_TO_FH $pipe_obj;
-
-  unless (close(WRITE_TO_FH)) { warnmsg ("WRITE handle wasn't closed!\n"); };
-
-  binmode READ_FROM_FH;
-  my @piped_arr = <READ_FROM_FH>;
-
-  unless (close(READ_FROM_FH)) { warnmsg ("READ handle wasn't closed!\n"); };
-
-  return join("", @piped_arr);
 }
 
 ########################################################################################
@@ -1980,7 +1853,7 @@ if ($subFileSet eq "") {
   @files = @ARGV;
 } else {
   dbgmsg (2, "Reading file names for processing from file: $subFileSet\n");
-  @files = getFileDataLines($subFileSet);
+  @files = Image::RenRot::FileUtil->getFileDataLines($subFileSet);
   chomp(@files);
 }
 
@@ -2013,13 +1886,13 @@ foreach my $cKey (keys %$config_opts) {
     $tags{$key} = $tag{$key};
     if ($cKey =~ m/^tagfile/) {
       dbgmsg (4, "Read data from '$tags{$key}{value}' for '$key'\n");
-      $tags{$key}{value} = getFileData($tags{$key}{value});
+      $tags{$key}{value} = Image::RenRot::FileUtil->getFileData($tags{$key}{value});
     }
   }
 }
 
 # Put command line arguments to appropriate tags
-$tags{'Comment'} = {value => getFileData($comfile)} if (defined $comfile);
+$tags{'Comment'} = {value => Image::RenRot::FileUtil->getFileData($comfile)} if (defined $comfile);
 $tags{'UserComment'} = {value => $userComment} if (defined $userComment);
 
 # Merge tags from configuration file with command line arguments
