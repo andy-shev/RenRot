@@ -19,7 +19,6 @@ use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
 use File::Path;
-use Term::ANSIColor;
 
 # add our 'lib' directory to the include list
 my $exeDir;
@@ -29,10 +28,7 @@ BEGIN {
 }
 
 use Image::RenRot::Util;
-
-$Term::ANSIColor::AUTORESET = 1;
-$Term::ANSIColor::EACHLINE = "\n";
-$ENV{ANSI_COLORS_DISABLED} = 1;
+use Image::RenRot::Logging;
 
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
@@ -287,124 +283,6 @@ my @files = ();		# array of the sorted filenames to process
 my %filenameshash = ();	# hash for old file names
 
 ########################################################################################
-###                                 MESSAGING                                        ###
-########################################################################################
-
-#
-# Colors hash
-#
-my %colors = (
-  debug => {value => 'green'},
-  error => {value => 'magenta'},
-  fatal => {value => 'red'},
-  info => {value => 'bold'},
-  process => {value => 'white'},
-  warning => {value => 'cyan'},
-);
-
-# Prints colored message to STDERR
-sub printColored {
-  my $facility = shift;
-
-  if (get_cfg_value($co_g, 'use color') != 0) {
-    if (defined $facility and defined $colors{$facility}) {
-      # Put process and info messages to StdOut, otherwise to StdErr
-      if ($facility eq "process" or $facility eq "info") {
-        print STDOUT colored [$colors{$facility}{value}], @_;
-      } else {
-        print STDERR colored [$colors{$facility}{value}], @_;
-      }
-      return;
-    }
-  }
-  # fallback to normal print
-  if ($facility eq "process" or $facility eq "info") {
-    print STDOUT @_;
-  } else {
-    print STDERR @_;
-  }
-}
-
-# general processing message
-sub procmsg {
-  printColored('process', @_) if ($quiet == 0);
-}
-
-# information message
-sub infomsg {
-  printColored('info', @_);
-}
-
-# warning message
-sub warnmsg {
-  printColored('warning', "Warning: ", @_);
-}
-
-# error message
-sub errmsg {
-  printColored('error', "ERROR: ", @_);
-}
-
-# fatal message
-sub fatalmsg {
-  printColored('fatal', "FATAL: ", @_);
-}
-
-# debug message
-sub dbgmsg {
-  my $level = shift;
-  if ($verbose >= $level) {
-    # caller() described in Perl Cookbook 10.4
-    my $funcname = (caller(1))[3];
-    $funcname = 'main' if (not defined $funcname);
-    printColored('debug', "DEBUG[$level]: ", $funcname, "(): ", @_);
-  }
-}
-
-########################################################################################
-# Usage      : ldbg3($msg, ...)
-# Purpose    : prints debug message on level 3 with EOL
-# Returns    : nothing
-# Parameters : text message without end of line
-# Throws     : no exceptions
-# Comments   : useful to print command line or configuration option parameters
-# See Also   : dbgmsg()
-sub ldbg3 {
-  if ($verbose >= 3) {
-    # caller() described in Perl Cookbook 10.4
-    my $funcname = (caller(1))[3];
-    $funcname = 'main' if (not defined $funcname);
-    printColored('debug', "DEBUG[3]: ", $funcname, "(): ", @_, "\n");
-  }
-};
-
-########################################################################################
-#
-# ldbg3opts() prints option values from given hash
-#
-sub ldbg3opts {
-  my $hash = shift;
-  my $option = shift;
-  foreach my $key (keys %{$hash->{$option}}) {
-    next if (not defined $hash->{$option}{$key}{value});
-    my ($value, $default);
-    my $type = defined $hash->{$option}{$key}{type} ? $hash->{$option}{$key}{type} : "s";
-    if ($type ne "!") {
-      $value = $hash->{$option}{$key}{value};
-      $default = $hash->{$option}{$key}{default};
-    } else {
-      $value = bool2str($hash->{$option}{$key}{value});
-      $default = bool2str($hash->{$option}{$key}{default});
-    }
-    if (not defined $default) {
-      ldbg3("--> '$option $key': $value");
-    } else {
-      ldbg3("--> '$option $key': $value (default: $default)");
-    }
-  }
-}
-
-########################################################################################
 # Usage      : die_renrot()
 # Purpose    : dies differently depend on verbose level
 # Returns    : nothing
@@ -531,6 +409,10 @@ sub getOptions {
       "version"              => \$showVersion,
       "work-directory|d=s"   => \$workDir,
   );
+
+  # Set the verbosity first
+  Image::RenRot::Logging->set(Quiet => $quiet,
+                              Verbose => $verbose);
 
   my $fileCount = scalar(@ARGV);
 
@@ -890,12 +772,16 @@ sub apply_config_values {
 # switchColor() switches to user defined color scheme
 #
 sub switchColor {
+  my $colors = ();
+
   # Parse configuration file color set
-  foreach my $cKey (keys %$config_opts) {
+  while (my ($cKey, $v) = each %$config_opts) {
     next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
-    my %color = strToHash($config_opts->{$cKey}, 'reset');
-    map { $colors{$_} = $color{$_} } keys %color;
+    my ($ck, $ch) = strToHash($v, 'reset');
+    $colors->{$ck} = $ch;
   }
+  Image::RenRot::Logging->set(Color => $colors,
+                              UseColor => get_cfg_value($co_g, 'use color'));
   dbgmsg (1, "Switch to user defined color scheme.\n");
 }
 
@@ -2351,9 +2237,6 @@ switchColor();
 
 # redefining options set in configuration file with set via CLI ones
 apply_config_values($config_opts);
-
-# Remove this variable before any screen output
-delete $ENV{ANSI_COLORS_DISABLED} if (get_cfg_value($co_g, 'use color') != 0);
 
 dbgmsg (1, "Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 

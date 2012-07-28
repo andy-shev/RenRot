@@ -14,5 +14,6 @@ etc/copyright.tag                        Text to put to Copyright tag
 etc/renrot.conf                          Sample of configuration file
 etc/tags.conf                            Strings to fill appropriate tags
 lib/Image/RenRot/Util.pm
+lib/Image/RenRot/Logging.pm
 sample/dotkeywords                       Sample of a .keywords file
 sample/dotrank                           Sample of a .rank file
