@@ -2360,16 +2360,16 @@ will be stored in the directory F<20040131>.
 
 A configuration file can be used to set some variables. B<Renrot> looks for
 its configuration file, named F<renrot.conf>, in system configuration
-directories F</etc/renrot> and </usr/local/etc/renrot>, and in subdirectory
+directories F</etc/renrot> and F</usr/local/etc/renrot>, and in subdirectory
 F<.renrot>. of the current user home directory. An alternate configuration
 file can also be explicitly given using the B<--config-file> option.
 
 The configuration file consists of a set of case-insensive keywords and their
 values separated by equal sign. Each such keyword/value pair occupies a
 separate line. Boolean variables can have one of the following values: 0, No,
-False, Off for false, and 1, Yes, True, On for true.
+False, Off, Disable for false, and 1, Yes, True, On, Enable for true.
 
-The variables defined for use in configuration file are:
+The variables defined for use in the configuration file are, for example:
 
 =over
 
@@ -2596,7 +2596,7 @@ it is the question to ImageMagick.
 
 =head1 AUTHORS
 
-Copyright 2005-2008, Zeus Panchenko, Andy Shevchenko.
+Copyright 2005-2012, Zeus Panchenko, Andy Shevchenko.
 
 This program is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself.
