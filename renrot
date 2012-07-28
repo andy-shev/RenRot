@@ -29,6 +29,7 @@ BEGIN {
 
 use Image::RenRot::Util;
 use Image::RenRot::Logging;
+use Image::RenRot::Config;
 
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
@@ -171,13 +172,6 @@ my $config_opts = {
   'keywords'        => $co_kw,
 };
 
-my @config_sections = (
-  'aggregation',
-  'contact sheet',
-  'general',
-  'keywords',
-);
-
 ########################################################################################
 #
 # Command line options
@@ -269,8 +263,6 @@ my %rotorient = (
 );
 
 my %rotorientrev = reverse %rotorient;
-
-my %incFiles = ();	# hash of included files while parsing configuration file
 
 my @multOpts = (
   'color',
@@ -419,17 +411,17 @@ sub getOptions {
   foreach my $key (keys %$ll_opts) {
     # Parse long list option
     if (defined ${$ll_opts->{$key}{'s'}}) {
-      update_config_option_value($config_opts->{$key}{'enabled'}, 1);
-      parse_many_pairs(${$ll_opts->{$key}{'s'}}, $config_opts, $key);
+      update_cfg_value($config_opts->{$key}{'enabled'}, 1);
+      parse2hash(${$ll_opts->{$key}{'s'}}, $config_opts, $key);
     }
     # Override long list option by set of standalone ones before any other action
-    assign_hash_values($config_opts, $key, $ll_opts->{$key}{'h'});
+    assign2hash($config_opts, $key, $ll_opts->{$key}{'h'});
     # Debug result
     ldbg3opts($config_opts, $key);
   }
 
   # For 'general' section
-  assign_hash_values($config_opts, 'general', \%h_g_opts);
+  assign2hash($config_opts, 'general', \%h_g_opts);
   ldbg3opts($config_opts, 'general');
 
   ldbg3("--backup: ", bool2str($backup));
@@ -482,7 +474,7 @@ sub getOptions {
 
   if ($noRenRoTagMtm != 0) {
     $noRename = $noRotation = $noTags = 1;
-    update_config_option_value($config_opts->{'general'}{'mtime'}, 0);
+    update_cfg_value($config_opts->{'general'}{'mtime'}, 0);
   }
 
   # is there ImageMagick?
@@ -511,184 +503,8 @@ sub getOptions {
 
   # Convert multiple tag parameters to tags hash
   foreach my $tagStr (@tmpTags) {
-    my %tag = strToHash($tagStr);
+    my %tag = str2hash($tagStr);
     map { $tagsFromCli{$_} = $tag{$_} } keys %tag;
-  }
-}
-
-########################################################################################
-###                          CONFIGURATION FRAMEWORK                                 ###
-########################################################################################
-
-########################################################################################
-# Usage      : parsePair() gets (key, value) pair from the string like
-#            : [multiword] key = "value"
-# Purpose    : parses pairs of data
-# Returns    : $key, $value string
-# Parameters : string like [multiword] key = "value"
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : N/A
-sub parsePair {
-  my $str = shift;
-  my ($key, $value) = (undef, shift);
-  if ($str =~ m/^([^=]+)=(.+)/) {
-    ($key, $value) = (trim($1), trim($2));
-    $value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
-    dbgmsg (4, "Parsed: '$key' <- '$value'\n");
-  } elsif ($str =~ m/^([^=]+)=$/) {
-    $key = trim($1);
-    dbgmsg (4, "Parsed empty '$key', applying default value: ", defined $value ? "'$value'" : "undef", "\n");
-  }
-  return ($key, $value);
-}
-
-########################################################################################
-#
-# update_config_option_value()
-#
-sub update_config_option_value {
-  my $hash = shift;
-  my $value = shift;
-  return if (not defined $value);
-  if (not defined $hash->{default}) {
-    $hash->{default} = $hash->{value};
-  }
-  $hash->{value} = $value;
-}
-
-########################################################################################
-# Usage      : parse_many_pairs() gets hash with (key, value) pairs from the string like
-#            : key1="value1":key2="value2":...:keyM="valueN"
-# Purpose    : parses pairs of data
-# Returns    : filled hash %hash
-# Parameters : $str    [str] string like key1="value1":key2="value2":...:keyM="valueN"
-#              $hash   [ref] reference to hash
-#              $option [str] subtree in the hash
-# Throws     : no exceptions
-# Comments   : "value1", "value2", ..., "valueN" should not contain ':' symbol
-# See Also   : parsePair()
-sub parse_many_pairs {
-  my $str = shift;
-  my $hash = shift;
-  my $sect = shift;
-  return if (not defined $str);
-  my @k = keys %{$hash->{$sect}};
-  foreach my $pair (split(/:/, $str)) {
-    my ($key, $value) = parsePair($pair);
-    next if (not defined $key);
-    if (not grep (/^$key$/, @k)) {
-      warnmsg ("Invalid key '$key' in '$sect'. Skiping...\n");
-      next;
-    }
-    $value = str2bool($value) if ($hash->{$sect}{$key}{type} eq "!");
-    update_config_option_value($hash->{$sect}{$key}, $value);
-    dbgmsg (4, "Parsed: '$sect' -> '$key': '$value'\n");
-  }
-}
-
-########################################################################################
-#
-# assign_hash_values() assignes given values to a hash
-#
-sub assign_hash_values {
-  my $hash = shift;
-  my $sect = shift;
-  my $values = shift;
-  return if (not defined $values);
-  map { update_config_option_value($hash->{$sect}{$_}, $values->{$_}) } keys %$values;
-}
-
-########################################################################################
-#
-# get_cfg_value() returnes value of the given configuration option
-#
-sub get_cfg_value {
-  my $hash = shift;
-  my $key = shift;
-  return $hash->{$key}{value} if (defined $hash->{$key}{value});
-  return $hash->{$key}{default};
-}
-
-########################################################################################
-#
-# strToHash() parses given string to a hash
-#
-sub strToHash {
-  my $str = shift;
-  my $default = shift;
-  my %hash = ();
-  $str =~ s/:/=/;		# change first occurrence of ':' to '='
-  my ($key, $value) = parsePair($str, $default);
-  if (defined $key) {
-    $key =~ s/\s*[\(\[]([^\(\)\[\]]*)[\)\]]$//;
-    my $group = (defined $1 and $1 ne "") ? $1 : undef;
-    $hash{$key} = {value => $value, group => $group};
-
-    # Print debug message
-    $value = "" if (not defined $value);
-    $group = "" if (not defined $group);
-    dbgmsg (4, "Parsed: $key [$group] = '$value'\n");
-  } else {
-    warnmsg ("Invalid line format: $str\n");
-  }
-  return %hash;
-}
-
-########################################################################################
-#
-# getConfig() parses configuration file
-#
-sub getConfig {
-  my $fc = shift;
-  my $file = shift;
-  my $hash = {};
-
-  if (open (CFGFILE, "<$file")) {
-    my @cfgfile = <CFGFILE>;
-    unless (close (CFGFILE)) { errmsg ("$file wasn't closed!\n"); }
-    $incFiles{$file} = $fc;
-    my $i = 0;
-    while ($i < scalar(@cfgfile)) {
-      my $line = $cfgfile[$i++];
-
-      # skip empty and comment lines
-      next if (($line =~ m/^\s*$/) or ($line =~ m/^\s*#/));
-
-      $line =~ s/#(.*)$//;# remove trailing comments
-
-      my ($key, $value) = parsePair($line);
-      if (defined $value) {
-        $key = lc($key);
-        if ($key eq "include" and not $incFiles{$value}) {
-          dbgmsg (2, "Parsing included file: '$value'\n");
-          parseConfigFile($fc, $value, $hash);
-        }
-        $key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
-        $key .= ' ' . 'enabled' if (grep (/^$key$/, @config_sections));
-        $hash->{$key} = str2bool($value);
-        dbgmsg (3, "Parsed line($i): '$key' <- '$hash->{$key}'\n");
-      } else {
-        warnmsg ("Unparsed line $i in configuration file.\n");
-      }
-    }
-  } else {
-    errmsg ("Can't open configuration file: $file\n");
-  }
-  return $hash;
-}
-
-########################################################################################
-#
-# parseConfigFile() parses one file to a hash and merges it with already passed
-#
-sub parseConfigFile {
-  my $fc = shift;
-  my $file = shift;
-  my $hash = shift;
-  if (-f $file) {
-    my $tmpConfig = getConfig($fc + 1, $file);
-    map { $hash->{$_} = $tmpConfig->{$_} } keys %$tmpConfig;
   }
 }
 
@@ -700,7 +516,10 @@ sub parseConfig {
   my $file = shift;
   my $hash = shift;
 
-  return parseConfigFile(0, $file, $hash) if (defined $file);
+  my @sections = keys %$hash;
+  Image::RenRot::Config->init(Sections => \@sections, MultiOptions => \@multOpts);
+
+  return Image::RenRot::Config->parsefile($file, $hash) if (defined $file);
 
   my $home = $ENV{"HOME"};
   my @homeRC = ();
@@ -724,47 +543,7 @@ sub parseConfig {
       @homeRC,
   );
 
-  map { parseConfigFile(0, $_, $hash) } @rcFiles;
-}
-
-########################################################################################
-#
-# apply_config_values() applies values by priority:
-#     default -> config -> CLI new -> CLI old
-#
-sub apply_config_values {
-  my $hash = shift;
-  my $value;
-
-  foreach my $option (keys %$hash) {
-    next if (ref($hash->{$option}) ne "");   # Skip non-SCALAR
-    next if ($option =~ m/^[^#]+#\d+#\d+$/); # Skip multi-option
-
-    my ($sect, $key) = undef;
-    foreach my $s (@config_sections) {
-      if ($option =~ m/^$s(.*)/) {
-        ($sect, $key) = ($s, trim($1));
-        last;
-      }
-    }
-    ($sect, $key) = ('general', $option) if (not defined $sect);
-    next if (not defined $hash->{$sect}{$key});
-
-    dbgmsg (4, "Option '$option' will be put into '$sect'\n");
-
-    # Get default value
-    $value = $hash->{$sect}{$key}{default};
-    my $vdef = (defined $value) ? $value : "undef";           # For debug message
-
-    # Apply value from configuration file
-    $value = $hash->{$option} if (defined $hash->{$option});
-    my $vcfg = (defined $hash->{$option}) ? $value : "undef"; # For debug message
-
-    # Apply value from command line
-    $hash->{$sect}{$key}{value} = $value if (not defined $hash->{$sect}{$key}{value});
-
-    dbgmsg (4, "'$vdef' -> '$vcfg' -> '$hash->{$sect}{$key}{value}'\n");
-  }
+  map { Image::RenRot::Config->parsefile($_, $hash) } @rcFiles;
 }
 
 ########################################################################################
@@ -777,7 +556,7 @@ sub switchColor {
   # Parse configuration file color set
   while (my ($cKey, $v) = each %$config_opts) {
     next if ($cKey !~ m/^color#\d+#\d+$/);	# skip not a color
-    my ($ck, $ch) = strToHash($v, 'reset');
+    my ($ck, $ch) = str2hash($v, 'reset');
     $colors->{$ck} = $ch;
   }
   Image::RenRot::Logging->set(Color => $colors,
@@ -2236,7 +2015,7 @@ parseConfig($configFile, $config_opts);
 switchColor();
 
 # redefining options set in configuration file with set via CLI ones
-apply_config_values($config_opts);
+Image::RenRot::Config->apply($config_opts);
 
 dbgmsg (1, "Show what would have been happened (no real actions).\n") if ($dryRun != 0);
 
@@ -2288,7 +2067,7 @@ if (scalar(@filenames) == 0) {
 # Parse configuration file tag set
 foreach my $cKey (keys %$config_opts) {
   next if ($cKey !~ m/^tag(file)?#\d+#\d+$/);	# skip not a tag or tagfile
-  my %tag = strToHash($config_opts->{$cKey});
+  my %tag = str2hash($config_opts->{$cKey});
   foreach my $key (keys %tag) {
     $tags{$key} = $tag{$key};
     if ($cKey =~ m/^tagfile/) {
