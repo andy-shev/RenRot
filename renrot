@@ -21,6 +21,15 @@ use File::Spec;
 use File::Path;
 use Term::ANSIColor;
 
+# add our 'lib' directory to the include list
+my $exeDir;
+BEGIN {
+  $exeDir = ($0 =~ /(.*)[\\\/]/) ? $1 : '.';  # get exe directory
+  unshift @INC, "$exeDir/lib";                # add lib directory at start of include path
+}
+
+use Image::RenRot::Util;
+
 $Term::ANSIColor::AUTORESET = 1;
 $Term::ANSIColor::EACHLINE = "\n";
 $ENV{ANSI_COLORS_DISABLED} = 1;
@@ -384,8 +393,8 @@ sub ldbg3opts {
       $value = $hash->{$option}{$key}{value};
       $default = $hash->{$option}{$key}{default};
     } else {
-      $value = boolConv($hash->{$option}{$key}{value});
-      $default = boolConv($hash->{$option}{$key}{default});
+      $value = bool2str($hash->{$option}{$key}{value});
+      $default = bool2str($hash->{$option}{$key}{default});
     }
     if (not defined $default) {
       ldbg3("--> '$option $key': $value");
@@ -394,10 +403,6 @@ sub ldbg3opts {
     }
   }
 }
-
-########################################################################################
-###                               COMMON HELPERS                                     ###
-########################################################################################
 
 ########################################################################################
 # Usage      : die_renrot()
@@ -412,54 +417,6 @@ sub die_renrot {
     die("Fatal");
   }
   exit 127;
-}
-
-########################################################################################
-# Usage      : boolConv($var)
-# Purpose    : converts boolean value to human readable string
-# Returns    : string "Yes" or "No"
-# Parameters : 0 or 1
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : boolConverter()
-sub boolConv {
-  my $var = shift;
-  if ($var == 0) {
-    return "No";
-  } else {
-    return "Yes";
-  }
-}
-
-########################################################################################
-# Usage      : boolConverter($var)
-# Purpose    : converts given string to a boolean value
-# Returns    : number 1 or 0
-# Parameters : one of "1", "Yes", "True", "On", "0", "No", "False" or "Off"
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : boolConv()
-sub boolConverter {
-  my $value = trim_value(shift);
-  if ($value =~ m/^(0|No|False|Off|Disable)$/i) {
-    return 0;
-  } elsif ($value =~ m/^(1|Yes|True|On|Enable)$/i) {
-    return 1;
-  }
-  return $value;
-}
-
-########################################################################################
-# Usage      : isTherePackage($pkg)
-# Purpose    : checks availability of given package (renrot could be depend of it)
-# Returns    : nothing in case the package available and undef if not
-# Parameters : $pkg - string with package name
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
-sub isTherePackage {
-  my $pkg = shift;
-  return undef unless eval "require $pkg";
 }
 
 ########################################################################################
@@ -593,23 +550,23 @@ sub getOptions {
   assign_hash_values($config_opts, 'general', \%h_g_opts);
   ldbg3opts($config_opts, 'general');
 
-  ldbg3("--backup: ", boolConv($backup));
+  ldbg3("--backup: ", bool2str($backup));
   ldbg3("--comment-file: $comfile") if (defined $comfile);
   ldbg3("--config-file: $configFile") if (defined $configFile);
 
   ldbg3("--counter-start: $countStart",
     "   --counter-step: $countStep",
-    "   --counter-fixed-field: ", boolConv($countFF));
-  ldbg3("--dry-run: ", boolConv($dryRun)) if (defined $dryRun);
+    "   --counter-fixed-field: ", bool2str($countFF));
+  ldbg3("--dry-run: ", bool2str($dryRun)) if (defined $dryRun);
   ldbg3("--exclude:\n", join("\n", @excludeList)) if (scalar(@excludeList) > 0);
   ldbg3("--extension: '$extToProcess'");
-  ldbg3("--generate-thumb: ", boolConv($gen_thm));
+  ldbg3("--generate-thumb: ", bool2str($gen_thm));
 
-  ldbg3("--no-rename: ", boolConv($noRename),
-    "   --no-rotate: ", boolConv($noRotation),
-    "   --no-tags: ", boolConv($noTags),
-    "   --no-renrot: ", boolConv($noRenRoTagMtm));
-  ldbg3("--only-orientation: ", boolConv($orientTag));
+  ldbg3("--no-rename: ", bool2str($noRename),
+    "   --no-rotate: ", bool2str($noRotation),
+    "   --no-tags: ", bool2str($noTags),
+    "   --no-renrot: ", bool2str($noRenRoTagMtm));
+  ldbg3("--only-orientation: ", bool2str($orientTag));
   ldbg3("--rotate-angle: $rotateAngle") if (defined $rotateAngle);
   ldbg3("--rotate-thumb: $rotateThumbnail") if (defined $rotateThumbnail);
   ldbg3("--sub-fileset: $subFileSet") if ($subFileSet ne "");
@@ -682,21 +639,6 @@ sub getOptions {
 ########################################################################################
 
 ########################################################################################
-# Usage      : trim_value($value)
-# Purpose    : removes heading and trailing spaces
-# Returns    : trimmed $value
-# Parameters : $value string
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : N/A
-sub trim_value {
-  my $value = shift;
-  $value =~ s/^\s*//; # heading
-  $value =~ s/\s*$//; # trailing
-  return $value;
-}
-
-########################################################################################
 # Usage      : parsePair() gets (key, value) pair from the string like
 #            : [multiword] key = "value"
 # Purpose    : parses pairs of data
@@ -709,11 +651,11 @@ sub parsePair {
   my $str = shift;
   my ($key, $value) = (undef, shift);
   if ($str =~ m/^([^=]+)=(.+)/) {
-    ($key, $value) = (trim_value($1), trim_value($2));
+    ($key, $value) = (trim($1), trim($2));
     $value =~ s/^[\'\"](.+)[\'\"]/$1/;	# trim quotes
     dbgmsg (4, "Parsed: '$key' <- '$value'\n");
   } elsif ($str =~ m/^([^=]+)=$/) {
-    $key = trim_value($1);
+    $key = trim($1);
     dbgmsg (4, "Parsed empty '$key', applying default value: ", defined $value ? "'$value'" : "undef", "\n");
   }
   return ($key, $value);
@@ -757,7 +699,7 @@ sub parse_many_pairs {
       warnmsg ("Invalid key '$key' in '$sect'. Skiping...\n");
       next;
     }
-    $value = boolConverter($value) if ($hash->{$sect}{$key}{type} eq "!");
+    $value = str2bool($value) if ($hash->{$sect}{$key}{type} eq "!");
     update_config_option_value($hash->{$sect}{$key}, $value);
     dbgmsg (4, "Parsed: '$sect' -> '$key': '$value'\n");
   }
@@ -842,7 +784,7 @@ sub getConfig {
         }
         $key .= sprintf("#%d#%d", $fc, $i) if (grep (/^$key$/, @multOpts));
         $key .= ' ' . 'enabled' if (grep (/^$key$/, @config_sections));
-        $hash->{$key} = boolConverter($value);
+        $hash->{$key} = str2bool($value);
         dbgmsg (3, "Parsed line($i): '$key' <- '$hash->{$key}'\n");
       } else {
         warnmsg ("Unparsed line $i in configuration file.\n");
@@ -919,7 +861,7 @@ sub apply_config_values {
     my ($sect, $key) = undef;
     foreach my $s (@config_sections) {
       if ($option =~ m/^$s(.*)/) {
-        ($sect, $key) = ($s, trim_value($1));
+        ($sect, $key) = ($s, trim($1));
         last;
       }
     }
@@ -973,7 +915,7 @@ sub keywordizer {
   my @keywordArr = getFileDataLines($file);
   for (my $i = 0; $i < scalar(@keywordArr); $i++) {
     $keywordArr[$i] =~ s/\r?\n$//;	# remove CR and LF symbols
-    push (@result, trim_value($keywordArr[$i])) if ($keywordArr[$i] !~ m/^\s*$/);
+    push (@result, trim($keywordArr[$i])) if ($keywordArr[$i] !~ m/^\s*$/);
   }
   return @result;
 }
@@ -2401,7 +2343,7 @@ sub template2name {
 #
 
 # Check for modules
-$isThereIM = 1 if (defined isTherePackage("Image::Magick"));
+$isThereIM = 1 if (defined loadpkg("Image::Magick"));
 
 getOptions();
 parseConfig($configFile, $config_opts);

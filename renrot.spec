@@ -33,11 +33,11 @@ configuration file.
 %setup -q -n %{name}-%{version}%{?rcver}
 
 %build
-%{__perl} Makefile.PL PREFIX=%{_prefix}
+%{__perl} Makefile.PL INSTALLDIRS=vendor
 make
 
 %install
-make install PREFIX=$RPM_BUILD_ROOT%{_prefix}
+make pure_install PERL_INSTALL_ROOT=$RPM_BUILD_ROOT
 
 # Fix renrot permissions
 chmod 755 $RPM_BUILD_ROOT%{_bindir}/renrot
@@ -69,6 +69,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/copyright.tag
 %config(noreplace) %{_sysconfdir}/%{name}/renrot.conf
 %config(noreplace) %{_sysconfdir}/%{name}/tags.conf
+%{perl_vendorlib}/Image/
 
 %changelog
 * Sun Jul 15 2012 Andy Shevchenko <andy.shevchenko@gmail.com>
