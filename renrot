@@ -144,7 +144,6 @@ my $co_cs = {
 };
 
 my $co_g = {
-  'generate thumbnail size' => { type => 's', default => '160x120' },
   # mtime taken from CLI
   'mtime'                   => { type => '!', default => 1 },
   # template for the filename taken from CLI
@@ -177,6 +176,13 @@ my $co_rs = {
   'size'    => { type => 'i', default => 640 },
 };
 
+my $co_tw = {
+  'enabled'    => { type => '!', default => 1 },
+  # whether to generate ThumbnailImage
+  'thumb'      => { type => '!', default => 0 },
+  'thumb size' => { type => 's', default => '160x120' },
+};
+
 my $config_opts = {
   'aggregation'     => $co_aggr,
   'contact sheet'   => $co_cs,
@@ -184,6 +190,7 @@ my $config_opts = {
   'keywords'        => $co_kw,
   'picasa'          => $co_pc,
   'resize'          => $co_rs,
+  'tagwriter'       => $co_tw,
 };
 
 ########################################################################################
@@ -200,11 +207,9 @@ my $countStep = 1;	# Step for counter
 my $dryRun = 0;		# show what would have been happened
 my @excludeList = ();	# files that will be excluded from list
 my $extToProcess = '';	# the extension of files to work with
-my $gen_thm = 0;	# to not to generate ThumbnailImage if empty
 
 my $noRename = 0;	# no rename needed, default is to rename to the YYYYmmddHHMMSS.ext
 my $noRotation = 0;	# no rotation needed, default is to rotate
-my $noTags = 0;		# no tags writing needed
 my $noRenRoTagMtm = 0;	# no rename, no rotate, no tag and no mtime have to be done
 my $orientTag = 0;	# rotate by changing Orientation tag (no real rotation)
 my $quiet = 0;		# suppressing messages
@@ -324,12 +329,16 @@ sub getOptions {
   # For 'resize'
   my $s_rs_opts;
 
+  # For 'tagwriter'
+  my %h_tw_opts;
+
   my $ll_opts = {
     'aggregation'   => { 's' => \$s_aggr_opts, 'h' => \%h_aggr_opts },
     'contact sheet' => { 's' => \$s_cs_opts,   'h' => \%h_cs_opts },
     'keywords'      => { 's' => \$s_kw_opts,   'h' => \%h_kw_opts },
     'picasa'        => { 's' => \$s_pc_opts,   'h' => undef },
     'resize'        => { 's' => \$s_rs_opts,   'h' => undef },
+    'tagwriter'     => { 's' => undef,         'h' => \%h_tw_opts },
   };
 
   GetOptions (
@@ -399,8 +408,8 @@ sub getOptions {
 
       # TAG WRITER
       "comment-file=s"       => \$comfile,
-      "generate-thumb|g"     => \$gen_thm,
-      "no-tags|notags"       => \$noTags,
+      "generate-thumb|g"     => \$h_tw_opts{'thumb'},
+      "tags!"                => \$h_tw_opts{'enabled'},
       "tag|t=s"              => \@tmpTags,
       "user-comment=s"       => \$userComment,
 
@@ -450,11 +459,9 @@ sub getOptions {
   ldbg3("--dry-run: ", bool2str($dryRun)) if (defined $dryRun);
   ldbg3("--exclude:\n", join("\n", @excludeList)) if (scalar(@excludeList) > 0);
   ldbg3("--extension: '$extToProcess'");
-  ldbg3("--generate-thumb: ", bool2str($gen_thm));
 
   ldbg3("--no-rename: ", bool2str($noRename),
     "   --no-rotate: ", bool2str($noRotation),
-    "   --no-tags: ", bool2str($noTags),
     "   --no-renrot: ", bool2str($noRenRoTagMtm));
   ldbg3("--only-orientation: ", bool2str($orientTag));
   ldbg3("--rotate-angle: $rotateAngle") if (defined $rotateAngle);
@@ -474,7 +481,8 @@ sub getOptions {
   }
 
   if ($noRenRoTagMtm != 0) {
-    $noRename = $noRotation = $noTags = 1;
+    $noRename = $noRotation = 1;
+    update_cfg_value($config_opts->{'tagwriter'}{'enabled'}, 0);
     update_cfg_value($config_opts->{'general'}{'mtime'}, 0);
   }
 
@@ -484,7 +492,7 @@ sub getOptions {
   } elsif (get_cfg_value($co_cs, 'enabled') == 1) {
     errmsg ("To use --contact-sheet related functionality you need Image::Magick package!\n",
             "Contact Sheet generation disabled.\n");
-  } elsif ($gen_thm != 0) {
+  } elsif (get_cfg_value($co_tw, 'thumb') == 1) {
     errmsg ("To use --generate-thumb functionality you need Image::Magick package!\n",
             "ThumbnailImage generation is disabled.\n");
   }
@@ -650,7 +658,9 @@ sub renRotProcess {
     saveOurHdrs($exifToolObj, $info, $file);
 
     # Writing tags.
-    tagWriter($exifToolObj, $newFileName, ($gen_thm and not defined ${$$info{ThumbnailImage}})) if ($noTags == 0);
+    tagWriter($exifToolObj, $newFileName,
+              (get_cfg_value($co_tw, 'thumb') == 1 and not defined ${$$info{ThumbnailImage}})
+    ) if (get_cfg_value($co_tw, 'enabled') == 1);
 
     # seting mtime for the file if been asked for
     mtimeSet($exifToolObj, $info, $newFileName);
@@ -1007,7 +1017,7 @@ sub contactSheetGenerator {
         }
       } else {
         my $ffwf = File::Spec->catfile($workdir, $file);
-        if ($gen_thm == 0) {
+        if (get_cfg_value($co_tw, 'thumb') == 0) {
           warnmsg ("$filefull has no ThumbnailImage tag. Stub thumbnail image will be used.\n");
           my $thmbstubjpg = File::Spec->catfile($workdir, "thmbstub.jpg");
           thm_gen_stub($thmbstubjpg) if (not -f $thmbstubjpg);
@@ -1259,7 +1269,7 @@ sub contactSheetGenerator {
 # See Also   : contactSheetGenerator();
 sub thm_gen_stub {
   my $thm_name = shift;
-  my $size = get_cfg_value($co_g, 'generate thumbnail size');
+  my $size = get_cfg_value($co_tw, 'thumb size');
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
@@ -1304,7 +1314,7 @@ sub thm_gen_orig {
   my $file = shift;
   my $unlink = shift;
   my $thm_name = "thm_" . $file;
-  my $size = get_cfg_value($co_g, 'generate thumbnail size');
+  my $size = get_cfg_value($co_tw, 'thumb size');
   my $thmb = Image::Magick->new;
 
   $thmb->Set(size => $size, filename => $thm_name, quality => 95, interlace => 'Partition');
