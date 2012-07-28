@@ -368,7 +368,6 @@ sub getOptions {
 
       # GENERAL
       "mtime!"               => \$h_g_opts{'mtime'},
-      "name-template|n=s"    => \$h_g_opts{'name template'},
       "trim!"                => \$h_g_opts{'trim'},
       "use-color!"           => \$h_g_opts{'use color'},
       "use-ipc!"             => \$h_g_opts{'use ipc'},
@@ -389,6 +388,7 @@ sub getOptions {
       "counter-fixed-field!" => \$countFF,
       "counter-start=i"      => \$countStart,
       "counter-step=i"       => \$countStep,
+      "name-template|n=s"    => \$h_g_opts{'name template'},
       "no-rename|norename"   => \$noRename,
 
       # ROTATIMG
