@@ -13,6 +13,7 @@ etc/colors.conf                          Colorization scheme
 etc/copyright.tag                        Text to put to Copyright tag
 etc/renrot.conf                          Sample of configuration file
 etc/tags.conf                            Strings to fill appropriate tags
+lib/Image/RenRot/TimeUtil.pm
 lib/Image/RenRot/Util.pm
 lib/Image/RenRot/Config.pm
 lib/Image/RenRot/Logging.pm

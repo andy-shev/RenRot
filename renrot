@@ -13,8 +13,6 @@ use warnings;
 use diagnostics;
 require 5.006;
 use Pod::Usage;
-use Time::localtime;
-use Time::Local;
 use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
@@ -30,6 +28,7 @@ BEGIN {
 use Image::RenRot::Util;
 use Image::RenRot::Logging;
 use Image::RenRot::Config;
+use Image::RenRot::TimeUtil;
 
 # perl 5.8.x memory overflow workaround (perl5.8.1-8 which uses it's own malloc)
 my $mem_trouble_stub = " "x4_000_000; undef $mem_trouble_stub;
@@ -210,7 +209,7 @@ my $isThereIM = 0;	# is there Image::Magick package?
 #
 my %tags = (
   'RenRotProcessingTimestamp' => {
-    value => timeNow(),
+    value => now(),
     group => 'RenRot',
   },
   'RenRotVersion' => {
@@ -750,7 +749,7 @@ sub renameFile {
   my $counterSize = shift;
   my $angleSuffix = shift;
   my $newFileName;
-  my $unixTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+  my $unixTime = get_unix_time(getTimestamp($exifToolObj, $infoObj));
 
   if ($noRename != 0) {
     dbgmsg (2, "No renaming asked, filename is left untouched.\n");
@@ -874,7 +873,7 @@ sub mtimeSet {
   my $infoObj = shift;
   my $file = shift;
   if (get_cfg_value($co_g, 'mtime') != 0) {
-    my $mTime = getUnixTime(getTimestamp($exifToolObj, $infoObj));
+    my $mTime = get_unix_time(getTimestamp($exifToolObj, $infoObj));
     if ($dryRun == 0) { utime $mTime, $mTime, $file; }
     else { procmsg ("Setting mtime.\n"); }
     dbgmsg (2, "Changing mtime for $file OK.\n");
@@ -1504,54 +1503,9 @@ sub aggregateFile {
 }
 
 ########################################################################################
-# Usage      : timeNow();
-# Purpose    : builds timestamp in form YYYYmmddHHMMSS
-# Returns    : string
-# Parameters : none
-# Throws     : no exceptions
-# Comments   : none
-# See Also   : n/a
-sub timeNow {
-  my $date = localtime();
-  my $time_now = sprintf("%.4d%.2d%.2d%.2d%.2d%.2d",
-      $$date[5] + 1900, $$date[4] + 1, $$date[3],
-      $$date[2], $$date[1], $$date[0]);
-  return $time_now;
-}
-
-########################################################################################
-#
-# timeValidator() returns correctness of timestamp in form YYYYmmddHHMMSS
-#
-sub timeValidator {
-  my $timestamp = shift;
-
-  # check length (14)
-  return 1 if (length($timestamp) != 14);
-
-  my @tm = ($timestamp =~ m/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
-  return 1 unless @tm == 6;
-  dbgmsg (4, "@tm\n");
-
-  if (
-      # check year
-      ($tm[0] < 1900) or
-      # check month
-      (($tm[1] > 12) or ($tm[1] < 1)) or
-      # check day
-      (($tm[2] > 31) or ($tm[2] < 1)) or
-      # check hour, minute, second
-      ($tm[3] > 23) or ($tm[4] > 59) or ($tm[5] > 59)
-     ) {
-    return 1;
-  }
-  return 0;
-}
-
-########################################################################################
 #
 # getTimestamp() returns EXIF timestamp in form YYYYmmddHHMMSS if exists, otherwise
-# it returns timeNow()
+# it returns Image::RenRot::TimeUtil->now()
 #
 sub getTimestamp {
   my $exifToolObj = shift;
@@ -1559,30 +1513,17 @@ sub getTimestamp {
 
   my $timestamp;
 
-  if (defined $infoObj->{"DateTimeOriginal"} and not timeValidator($infoObj->{"DateTimeOriginal"})) {
+  if (defined $infoObj->{"DateTimeOriginal"} and not time_validator($infoObj->{"DateTimeOriginal"})) {
     $timestamp = $infoObj->{"DateTimeOriginal"};
   }
-  elsif (defined $infoObj->{"FileModifyDate"} and not timeValidator($infoObj->{"FileModifyDate"})) {
+  elsif (defined $infoObj->{"FileModifyDate"} and not time_validator($infoObj->{"FileModifyDate"})) {
     $timestamp = $infoObj->{"FileModifyDate"};
   } else {
-    $timestamp = timeNow();
+    $timestamp = now();
     $exifToolObj->SetNewValue('FileModifyDate', $timestamp, Group => 'File');
     warnmsg ("EXIF timestamp isn't correct, using current time!\n");
   }
   return $timestamp;
-}
-
-########################################################################################
-#
-# getUnixTime() converts timestamp to unix time form
-#
-sub getUnixTime {
-  my $timestamp = shift;
-  my @tm = ($timestamp =~ m/(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)/);
-  $tm[0] -= 1900;     # convert year
-  $tm[1] -= 1;        # convert month
-  @tm = reverse @tm;  # change to order required by timelocal()
-  return Time::Local::timelocal(@tm);
 }
 
 ########################################################################################
