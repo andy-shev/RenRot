@@ -301,8 +301,6 @@ sub die_renrot {
 # Comments   : none
 # See Also   : Getopt::Long GetOptions()
 sub getOptions {
-  my $showVersion = 0;  # need version
-  my $showHelp = 0;     # need help
   my @tmpTags = ();
 
   # For 'aggregation'
@@ -326,7 +324,7 @@ sub getOptions {
     'keywords'      => { 's' => \$s_kw_opts,   'h' => \%h_kw_opts },
   };
 
-  my $getOptions = GetOptions (
+  GetOptions (
       # AGGREGATION
       "aggr-opts=s"       => \$s_aggr_opts,
       "aggr-delta=i"      => \$h_aggr_opts{'delta'},
@@ -384,7 +382,7 @@ sub getOptions {
       "exclude=s"            => \@excludeList,
       "extension|e=s"        => \$extToProcess,
       "generate-thumb|g"     => \$gen_thm,
-      "help|?"               => \$showHelp,
+      "help|?"               => sub { usage(0, 2) },
       "no-rename|norename"   => \$noRename,
       "no-rotate|norotate"   => \$noRotation,
       "no-tags|notags"       => \$noTags,
@@ -397,9 +395,9 @@ sub getOptions {
       "tag|t=s"              => \@tmpTags,
       "user-comment=s"       => \$userComment,
       "v+"                   => \$verbose,
-      "version"              => \$showVersion,
+      "version"              => sub { usage(0, 0) },
       "work-directory|d=s"   => \$workDir,
-  );
+  ) or usage(1, 1);
 
   # Set the verbosity first
   Image::RenRot::Logging->set(Quiet => $quiet,
@@ -447,16 +445,6 @@ sub getOptions {
   ldbg3("--work-directory: $workDir");
   ldbg3("ARGV:\n", join("\n", @ARGV)) if ($fileCount > 0);
 
-  if ($showHelp != 0) {
-    usage();
-    exit 0;
-  }
-
-  if ($showVersion != 0) {
-    infomsg ("RenRot version $VERSION (r$REVISION)\n");
-    exit 0;
-  }
-
   if ($extToProcess eq "" and ($fileCount == 0) and $subFileSet eq "") {
     fatalmsg ("Extension of files is required!\n");
     exit 1;
@@ -464,11 +452,6 @@ sub getOptions {
 
   if ($extToProcess ne "" and ($fileCount != 0)) {
     warnmsg ("Extension of files will be ignored!\n");
-  }
-
-  if ($getOptions == 0) {
-    usage();
-    exit 1;
   }
 
   if ($noRenRoTagMtm != 0) {
@@ -1575,15 +1558,12 @@ sub rotateThumbnail {
 # usage() prints the instructions how to use the script
 #
 sub usage {
-  # catch warnings if we have problems running perldoc
-  my $evalWarning;
-  local $SIG{'__WARN__'} = sub { $evalWarning = $_[0] };
-  my $dummy = \*SAVEERR;  # avoid "used only once" warning
-  unless ($^O eq 'os2') {
-    open SAVEERR, ">&STDERR";
-    open STDERR, '>/dev/null';
-  }
-  if (system('perldoc', $0)) {
+  my $exitcode = shift;
+  my $verbose = shift;
+
+  if ($verbose == 0) {
+    infomsg ("RenRot version $VERSION (r$REVISION)\n");
+  } elsif ($verbose == 1) {
     infomsg (
 "Usage: renrot <--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
           [--name-template TPL] [--comment-file FILE] [--work-directory DIR]
@@ -1618,11 +1598,10 @@ or '--no-mtime' disables setting it.
 Consult the documentation for a full list of options.
 
 ");
+  } elsif ($verbose == 2) {
+    pod2usage(-verbose => 2);
   }
-  unless ($^O eq 'os2') {
-    close STDERR;
-    open STDERR, '>&SAVEERR';
-  }
+  exit $exitcode;
 }
 
 ########################################################################################
