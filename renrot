@@ -16,6 +16,7 @@ use Pod::Usage;
 use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
+use File::Basename;
 
 # add our 'lib' directory to the include list
 my $exeDir;
@@ -1378,7 +1379,7 @@ sub normalize_color {
 sub aggregateFile {
   my $file = shift;
   my $new_dir = shift;
-  my $base_name = (File::Spec->splitpath($file))[2];
+  my $base_name = basename($file);
 
   makedir($new_dir);
 
