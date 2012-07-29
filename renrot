@@ -746,9 +746,6 @@ sub renameFile {
     $newFileName = $file;
     $filenameshash{$newFileName} = $unixTime;
   } else {
-    my $ext = ($file =~ m/(\.[^\.]+)$/) ? $1 : "";
-    my $extLen = length($ext);
-
     $newFileName = template2name (
         $exifToolObj,
         $infoObj,
@@ -759,11 +756,11 @@ sub renameFile {
         $angleSuffix
     );
 
-    if ($filenameshash{$newFileName . $ext}) {
-      $newFileName .= "." . sprintf($counterSize, $fileCounter) . $ext;
-    } else {
-      $newFileName .= $ext;
-    }
+    my $ext = "." . (splitext($file))[1];
+
+    $newFileName .= "." . sprintf($counterSize, $fileCounter) if ($filenameshash{$newFileName . $ext});
+
+    $newFileName .= $ext;
 
     $filenameshash{$newFileName} = $unixTime;
 
@@ -1633,15 +1630,6 @@ sub template2name {
   my $fileName = shift;
   my $counterSize = shift;
   my $angleSuffix = shift;
-  my ($base, $ext); # file name %n and extension %e
-
-  if ($fileName =~ m/^(.*)\.([^\.]+)$/) {
-    $base = $1;
-    $ext = $2;
-  } else {
-    $base = $fileName;
-    $ext = '';
-  }
 
   if (not defined $template) {
     fatalmsg ("Template isn't given!\n"), die_renrot();
@@ -1658,7 +1646,6 @@ sub template2name {
   my $WhiteBalance = "";
   my $fileNameOriginal = "";
   my $fileNameOriginalCounter = "";		# we can not use 0 as default value
-  my $fileNameOriginalExtensionLess = "";
 
   if (defined $infoObj->{"FileNumber"}) {
     $FileNumber = $infoObj->{"FileNumber"};
@@ -1695,9 +1682,8 @@ sub template2name {
   if ($fileNameOriginal =~ m/^[[:alpha:]\-_]*(\d+)(\.[^\.]+)?$/) {
     $fileNameOriginalCounter = $1;
   }
-  if ($fileNameOriginal =~ m/^(.*)\.([^\.]+)$/) {
-    $fileNameOriginalExtensionLess = $1;
-  }
+
+  my ($base, $ext) = splitext($fileName); # file name %n and extension %e
 
   my @templatearea = split (//, $template);
   my %templatehash = (
@@ -1716,7 +1702,7 @@ sub template2name {
       'M' => $tm[5],
       'm' => $tm[2],
       'n' => $base,
-      'O' => $fileNameOriginalExtensionLess,
+      'O' => (splitext($fileNameOriginal))[0],
       'o' => $fileNameOriginal,
       'S' => $tm[6],
       'W' => $WhiteBalance,

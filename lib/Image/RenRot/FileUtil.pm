@@ -15,7 +15,7 @@ use Image::RenRot::Logging;
 use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
-@EXPORT = qw(makedir);
+@EXPORT = qw(makedir splitext);
 
 ########################################################################################
 #
@@ -148,6 +148,13 @@ sub piper {
   unless (close(READ_FROM_FH)) { warnmsg ("READ handle wasn't closed!\n"); };
 
   return join("", @piped_arr);
+}
+
+sub splitext {
+  my $filename = shift;
+
+  return ($1, $2) if ($filename =~ m/(.*)\.([^\/\.]+)$/);
+  return ($filename, "");
 }
 
 ########################################################################################
