@@ -1547,11 +1547,11 @@ sub rotateThumbnail {
 #
 sub usage {
   my $exitcode = shift;
-  my $verbose = shift;
+  my $v = shift;
 
-  if ($verbose == 0) {
+  if ($v == 0) {
     infomsg ("RenRot version $VERSION (r$REVISION)\n");
-  } elsif ($verbose == 1) {
+  } elsif ($v == 1) {
     infomsg (
 "Usage: renrot <--extension EXTENSION> [--quiet] [--no-rotate] [--no-rename]
           [--name-template TPL] [--comment-file FILE] [--work-directory DIR]
@@ -1586,7 +1586,7 @@ or '--no-mtime' disables setting it.
 Consult the documentation for a full list of options.
 
 ");
-  } elsif ($verbose == 2) {
+  } elsif ($v == 2) {
     pod2usage(-verbose => 2);
   }
   exit $exitcode;
