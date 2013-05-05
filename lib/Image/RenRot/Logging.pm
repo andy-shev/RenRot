@@ -26,8 +26,7 @@ use vars qw(@ISA @EXPORT);
 @EXPORT = qw(procmsg infomsg warnmsg errmsg fatalmsg dbgmsg ldbg3 ldbg3opts);
 
 my %options = (
-  Quiet     => 0, # suppressing messages
-  Verbose   => 0, # verbosity of output
+  Verbose   => 0, # verbosity of output, -1 means to suppress messages
   UseColor  => 0, # whether use color output
 );
 
@@ -88,7 +87,7 @@ sub do_print {
 
 # general processing message
 sub procmsg {
-  do_print('process', @_) if ($options{Quiet} == 0);
+  do_print('process', @_) if ($options{Verbose} >= 0);
 }
 
 # information message

@@ -407,8 +407,7 @@ sub getOptions {
   ) or usage(1, 1);
 
   # Set the verbosity first
-  Image::RenRot::Logging->set(Quiet => $quiet,
-                              Verbose => $verbose);
+  Image::RenRot::Logging->set(Verbose => $quiet ? -1 : $verbose);
 
   my $fileCount = scalar(@ARGV);
 
