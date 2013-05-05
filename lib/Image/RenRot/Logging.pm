@@ -23,7 +23,7 @@ use Image::RenRot::Util;
 use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
-@EXPORT = qw(procmsg infomsg warnmsg errmsg fatalmsg dbgmsg ldbg3 ldbg3opts);
+@EXPORT = qw(procmsg infomsg warnmsg errmsg fatalmsg dbgmsg ldbg3 ldbg3opts die_renrot);
 
 my %options = (
   Verbose   => 0, # verbosity of output, -1 means to suppress messages
@@ -160,6 +160,22 @@ sub ldbg3opts {
       ldbg3("--> '$option $k': $value (default: $default)");
     }
   }
+}
+
+########################################################################################
+# Usage      : die_renrot()
+# Purpose    : dies differently depend on verbose level
+# Returns    : nothing
+# Parameters : error message
+# Throws     : no exceptions
+# Comments   : pretty output when die with verbose level is zero
+# See Also   : n/a
+sub die_renrot {
+  fatalmsg (@_);
+  if ($options{Verbose} > 0) {
+    die("Fatal");
+  }
+  exit 127;
 }
 
 ########################################################################################

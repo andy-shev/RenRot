@@ -49,7 +49,7 @@ my $homeURL = 'http://puszcza.gnu.org.ua/projects/renrot/';   # homepage of the 
 # added to mark the file as processed with RenRot.
 #
 if (%Image::ExifTool::UserDefined::RenRot) {
-  fatalmsg ("Won't redefine Image::ExifTool::UserDefined::RenRot.\n"), die_renrot();
+  die_renrot("Won't redefine Image::ExifTool::UserDefined::RenRot.\n");
 }
 
 %Image::ExifTool::UserDefined::RenRot = (
@@ -273,21 +273,6 @@ my @multOpts = (
 
 my @files = ();		# array of the sorted filenames to process
 my %filenameshash = ();	# hash for old file names
-
-########################################################################################
-# Usage      : die_renrot()
-# Purpose    : dies differently depend on verbose level
-# Returns    : nothing
-# Parameters : nothing
-# Throws     : no exceptions
-# Comments   : pretty output when die with verbose level is zero
-# See Also   : n/a
-sub die_renrot {
-  if ($verbose > 0) {
-    die("Fatal");
-  }
-  exit 127;
-}
 
 ########################################################################################
 ###                         GETTINNG OPTIONS FROM CLI                                ###
@@ -765,10 +750,10 @@ sub renameFile {
 
     if ($file ne $newFileName) {
       if (-f $newFileName) {
-        fatalmsg ("File $newFileName already exists!\n"), die_renrot();
+        die_renrot("File $newFileName already exists!\n");
       }
       if ($dryRun == 0) {
-        rename ($file, $newFileName) || ( fatalmsg ("Unable to rename $file -> $newFileName.\n"), die_renrot() );
+        rename ($file, $newFileName) || die_renrot("Unable to rename $file -> $newFileName.\n");
       }
       procmsg ("Renamed: $file -> $newFileName\n");
     } else { warnmsg ("No renaming needed for $newFileName, it looks as needed!\n"); }
@@ -964,7 +949,7 @@ sub contactSheetGenerator {
         # in current
         $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
         if ($dryRun == 0) {
-          copy ($file, $ThumbnailOriginal) || ( fatalmsg ("copy failed: $!"), die_renrot() );
+          copy ($file, $ThumbnailOriginal) || die_renrot("copy failed: $!");
         }
         $filefull = $ThumbnailOriginal;
       }
@@ -972,7 +957,7 @@ sub contactSheetGenerator {
       if (defined ${$$info{ThumbnailImage}}) {
         $ThumbnailOriginal = File::Spec->catfile($workdir, $file);
         if ($dryRun == 0) {
-          open (OLDTHUMBNAIL, ">$ThumbnailOriginal") || ( fatalmsg ("$ThumbnailOriginal wasn't opened!\n"), die_renrot() );
+          open (OLDTHUMBNAIL, ">$ThumbnailOriginal") || die_renrot("$ThumbnailOriginal wasn't opened!\n");
           binmode OLDTHUMBNAIL;
           print OLDTHUMBNAIL ${$$info{ThumbnailImage}};
           unless (close (OLDTHUMBNAIL)) { warnmsg ("$ThumbnailOriginal wasn't closed!\n"); }
@@ -1381,14 +1366,14 @@ sub aggregateFile {
 
   if (get_cfg_value($co_aggr, 'virtual') == 0) {
     my $newname = File::Spec->catfile($new_dir, $base_name);
-    rename ($file, $newname) || ( fatalmsg ("While moving $file -> $newname, perhaps a different file system is using\n"), die_renrot() );
+    rename ($file, $newname) || die_renrot("While moving $file -> $newname, perhaps a different file system is using\n");
     dbgmsg (3, "$file moved to $newname\n");
   } else {
     my $newfile = File::Spec->catfile(File::Spec->abs2rel($new_dir), $base_name);
     if (not -l $newfile) {
       # Make relative path to original file from new directory
       my $oldfile = File::Spec->catfile(File::Spec->abs2rel(File::Spec->curdir(), $new_dir), $file);
-      symlink ($oldfile, $newfile) || ( fatalmsg ("While linking $oldfile -> $newfile\n"), die_renrot() );
+      symlink ($oldfile, $newfile) || die_renrot("While linking $oldfile -> $newfile\n");
       dbgmsg (3, "Following link was created $newfile -> $oldfile\n");
     } else {
       warnmsg ("Link $newfile already exists.\n");
@@ -1463,7 +1448,7 @@ sub rotateImg {
   dbgmsg (3, "$cmd\n");
 
   if ($dryRun == 0) {
-    system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+    system $cmd || die_renrot("System $cmd failed: $?\n");
   }
 
   # preparing to write tags to the just rotated file
@@ -1474,9 +1459,9 @@ sub rotateImg {
 
   if ($dryRun == 0) {
     if ($backup != 0) {
-      rename ($oldfile, $origfile) || ( fatalmsg ("$oldfile -> $origfile\n"), die_renrot() );
+      rename ($oldfile, $origfile) || die_renrot("$oldfile -> $origfile\n");
     }
-    rename ($newfile, $oldfile)  || ( fatalmsg ("$newfile -> $oldfile\n"), die_renrot() );
+    rename ($newfile, $oldfile) || die_renrot("$newfile -> $oldfile\n");
   }
 
   procmsg ("$oldfile was rotated\n");
@@ -1537,16 +1522,16 @@ sub rotateThumbnail {
     dbgmsg (3, "$cmd\n");
 
     if ($dryRun == 0) {
-      system $cmd || ( fatalmsg ("System $cmd failed: $?\n"), die_renrot() );
+      system $cmd || die_renrot("System $cmd failed: $?\n");
     }
 
     # write the just rotated thumbnail back to file
     thumbWriter($file, Image::RenRot::FileUtil->getFileData($ThumbnailOriginalRotated));
 
     if ($dryRun == 0) {
-      unlink ($ThumbnailOriginalRotated) || ( fatalmsg ("While killing $ThumbnailOriginalRotated.\n"), die_renrot() );
+      unlink ($ThumbnailOriginalRotated) || die_renrot("While killing $ThumbnailOriginalRotated.\n");
     }
-    unlink ($ThumbnailOriginal) || ( fatalmsg ("While killing $ThumbnailOriginal.\n"), die_renrot() );
+    unlink ($ThumbnailOriginal) || die_renrot("While killing $ThumbnailOriginal.\n");
   } else {
     my $cmd = "jpegtran -copy none @addon";
     dbgmsg (3, "$cmd\n");
@@ -1631,7 +1616,7 @@ sub template2name {
   my $angleSuffix = shift;
 
   if (not defined $template) {
-    fatalmsg ("Template isn't given!\n"), die_renrot();
+    die_renrot("Template isn't given!\n");
   }
 
   my $timestamp = getTimestamp($exifToolObj, $infoObj);
@@ -1773,7 +1758,7 @@ my $exiftoolVerbose = ($verbose > $maxVerbosity) ? ($verbose - $maxVerbosity) : 
 my $exifTool = new Image::ExifTool;
 $exifTool->Options(Binary => 1, Unknown => 1, DateFormat => '%Y%m%d%H%M%S', Verbose => $exiftoolVerbose);
 
-chdir ($workDir) || ( fatalmsg ("Can't enter to $workDir!\n"), die_renrot() );
+chdir ($workDir) || die_renrot("Can't enter to $workDir!\n");
 
 if ($subFileSet eq "") {
   # All things in ARGV will be treated as file names to process
