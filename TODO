@@ -1,39 +1,36 @@
 TODO SEMANTICS
 
 -	not yet
-+-	partialy done
-+	already done
++	partialy done
 ?	needs to be checked
 q	optional feature
 
 
 BUGS
 
--  make possible to use same EXIF tags in different groups
+-  make possible to use the same EXIF tag names in the different groups
 
 
 EXIF tags
 
-q  to write to some tag the options passed to renrot
+q  to write the options passed to renrot to a tag
 
-+- to implement %t in name template, where the array of desired tags will be
++  to implement %t in name template, where the array of desired tags will be
    inited
 
 
 PLUGINS
 
--  plugin interface implementation (EXIF data transfer variant)
+-  plugin interface implementation (EXIF data transfer variant?)
 
 -  print some text on image (i.e. date and timestamp) [guess perl-GD will be
-   optional requrement]
+   optional requrement] (+ watermarks)
 
 -  special effects (thumbnail layering over the image e.t.c.)
 
 -  jpgfromraw
 
-+-  index page (from thumbnailimages)
-
--  shrinking e.t.c.
++  index page (from thumbnailimages)
 
 -  image hystogramm creation
 
@@ -43,14 +40,12 @@ q  split EXIF -> xml, to extract EXIF data from file original to the separate
 
 Performance
 
--  to implement --no-rename option ...
+-  decrease disk IO operations wherever it's possible
 
--  decrease disk IO operations as possible
-
-+-  to implement possibility to work with other formats, which use EXIF
++  to implement possibility to work with other formats, which use EXIF
    mechanism (conversions by ImageMagick and/or netpbm as well as jpegtran)
 
-+- implement aggregation option (to aggregate large bundle of files according
++  implement aggregation option (to aggregate large bundle of files according
    the different time intervals, perhaps with some kind of euristics for
    analyzing the bigest time interval between shots)
 
@@ -93,9 +88,9 @@ q  to implement progress indicator or spinning indicator
 
 Code
 
-+- to review the code to optimize it where it's possible.
++  to review the code to optimize it where it's possible.
 
-+-  to tune style look of comments, code, e.t.c.
++  to tune style look of the comments, code, e.t.c.
 
 -  Find way to update ChangeLog in automatic manner
 
