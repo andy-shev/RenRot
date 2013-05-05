@@ -5,7 +5,7 @@
 #
 
 # Analyze crash in third-party modules
-# (Receipt has been taken from http://ilya-dogolazky.livejournal.com/15061.html)
+# (Recipe has been borrowed from http://ilya-dogolazky.livejournal.com/15061.html)
 BEGIN { $| = 1; $SIG{__DIE__} = sub { use Carp; confess $_[0] . 'Aborted' } }
 
 use strict;
