@@ -1,6 +1,7 @@
 * 1.2.0 *
 The option --keywordize was renamed to --keywords. The behaviour of --dry-run
-option is fixed (there are bugs #539346 in Debian and #322623 in Ubuntu).
+option is fixed (there are bugs #539346 in Debian and #322623 in Ubuntu). The
+command line framework now understands a new kind of the option string.
 
 
 * 1.1.0 *
