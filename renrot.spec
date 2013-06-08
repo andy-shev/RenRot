@@ -2,7 +2,7 @@
 %define dotrc	%{nil}
 
 Name:		renrot
-Version:	1.1.0
+Version:	1.2.0
 Release:	3%{?dotrc}%{?dist}
 License:	Artistic 2.0
 Group:		Applications/Multimedia
