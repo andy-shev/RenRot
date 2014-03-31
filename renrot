@@ -17,6 +17,7 @@ use Image::ExifTool;
 use Getopt::Long;
 use File::Spec;
 use File::Basename;
+use File::Path;
 
 # add our 'lib' directory to the include list
 my $exeDir;
@@ -753,6 +754,11 @@ sub renameFile {
         die_renrot("File $newFileName already exists!\n");
       }
       if ($dryRun == 0) {
+        my $newDirName = dirname($newFileName);
+        if ( ! -d $newDirName )
+        {
+          mkpath ($newDirName);
+        }
         rename ($file, $newFileName) || die_renrot("Unable to rename $file -> $newFileName.\n");
       }
       procmsg ("Renamed: $file -> $newFileName\n");
