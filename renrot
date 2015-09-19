@@ -503,6 +503,7 @@ sub parseConfig {
     push (@homeRC, File::Spec->catfile($home, ".renrotrc"));
     push (@homeRC, File::Spec->catfile($home, ".renrot", ".renrotrc"));
     push (@homeRC, File::Spec->catfile($home, ".renrot", "renrot.conf"));
+    push (@homeRC, File::Spec->catfile($home, ".config", "renrot", "renrot.conf"));
   } else {
     warnmsg ("User's home environment variable isn't defined or empty!\n");
   }
